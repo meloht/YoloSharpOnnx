@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="YoloSharpOnnx.ConsoleApp/YoloSharpOnnx.ConsoleApp.csproj" />
+  <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj" />
+</Solution>
