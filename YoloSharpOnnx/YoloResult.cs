@@ -4,7 +4,12 @@ using System.Text;
 
 namespace YoloSharpOnnx
 {
-    internal class YoloResult
+    public class YoloResult<T>(T[] items) where T : IYoloPrediction<T>
     {
+        public T[] Items { get; } = items;
+
+        public SpeedResult SpeedResult { get; set; }
+
+        public override string ToString() => T.Describe(Items);
     }
 }

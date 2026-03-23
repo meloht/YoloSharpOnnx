@@ -5,12 +5,12 @@ using System.Text;
 
 namespace YoloSharpOnnx
 {
-    public struct DetectionResult
+    public struct DetectionResult: IYoloPrediction<DetectionResult>
     {
-        public Rect Box { get; set; }
-        public float Confidence { get; set; }
-        public int ClassId { get; set; }
-        public string ClassName { get; set; }
+        public Rect Box { get;  }
+        public float Confidence { get;  }
+        public int ClassId { get;  }
+        public string ClassName { get;  }
 
         public DetectionResult(Rect box, float confidence, int classId, string className)
         {
@@ -19,5 +19,7 @@ namespace YoloSharpOnnx
             ClassId = classId;
             ClassName = className;
         }
+
+        static string IYoloPrediction<DetectionResult>.Describe(DetectionResult[] predictions) => predictions.Summary();
     }
 }
