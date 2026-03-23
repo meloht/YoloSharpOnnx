@@ -7,17 +7,48 @@ namespace YoloSharpOnnx
 {
     public class YoloSharp : IDisposable
     {
-        private IExecutionProvider _executionProvider;
-        public InterpolationFlags ResizeAlgorithm { get; set; } = InterpolationFlags.Linear;
+        private IYoloDetect _yoloDetect;
+       
+        public YoloConfiguration YoloConfiguration { get; set; }
+
+        public YoloSharp(YoloConfiguration yoloConfig, IExecutionProvider executionProvider)
+        {
+            YoloConfiguration = yoloConfig;
+            _yoloDetect = executionProvider.CreateYoloDetect();
+        }
 
         public YoloSharp(IExecutionProvider executionProvider)
         {
-            _executionProvider = executionProvider;
+            YoloConfiguration = YoloConfiguration.Default;
+            _yoloDetect = executionProvider.CreateYoloDetect();
+        }
+
+        public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
+        {
+            YoloConfiguration = new YoloConfiguration(confidence, iou);
+            _yoloDetect = executionProvider.CreateYoloDetect();
+        }
+
+        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
+        {
+            YoloConfiguration = new YoloConfiguration(confidence, iou, resizeAlgorithm);
+            _yoloDetect = executionProvider.CreateYoloDetect();
+        }
+
+        public List<DetectionResult> RunDetect(string path)
+        {
+
+            using (Mat img = Cv2.ImRead(path))
+            {
+                return _yoloDetect.Run(img, YoloConfiguration);
+            }
+           
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _yoloDetect?.Dispose();
+
         }
     }
 }

@@ -1,4 +1,12 @@
 <Solution>
-  <Project Path="YoloSharpOnnx.ConsoleApp/YoloSharpOnnx.ConsoleApp.csproj" />
-  <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj" />
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="YoloSharpOnnx.ConsoleApp/YoloSharpOnnx.ConsoleApp.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+  <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
 </Solution>
