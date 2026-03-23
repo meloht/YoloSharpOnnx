@@ -46,8 +46,7 @@ namespace YoloSharpOnnx
             }
             else
             {
-                options = new SessionOptions();
-                options.AppendExecutionProvider_CUDA(DeviceId);
+                options = SessionOptions.MakeSessionOptionWithCudaProvider(DeviceId);
             }
 
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;

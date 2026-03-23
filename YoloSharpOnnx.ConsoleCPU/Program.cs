@@ -1,4 +1,4 @@
-﻿namespace YoloSharpOnnx.ConsoleApp
+﻿namespace YoloSharpOnnx.ConsoleCPU
 {
     internal class Program
     {
