@@ -18,24 +18,7 @@ namespace YoloSharpOnnx
 
         }
 
-        private void Preprocess(Mat image, float ratio, float[] data, int inputWidth, int inputHeight, InterpolationFlags resizeAlgorithm)
-        {
-            // 1. Preprocessing (Letterbox)
-            int newWidth = (int)(image.Width * ratio);
-            int newHeight = (int)(image.Height * ratio);
-
-            using var resized = new Mat();
-            Cv2.Resize(image, resized, new OpenCvSharp.Size(newWidth, newHeight), interpolation: resizeAlgorithm);
-
-            using var canvas = new Mat(new OpenCvSharp.Size(inputWidth, inputHeight), MatType.CV_8UC3, _paddingColor);
-            resized.CopyTo(new Mat(canvas, new Rect(0, 0, newWidth, newHeight)));
-
-            // 2. 归一化并转换为 Tensor (HWC -> CHW)
-            GetChwArr(canvas, data);
-        }
-
-
-        public List<DetectionResult> PostProcess(OrtValue outputValue, float threshold, float ratio)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, float threshold, float scale, int padx, int pady)
         {
             var detections = new List<DetectionResult>();
 
@@ -60,10 +43,10 @@ namespace YoloSharpOnnx
 
                 // 3. 提取坐标并还原到原始图像尺寸
                 // 注意：YOLOv26 默认输出通常是 [x1, y1, x2, y2]
-                float x1 = data[offset + 0] / ratio;
-                float y1 = data[offset + 1] / ratio;
-                float x2 = data[offset + 2] / ratio;
-                float y2 = data[offset + 3] / ratio;
+                float x1 = data[offset + 0] / scale;
+                float y1 = data[offset + 1] / scale;
+                float x2 = data[offset + 2] / scale;
+                float y2 = data[offset + 3] / scale;
 
                 int labelId = (int)data[offset + 5];
 
@@ -88,19 +71,16 @@ namespace YoloSharpOnnx
 
         public List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig)
         {
-            float[] data = _inputBuffer;
-            float ratio = Math.Min((float)_inputWidth / inputImage.Width, (float)_inputHeight / inputImage.Height);
-
-            Preprocess(inputImage, ratio, data, _inputWidth, _inputHeight, yoloConfig.ResizeAlgorithm);
+            var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
             // 3. 推理
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(data, _inputShape);
+            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _inputShape);
 
 
-            using var results = _session.Run(_runOptions, [_inputName], [inputOrtValue], _session.OutputNames);
+            using var results = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
             using var output0 = results[0];
 
             // 4. 后处理 (YOLO26 直接输出 [1, 300, 6])
-            return PostProcess(output0, yoloConfig.Confidence, ratio);
+            return PostProcess(output0, yoloConfig.Confidence, preRes.Scale, preRes.PadX, preRes.PadY);
         }
 
         public YoloResult<DetectionResult> RunDetect(Mat inputImage, YoloConfiguration yoloConfig)
@@ -108,19 +88,16 @@ namespace YoloSharpOnnx
             SpeedResult speed = new SpeedResult();
             _stopwatch.Restart();
 
-            float[] data = _inputBuffer;
-            float ratio = Math.Min((float)_inputWidth / inputImage.Width, (float)_inputHeight / inputImage.Height);
-
             //1 预处理
-            Preprocess(inputImage, ratio, data, _inputWidth, _inputHeight, yoloConfig.ResizeAlgorithm);
+            var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
 
             // 2. 推理
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(data, _inputShape);
-            using var results = _session.Run(_runOptions, [_inputName], [inputOrtValue], _session.OutputNames);
+            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _inputShape);
+            using var results = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
             using var output0 = results[0];
 
             _stopwatch.Stop();
@@ -128,7 +105,7 @@ namespace YoloSharpOnnx
             _stopwatch.Restart();
 
             // 3. 后处理 (YOLO26 直接输出 [1, 300, 6])
-            var res = PostProcess(output0, yoloConfig.Confidence, ratio);
+            var res = PostProcess(output0, yoloConfig.Confidence, preRes.Scale, preRes.PadX, preRes.PadY);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;

@@ -8,13 +8,15 @@ namespace YoloSharpOnnx.Models
     {
         public float[] OutData { get; set; }
 
-        public int TopPad { get; set; }
-        public int LeftPad { get; set; }
-        public PreResult(float[] outData, int topPad, int leftPad)
+        public int PadY { get; set; }
+        public int PadX { get; set; }
+        public float Scale { get; set; }
+        public PreResult(float[] outData, int padY, int padX, float scale)
         {
             OutData = outData;
-            TopPad = topPad;
-            LeftPad = leftPad;
+            PadY = padY;
+            PadX = padX;
+            Scale = scale;
         }
     }
 }

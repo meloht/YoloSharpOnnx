@@ -9,7 +9,9 @@
   <Project Path="YoloSharpOnnx.ConsoleDirectML/YoloSharpOnnx.ConsoleDirectML.csproj" Id="55e36b8c-ce3c-420c-9396-0c1bee5358d0">
     <Platform Solution="Debug|x64" Project="x64" />
   </Project>
-  <Project Path="YoloSharpOnnx.ConsoleGPU/YoloSharpOnnx.ConsoleGPU.csproj" Id="abf6b715-508b-4ad8-9886-1b66e0abf4fb" />
+  <Project Path="YoloSharpOnnx.ConsoleGPU/YoloSharpOnnx.ConsoleGPU.csproj" Id="abf6b715-508b-4ad8-9886-1b66e0abf4fb">
+    <Platform Solution="Debug|x64" Project="x64" />
+  </Project>
   <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
