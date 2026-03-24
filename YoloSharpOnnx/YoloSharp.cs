@@ -9,7 +9,7 @@ namespace YoloSharpOnnx
     public class YoloSharp : IDisposable
     {
         private IYoloDetect _yoloDetect;
-       
+
         public YoloConfiguration YoloConfiguration { get; set; }
 
         public YoloSharp(YoloConfiguration yoloConfig, IExecutionProvider executionProvider)
@@ -50,6 +50,11 @@ namespace YoloSharpOnnx
             {
                 return _yoloDetect.RunDetect(img, YoloConfiguration);
             }
+        }
+
+        public void DrawDetections(Mat inputImage, List<DetectionResult> list)
+        {
+            _yoloDetect.DrawDetections(inputImage, list);
         }
 
         public void Dispose()
