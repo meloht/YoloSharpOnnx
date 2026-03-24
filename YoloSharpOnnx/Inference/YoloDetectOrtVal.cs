@@ -41,7 +41,7 @@ namespace YoloSharpOnnx.Inference
             return result;
         }
 
-        public YoloResult<DetectionResult> RunDetect(Mat inputImage, YoloConfiguration yoloConfig)
+        public YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfiguration yoloConfig)
         {
 
             SpeedResult speed = new SpeedResult();

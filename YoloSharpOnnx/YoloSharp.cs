@@ -44,11 +44,11 @@ namespace YoloSharpOnnx
             }
         }
 
-        public YoloResult<DetectionResult> RunDetectWithTime(string path)
+        public YoloResult<DetectionResult> RunWithTime(string path)
         {
             using (Mat img = Cv2.ImRead(path))
             {
-                return _yoloDetect.RunDetect(img, YoloConfiguration);
+                return _yoloDetect.RunWithTime(img, YoloConfiguration);
             }
         }
 
@@ -60,7 +60,6 @@ namespace YoloSharpOnnx
         public void Dispose()
         {
             _yoloDetect?.Dispose();
-
         }
     }
 }

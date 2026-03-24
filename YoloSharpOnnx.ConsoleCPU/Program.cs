@@ -52,7 +52,7 @@
                     if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
                     {
 
-                        var res = yolo.RunDetectWithTime(item.FullName);
+                        var res = yolo.RunWithTime(item.FullName);
 
                         Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
                     }

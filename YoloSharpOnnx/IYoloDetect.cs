@@ -10,7 +10,7 @@ namespace YoloSharpOnnx
     {
         List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig);
 
-        YoloResult<DetectionResult> RunDetect(Mat inputImage, YoloConfiguration yoloConfig);
+        YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfiguration yoloConfig);
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
 
