@@ -1,14 +1,23 @@
 ﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
+using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
 {
-    public class ExecutionProvider
+    public abstract class ExecutionProvider
     {
+        private const string End2End = "end2end";
+        private const string OnnxNames = "names";
+
         public string ModelPath { get; set; }
 
+        public abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel);
 
         public ExecutionProvider(string modelPath)
         {
@@ -19,22 +28,86 @@ namespace YoloSharpOnnx
         {
             InferenceSession session = new InferenceSession(ModelPath, options);
 
+            OnnxModel onnxModel = ParseOnnxModel(session);
+
+            var postprocess = GetPostprocessor(onnxModel);
+
+            return GetYoloDetector(session, options, postprocess, onnxModel);
+        }
+
+        private IPostprocess GetPostprocessor(OnnxModel onnxModel)
+        {
+            if (onnxModel.IsEndToEnd)
+            {
+                return new PostprocessEndToEnd(onnxModel.Labels);
+            }
+            return new PostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+        }
+
+        protected OnnxModel ParseOnnxModel(InferenceSession session)
+        {
+            OnnxModel model = new OnnxModel();
+
+            model.InputName = session.InputNames[0];
+            model.OutputName = session.OutputNames[0];
+
+            var inputMeta = session.InputMetadata;
+            var outputMeta = session.OutputMetadata;
+
+            model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
+            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName].Dimensions, Convert.ToInt64);
+
+            model.InputHeight = (int)model.InputShape[2];
+            model.InputWidth = (int)model.InputShape[3];
+
+            model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
+
+            model.Labels = GetModelLabels(session);
+            model.ColorPalette = GenerateColorPalette(model.Labels.Length);
+
             var metaData = session.ModelMetadata.CustomMetadataMap;
 
             bool isEndToEnd = false;
-            if (metaData.ContainsKey("end2end"))
+            if (metaData.ContainsKey(End2End))
             {
-                isEndToEnd = bool.Parse(metaData["end2end"]);
+                isEndToEnd = bool.Parse(metaData[End2End]);
             }
+            model.IsEndToEnd = isEndToEnd;
 
-            if (isEndToEnd)
+            model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+
+            return model;
+        }
+
+        protected LabelModel[] GetModelLabels(InferenceSession session)
+        {
+            var metaData = session.ModelMetadata.CustomMetadataMap;
+            var onnxLabelData = metaData[OnnxNames];
+            // Labels to Dictionary
+            var onnxLabels = onnxLabelData
+                .Trim('{', '}')
+                .Replace("'", "")
+                .Split(", ")
+                .Select(x => x.Split(": "))
+                .ToDictionary(x => int.Parse(x[0]), x => x[1]);
+
+            return [.. onnxLabels!.Select((label, index) => new LabelModel
             {
-                return new YoloDetectEndToEnd(session, options);
-            }
-            else
+                Index = index,
+                Name = label.Value,
+            })];
+        }
+
+        protected Scalar[] GenerateColorPalette(int count)
+        {
+            var rng = new Random();
+            var palette = new Scalar[count];
+            var colors = ColorTemplate.Get();
+            for (int i = 0; i < count; i++)
             {
-                return new YoloDetectNMS(session, options);
+                palette[i] = ColorTemplate.HexToRgbaScalar(colors[i % count]);
             }
+            return palette;
         }
     }
 }

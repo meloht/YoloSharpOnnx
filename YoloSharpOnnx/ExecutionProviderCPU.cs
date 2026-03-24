@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
 {
@@ -18,6 +20,11 @@ namespace YoloSharpOnnx
             sessionOptions.EnableCpuMemArena = true;
 
             return BuildInferenceSession(sessionOptions);
+        }
+
+        public override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        {
+            return new YoloDetectOrtVal(session, options, postprocess, onnxModel);
         }
     }
 }

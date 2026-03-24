@@ -6,14 +6,16 @@ namespace YoloSharpOnnx.Models
 {
     public struct PreResult
     {
-        public float[] OutData { get; set; }
+        public int ImageHeight { get; set; }
+        public int ImageWidth { get; set; }
 
         public int PadY { get; set; }
         public int PadX { get; set; }
         public float Scale { get; set; }
-        public PreResult(float[] outData, int padY, int padX, float scale)
+        public PreResult(int imageHeight, int imageWidth, int padY, int padX, float scale)
         {
-            OutData = outData;
+            ImageHeight = imageHeight;
+            ImageWidth = imageWidth;
             PadY = padY;
             PadX = padX;
             Scale = scale;

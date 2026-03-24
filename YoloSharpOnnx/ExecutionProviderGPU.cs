@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Models;
 using static System.Collections.Specialized.BitVector32;
 
 namespace YoloSharpOnnx
@@ -53,6 +55,11 @@ namespace YoloSharpOnnx
             options.EnableCpuMemArena = true;
 
             return BuildInferenceSession(options);
+        }
+
+        public override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        {
+            return new YoloDetectIoBinding(session, options, postprocess, onnxModel);
         }
     }
 }
