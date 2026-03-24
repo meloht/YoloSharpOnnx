@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace YoloSharpOnnx
+namespace YoloSharpOnnx.DataResult
 {
     public interface IYoloPrediction<T>
     {
-        internal abstract static string Describe(T[] predictResults);
+        internal abstract static string Describe(List<T> predictResults);
     }
 }

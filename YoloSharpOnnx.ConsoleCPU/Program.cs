@@ -5,7 +5,7 @@
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            TestInfer();
+            TestInferPerf();
         }
 
         private static void TestInfer()
@@ -27,8 +27,34 @@
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = Utils.GetResult(res);
+                        string ans = YoloUtils.GetResult(res);
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
+                    }
+                }
+            }
+
+        }
+
+        private static void TestInferPerf()
+        {
+            string modelPath = @"D:\code\model\best.onnx";
+            string dir = @"E:\Hp\ai-image\images\LTR_Mono_2_to_doubleCheck";
+
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
+            {
+                foreach (var item in files)
+                {
+                    string filePath = item.Extension.ToLower();
+                    if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
+                    {
+
+                        var res = yolo.RunDetectWithTime(item.FullName);
+
+                        Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
                     }
                 }
             }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -53,7 +54,7 @@ namespace YoloSharpOnnx
             int padH = (inputHeight - newImgH) / 2; // 上下填充的一半
 
             // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
-            using Mat resizedImg = rgbImg;
+            using Mat resizedImg = new Mat();
             if (imgW != newImgW || imgH != newImgH)
             {
                 Cv2.Resize(rgbImg, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
@@ -195,6 +196,40 @@ namespace YoloSharpOnnx
 
 
             return result;
+        }
+
+        public YoloResult<DetectionResult> RunDetect(Mat inputImage, YoloConfiguration yoloConfig)
+        {
+
+            SpeedResult speed = new SpeedResult();
+            _stopwatch.Restart();
+
+            // 预处理图像
+            var imgData = Preprocess(inputImage, _inputBuffer, _inputHeight, _inputWidth, yoloConfig.ResizeAlgorithm);
+
+            _stopwatch.Stop();
+            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(imgData.OutData, _inputShape);
+            using var runOptions = new RunOptions();
+            // 执行推理
+            using var outputs = _session.Run(runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+
+            // 后处理
+            var res = Postprocess(inputImage.Height, inputImage.Width, output0.GetTensorDataAsSpan<float>(), imgData.TopPad, imgData.LeftPad, yoloConfig);
+
+            _stopwatch.Stop();
+            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
+            speed.SumTotal();
+
+            return new YoloResult<DetectionResult>(res, speed);
         }
     }
 }

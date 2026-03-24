@@ -26,7 +26,7 @@
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = Utils.GetResult(res);
+                        string ans = YoloUtils.GetResult(res);
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }

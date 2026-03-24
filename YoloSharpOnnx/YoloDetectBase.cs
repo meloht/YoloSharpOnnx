@@ -3,8 +3,10 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -31,9 +33,11 @@ namespace YoloSharpOnnx
 
         protected readonly long _inputShapeSize;
 
+        protected readonly Stopwatch _stopwatch;
 
         public YoloDetectBase(InferenceSession session, SessionOptions options)
         {
+            _stopwatch = new Stopwatch();
             this._session = session;
             this._options = options;
             _runOptions = new RunOptions();

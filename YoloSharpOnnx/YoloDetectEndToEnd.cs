@@ -2,7 +2,9 @@
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -65,7 +67,7 @@ namespace YoloSharpOnnx
 
                 int labelId = (int)data[offset + 5];
 
-                detections.Add(new DetectionResult
+                detections.Add(new DetectionResult()
                 {
                     Box = new Rect((int)x1, (int)y1, (int)(x2 - x1), (int)(y2 - y1)),
                     Confidence = confidence,
@@ -99,6 +101,40 @@ namespace YoloSharpOnnx
 
             // 4. 后处理 (YOLO26 直接输出 [1, 300, 6])
             return PostProcess(output0, yoloConfig.Confidence, ratio);
+        }
+
+        public YoloResult<DetectionResult> RunDetect(Mat inputImage, YoloConfiguration yoloConfig)
+        {
+            SpeedResult speed = new SpeedResult();
+            _stopwatch.Restart();
+
+            float[] data = _inputBuffer;
+            float ratio = Math.Min((float)_inputWidth / inputImage.Width, (float)_inputHeight / inputImage.Height);
+
+            //1 预处理
+            Preprocess(inputImage, ratio, data, _inputWidth, _inputHeight, yoloConfig.ResizeAlgorithm);
+
+            _stopwatch.Stop();
+            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            // 2. 推理
+            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(data, _inputShape);
+            using var results = _session.Run(_runOptions, [_inputName], [inputOrtValue], _session.OutputNames);
+            using var output0 = results[0];
+
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            // 3. 后处理 (YOLO26 直接输出 [1, 300, 6])
+            var res = PostProcess(output0, yoloConfig.Confidence, ratio);
+
+            _stopwatch.Stop();
+            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
+            speed.SumTotal();
+
+            return new YoloResult<DetectionResult>(res, speed);
         }
     }
 }

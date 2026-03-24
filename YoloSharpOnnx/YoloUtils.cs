@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx
 {
-    public class Utils
+    public class YoloUtils
     {
         public static string GetResult(List<DetectionResult> list)
         {

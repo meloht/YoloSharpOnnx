@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx
 {
@@ -37,12 +38,18 @@ namespace YoloSharpOnnx
 
         public List<DetectionResult> RunDetect(string path)
         {
-
             using (Mat img = Cv2.ImRead(path))
             {
                 return _yoloDetect.Run(img, YoloConfiguration);
             }
-           
+        }
+
+        public YoloResult<DetectionResult> RunDetectWithTime(string path)
+        {
+            using (Mat img = Cv2.ImRead(path))
+            {
+                return _yoloDetect.RunDetect(img, YoloConfiguration);
+            }
         }
 
         public void Dispose()
