@@ -75,7 +75,7 @@ namespace YoloSharpOnnx.Inference
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = Preprocess(inputImage, yoloConfig.ResizeAlgorithm);
             PopulateNativeBuffer(_inputNativeAllocation.Handle, _inputBuffer);
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);

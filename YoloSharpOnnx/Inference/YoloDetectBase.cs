@@ -1,6 +1,7 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace YoloSharpOnnx.Inference
 {
@@ -36,6 +38,7 @@ namespace YoloSharpOnnx.Inference
             _inputBuffer = new float[_onnxModel.InputShapeSize];
             _postprocess = postprocess;
         }
+
 
 
         protected PreResult Preprocess(Mat inputImage, float[] data, InterpolationFlags interpolationFlags)
@@ -90,6 +93,42 @@ namespace YoloSharpOnnx.Inference
             // 添加批次维度 (1, 3, H, W)
             return new PreResult(imgH, imgW, padH, padW, scale);
         }
+
+        protected PreResult Preprocess(Mat inputImage, InterpolationFlags interpolationFlags)
+        {
+            // BGR转RGB
+            using Mat rgbImg = new Mat();
+
+            Cv2.CvtColor(inputImage, rgbImg, ColorConversionCodes.BGR2RGB);
+            // 1. 获取原始图像尺寸
+            int imgH = inputImage.Height;
+            int imgW = inputImage.Width;
+
+            // 2. 计算缩放比例（按最小比例缩放，避免图像畸变）
+            float scale = Math.Min((float)_onnxModel.InputHeight / imgH, (float)_onnxModel.InputWidth / imgW);
+
+            // 3. 计算缩放后的尺寸（确保按比例缩放）
+            int newImgW = (int)Math.Round(imgW * scale);
+            int newImgH = (int)Math.Round(imgH * scale);
+
+            // 4. 计算填充值（左右填充、上下填充，确保最终尺寸=1280×1280）
+            int padW = (_onnxModel.InputWidth - newImgW) / 2; // 左右填充的一半
+            int padH = (_onnxModel.InputHeight - newImgH) / 2; // 上下填充的一半
+
+            // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
+            using var resizedImg = new Mat();
+            Cv2.Resize(rgbImg, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
+
+            using var canvas = new Mat(new OpenCvSharp.Size(_onnxModel.InputWidth, _onnxModel.InputHeight), MatType.CV_8UC3, _paddingColor);
+            resizedImg.CopyTo(canvas[new Rect(padW, padH, newImgW, newImgH)]);
+
+            GetChwArr(canvas, _inputBuffer);
+
+            // 添加批次维度 (1, 3, H, W)
+            return new PreResult(imgH, imgW, padH, padW, scale);
+        }
+
+
         public void GetChwArr(Mat paddedImg, float[] data)
         {
             int height = paddedImg.Height;
@@ -107,6 +146,11 @@ namespace YoloSharpOnnx.Inference
                     }
                 }
             }
+        }
+
+        protected void PreprocessBatch()
+        {
+
         }
 
         protected LabelModel[] GetModelLabels(InferenceSession session)

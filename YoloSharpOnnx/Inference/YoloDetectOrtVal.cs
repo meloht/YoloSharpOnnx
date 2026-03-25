@@ -13,8 +13,6 @@ namespace YoloSharpOnnx.Inference
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
            : base(session, options, postprocess, onnxModel)
         {
-
-
         }
 
         public void Dispose()
@@ -72,5 +70,7 @@ namespace YoloSharpOnnx.Inference
 
             return new YoloResult<DetectionResult>(res, speed);
         }
+
+      
     }
 }
