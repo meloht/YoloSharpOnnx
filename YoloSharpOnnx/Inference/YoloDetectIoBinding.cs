@@ -16,8 +16,6 @@ namespace YoloSharpOnnx.Inference
         private OrtValue _inputOrtValue;
         private readonly OrtSafeMemoryHandle _inputNativeAllocation;
 
-
-
         public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
           : base(session, options, postprocess, onnxModel)
         {

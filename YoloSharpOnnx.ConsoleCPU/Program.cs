@@ -11,7 +11,7 @@
         private static void TestInfer()
         {
             string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"E:\Hp\ai-image\images\LTR_Mono_2_to_doubleCheck";
+            string dir = @"D:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
@@ -38,7 +38,7 @@
         private static void TestInferPerf()
         {
             string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"E:\Hp\ai-image\images\LTR_Mono_2_to_doubleCheck";
+            string dir = @"D:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
@@ -52,7 +52,7 @@
                     if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
                     {
 
-                        var res = yolo.RunWithTime(item.FullName);
+                        var res = yolo.RunDetectWithTime(item.FullName);
 
                         Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
                     }

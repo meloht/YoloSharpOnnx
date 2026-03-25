@@ -44,7 +44,7 @@ namespace YoloSharpOnnx
             }
         }
 
-        public YoloResult<DetectionResult> RunWithTime(string path)
+        public YoloResult<DetectionResult> RunDetectWithTime(string path)
         {
             using (Mat img = Cv2.ImRead(path))
             {
