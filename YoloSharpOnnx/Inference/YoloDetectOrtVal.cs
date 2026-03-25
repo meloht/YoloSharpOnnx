@@ -30,10 +30,8 @@ namespace YoloSharpOnnx.Inference
             var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
 
             using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _onnxModel.InputShape);
-
-            using var runOptions = new RunOptions();
             // 执行推理
-            using var outputs = _session.Run(runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
 
             // 后处理
@@ -55,9 +53,9 @@ namespace YoloSharpOnnx.Inference
             _stopwatch.Restart();
 
             using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _onnxModel.InputShape);
-            using var runOptions = new RunOptions();
+
             // 执行推理
-            using var outputs = _session.Run(runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
 
             _stopwatch.Stop();

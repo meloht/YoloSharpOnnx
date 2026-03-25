@@ -61,6 +61,7 @@ namespace YoloSharpOnnx
             model.InputWidth = (int)model.InputShape[3];
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
+            model.OutputShapeSize= ShapeUtils.GetSizeForShape(model.OutputShape);
 
             model.Labels = GetModelLabels(session);
             model.ColorPalette = GenerateColorPalette(model.Labels.Length);

@@ -17,6 +17,7 @@ namespace YoloSharpOnnx.Models
         public long[] InputShape { get; set; }
         public long[] OutputShape { get; set; }
         public long InputShapeSize { get; set; }
+        public long OutputShapeSize { get; set; }
         public LabelModel[] Labels { get; set; }
 
         public bool IsEndToEnd { get; set; }
