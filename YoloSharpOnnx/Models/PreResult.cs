@@ -8,7 +8,6 @@ namespace YoloSharpOnnx.Models
     {
         public int ImageHeight { get; set; }
         public int ImageWidth { get; set; }
-
         public int PadY { get; set; }
         public int PadX { get; set; }
         public float Scale { get; set; }
@@ -20,5 +19,6 @@ namespace YoloSharpOnnx.Models
             PadX = padX;
             Scale = scale;
         }
+
     }
 }

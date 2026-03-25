@@ -5,7 +5,7 @@
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            TestInferPerf();
+            TestInfer();
         }
 
         private static void TestInfer()
@@ -17,6 +17,8 @@
             var files = directory.GetFiles();
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
                 foreach (var item in files)
@@ -32,6 +34,9 @@
                     }
                 }
             }
+            _stopwatchTotal.Stop();
+
+            Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
 
         }
 
@@ -59,6 +64,34 @@
                 }
             }
 
+        }
+
+        private static void TestBatchInfer()
+        {
+            string modelPath = @"D:\code\model\best.onnx";
+            string dir = @"D:\code\model\TestImages";
+
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            _stopwatch.Start();
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
+            {
+                yolo.BatchDetectCompleted += Yolo_BatchDetectCompleted;
+               
+                yolo.RunBatchDetect(dir, 30);
+
+            }
+            _stopwatch.Stop();
+
+            Console.WriteLine($"time:{_stopwatch.Elapsed}");
+        }
+
+        private static void Yolo_BatchDetectCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
+        {
+            string ans = YoloUtils.GetResult(e.Results);
+            Console.WriteLine(ans);
         }
     }
 }

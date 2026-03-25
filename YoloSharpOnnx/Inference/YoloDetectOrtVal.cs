@@ -1,19 +1,23 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IBatchDetect
     {
+
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
            : base(session, options, postprocess, onnxModel)
         {
         }
+
 
         public void Dispose()
         {
@@ -25,7 +29,7 @@ namespace YoloSharpOnnx.Inference
         public List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig)
         {
             // 预处理图像
-            var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
 
             using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _onnxModel.InputShape);
             // 执行推理
@@ -44,7 +48,7 @@ namespace YoloSharpOnnx.Inference
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = Preprocess(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
@@ -71,6 +75,23 @@ namespace YoloSharpOnnx.Inference
             return new YoloResult<DetectionResult>(res, speed);
         }
 
-      
+        public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
+        {
+            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(preRes.Data, _onnxModel.InputShape);
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+            ArrayPool<float>.Shared.Return(preRes.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output0, preRes.PreResult, yoloConfig);
+
+            return result;
+        }
+
+        public void BatchDetect(string[] listImg, int batchSize, YoloConfiguration yoloConfig)
+        {
+            BatchDetectBase(listImg, batchSize, yoloConfig, this);
+        }
+
     }
 }

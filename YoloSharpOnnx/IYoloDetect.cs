@@ -3,16 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
 {
-    public interface IYoloDetect: IDisposable
+    public interface IYoloDetect : IDisposable
     {
         List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig);
 
         YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfiguration yoloConfig);
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
+
+        void BatchDetect(string[] listImg, int batchSize, YoloConfiguration yoloConfig);
+
+        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectCompleted;
 
     }
 }
