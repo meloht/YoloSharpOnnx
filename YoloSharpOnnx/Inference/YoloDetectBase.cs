@@ -187,8 +187,7 @@ namespace YoloSharpOnnx.Inference
             ChannelWriter<PreResultBatch> writer = channel.Writer;
             ChannelReader<PreResultBatch> reader = channel.Reader;
 
-
-            var producer = Task.Run(async () => await PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len));
+            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
 
             var consumer = Task.Run(async () =>
             {
