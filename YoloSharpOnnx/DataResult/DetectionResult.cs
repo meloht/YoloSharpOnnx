@@ -21,5 +21,10 @@ namespace YoloSharpOnnx.DataResult
         }
 
         static string IYoloPrediction<DetectionResult>.Describe(List<DetectionResult> predictions) => predictions.Summary();
+
+        public override string ToString()
+        {
+            return $"{ClassName} {Confidence}";
+        }
     }
 }
