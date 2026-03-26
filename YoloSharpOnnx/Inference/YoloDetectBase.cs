@@ -139,6 +139,7 @@ namespace YoloSharpOnnx.Inference
 
             writer.Complete();
         }
+
         protected async Task<DetectionBatchResult[]> BatchDetectBase(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
         {
             InitChannel(batchPoolSize);
@@ -165,6 +166,8 @@ namespace YoloSharpOnnx.Inference
             await Task.WhenAll(producer, consumer);
             return batchResults;
         }
+
+       
 
         protected LabelModel[] GetModelLabels(InferenceSession session)
         {
