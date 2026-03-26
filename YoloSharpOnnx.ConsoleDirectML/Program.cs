@@ -84,7 +84,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             _stopwatch.Start();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
-                yolo.BatchDetectCompleted += Yolo_BatchDetectCompleted;
+                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
                 yolo.RunBatchDetect(dir, 30);
 

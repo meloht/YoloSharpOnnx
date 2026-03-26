@@ -28,8 +28,11 @@ namespace YoloSharpOnnx.Inference
         protected readonly OnnxModel _onnxModel;
 
         protected readonly Stopwatch _stopwatch;
-        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectCompleted;
+        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectItemCompleted;
 
+        private int _batchPoolSize = 50;
+        private Channel<PreResultBatch> _channel;
+        private readonly object _detectLock = new();
         public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             _onnxModel = onnxModel;
@@ -41,63 +44,26 @@ namespace YoloSharpOnnx.Inference
             _paddingColor = new Scalar(114, 114, 114);
             _inputBuffer = new float[_onnxModel.InputShapeSize];
             _postprocess = postprocess;
+          
         }
 
-
-
-        protected PreResult Preprocess(Mat inputImage, float[] data, InterpolationFlags interpolationFlags)
+        private void InitChannel(int batchPoolSize)
         {
-            // BGR转RGB
-            using Mat rgbImg = new Mat();
-
-            Cv2.CvtColor(inputImage, rgbImg, ColorConversionCodes.BGR2RGB);
-            // 1. 获取原始图像尺寸
-            int imgH = inputImage.Height;
-            int imgW = inputImage.Width;
-
-            // 2. 计算缩放比例（按最小比例缩放，避免图像畸变）
-            float scale = Math.Min((float)_onnxModel.InputHeight / imgH, (float)_onnxModel.InputWidth / imgW);
-
-            // 3. 计算缩放后的尺寸（确保按比例缩放）
-            int newImgW = (int)Math.Round(imgW * scale);
-            int newImgH = (int)Math.Round(imgH * scale);
-
-            // 4. 计算填充值（左右填充、上下填充，确保最终尺寸=1280×1280）
-            int padW = (_onnxModel.InputWidth - newImgW) / 2; // 左右填充的一半
-            int padH = (_onnxModel.InputHeight - newImgH) / 2; // 上下填充的一半
-
-            // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
-            using Mat resizedImg = new Mat();
-            if (imgW != newImgW || imgH != newImgH)
+            lock (_detectLock) 
             {
-                Cv2.Resize(rgbImg, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
+                if (_channel == null)
+                {
+                    _channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
+                    _batchPoolSize = batchPoolSize;
+                    return;
+                }
+                if (batchPoolSize != _batchPoolSize)
+                {
+                    _channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
+                    _batchPoolSize = batchPoolSize;
+                }
             }
-
-            // 6. 填充到 1280×1280（用 114 填充，YOLO 常用默认值）
-            using Mat letterboxImg = new Mat();
-            Cv2.CopyMakeBorder(
-                src: resizedImg,
-                dst: letterboxImg,
-                top: padH,        // 顶部填充
-                bottom: _onnxModel.InputHeight - newImgH - padH, // 底部填充（补全到 1280）
-                left: padW,       // 左侧填充
-                right: _onnxModel.InputWidth - newImgW - padW,  // 右侧填充（补全到 1280）
-                borderType: BorderTypes.Constant,
-                value: _paddingColor // 填充色（BGR 格式）
-            );
-
-            // 关键检查：确保填充后尺寸严格为 1280×1280
-            if (letterboxImg.Rows != _onnxModel.InputHeight || letterboxImg.Cols != _onnxModel.InputWidth)
-            {
-                throw new Exception($"Letterbox size error! expected (1280,1280)，actual ({letterboxImg.Rows},{letterboxImg.Cols})");
-            }
-
-            GetChwArr(letterboxImg, data);
-
-            // 添加批次维度 (1, 3, H, W)
-            return new PreResult(imgH, imgW, padH, padW, scale);
         }
-
         protected PreResult PreprocessImg(Mat inputImage, float[] data, InterpolationFlags interpolationFlags)
         {
             // BGR转RGB
@@ -132,9 +98,6 @@ namespace YoloSharpOnnx.Inference
             return new PreResult(imgH, imgW, padH, padW, scale);
         }
 
-
-
-
         public void GetChwArr(Mat paddedImg, float[] data)
         {
             int height = paddedImg.Height;
@@ -154,10 +117,10 @@ namespace YoloSharpOnnx.Inference
             }
         }
 
-        protected async Task PreprocessBatch(string[] listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer, int len)
+        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer, int len)
         {
             int preprocessWorkers = Environment.ProcessorCount / 2;
-            int size = listImg.Length / preprocessWorkers;
+            int size = listImg.Count / preprocessWorkers;
             var arr = listImg.Chunk(size);
             foreach (string[] subList in arr)
             {
@@ -176,29 +139,29 @@ namespace YoloSharpOnnx.Inference
 
             writer.Complete();
         }
-        protected void BatchDetectBase(string[] listImg, int batchSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
+        protected async Task<DetectionBatchResult[]> BatchDetectBase(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
         {
+            InitChannel(batchPoolSize);
+            int idx = 0;
+            DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
 
             int len = (int)_onnxModel.InputShapeSize;
 
-            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(batchSize);
-
             // Producer/consumer
-            ChannelWriter<PreResultBatch> writer = channel.Writer;
-            ChannelReader<PreResultBatch> reader = channel.Reader;
+            ChannelWriter<PreResultBatch> writer = _channel.Writer;
+            ChannelReader<PreResultBatch> reader = _channel.Reader;
 
-            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
+            await PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
 
-            var consumer = Task.Run(async () =>
+            await foreach (PreResultBatch item in reader.ReadAllAsync())
             {
-                await foreach (PreResultBatch item in reader.ReadAllAsync())
-                {
-                    var result = batchDetect.RunBatchDetect(item, yoloConfig);
-                    BatchDetectCompleted?.Invoke(this, new BatchDetectionResultEventArgs(item.ImagePath, result));
-                }
-            });
+                var result = batchDetect.RunBatchDetect(item, yoloConfig);
+                batchResults[idx++] = new DetectionBatchResult(item.ImagePath, result);
+                BatchDetectItemCompleted?.Invoke(this, new BatchDetectionResultEventArgs(item.ImagePath, result));
+            }
 
-            Task.WaitAll(producer, consumer);
+
+            return batchResults;
         }
 
         protected LabelModel[] GetModelLabels(InferenceSession session)

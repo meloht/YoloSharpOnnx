@@ -14,6 +14,8 @@ namespace YoloSharpOnnx
 
         public InterpolationFlags ResizeAlgorithm { get; set; }
 
+        public string[] ImageExtsBatch { get; set; } = [".jpg", ".png"];
+
         public YoloConfiguration(float confidence, float iou, InterpolationFlags resizeAlgorithm)
         {
             this.Confidence = confidence;

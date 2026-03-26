@@ -15,9 +15,11 @@ namespace YoloSharpOnnx
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
 
-        void BatchDetect(string[] listImg, int batchSize, YoloConfiguration yoloConfig);
+        DetectionBatchResult[] BatchDetect(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig);
 
-        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectCompleted;
+        Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig);
+
+        event EventHandler<BatchDetectionResultEventArgs> BatchDetectItemCompleted;
 
     }
 }

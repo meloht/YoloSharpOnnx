@@ -78,7 +78,7 @@
             _stopwatch.Start();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
-                yolo.BatchDetectCompleted += Yolo_BatchDetectCompleted;
+                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                
                 yolo.RunBatchDetect(dir, 30);
 

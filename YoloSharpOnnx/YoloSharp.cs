@@ -11,7 +11,7 @@ namespace YoloSharpOnnx
     {
         private IYoloDetect _yoloDetect;
 
-        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectCompleted;
+        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectItemCompleted;
 
         public YoloConfiguration YoloConfiguration { get; set; }
 
@@ -41,36 +41,50 @@ namespace YoloSharpOnnx
         private void InitDetector(IExecutionProvider executionProvider)
         {
             _yoloDetect = executionProvider.CreateYoloDetect();
-            _yoloDetect.BatchDetectCompleted += _yoloDetect_BatchDetectCompleted;
+            _yoloDetect.BatchDetectItemCompleted += YoloDetect_BatchDetectItemCompleted;
         }
 
-        public List<DetectionResult> RunDetect(string path)
+        public List<DetectionResult> RunDetect(string imagePath)
         {
-            using (Mat img = Cv2.ImRead(path))
+            ValidationImagePath(imagePath);
+            using (Mat img = Cv2.ImRead(imagePath))
             {
                 return _yoloDetect.Run(img, YoloConfiguration);
             }
         }
 
-        public YoloResult<DetectionResult> RunDetectWithTime(string path)
+        public List<DetectionResult> RunDetect(Mat img)
         {
-            using (Mat img = Cv2.ImRead(path))
+            return _yoloDetect.Run(img, YoloConfiguration);
+        }
+
+        public YoloResult<DetectionResult> RunDetectWithTime(string imagePath)
+        {
+            ValidationImagePath(imagePath);
+            using (Mat img = Cv2.ImRead(imagePath))
             {
                 return _yoloDetect.RunWithTime(img, YoloConfiguration);
             }
         }
-
-        public void RunBatchDetect(string path, int batchSize = 50)
+        public YoloResult<DetectionResult> RunDetectWithTime(Mat img)
         {
-
-            var files = Directory.GetFiles(path);
-
-            _yoloDetect.BatchDetect(files, batchSize, YoloConfiguration);
+            return _yoloDetect.RunWithTime(img, YoloConfiguration);
         }
-
-        private void _yoloDetect_BatchDetectCompleted(object? sender, BatchDetectionResultEventArgs e)
+        public DetectionBatchResult[] RunBatchDetect(string imgDir, int batchPoolSize = 50)
         {
-            BatchDetectCompleted?.Invoke(sender, e);
+            var files = ValidationImageBatch(imgDir, batchPoolSize);
+
+            return _yoloDetect.BatchDetect(files, batchPoolSize, YoloConfiguration);
+        }
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, int batchPoolSize = 50)
+        {
+            var files = ValidationImageBatch(imgDir, batchPoolSize);
+
+            return await _yoloDetect.BatchDetectAsync(files, batchPoolSize, YoloConfiguration);
+        }
+        private void YoloDetect_BatchDetectItemCompleted(object? sender, BatchDetectionResultEventArgs e)
+        {
+            BatchDetectItemCompleted?.Invoke(sender, e);
         }
 
         public void DrawDetections(Mat inputImage, List<DetectionResult> list)
@@ -81,6 +95,46 @@ namespace YoloSharpOnnx
         public void Dispose()
         {
             _yoloDetect?.Dispose();
+        }
+
+        private void ValidationImagePath(string imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath))
+            {
+                throw new ArgumentNullException($"imagePath is null or empty");
+            }
+            if (!File.Exists(imagePath))
+            {
+                throw new DirectoryNotFoundException($"{imagePath} file is not found");
+            }
+            string ext = Path.GetExtension(imagePath);
+            if (YoloConfiguration.ImageExtsBatch.IndexOf(ext) == -1)
+            {
+                throw new ArgumentNullException($"imagePath is not a image for ext({string.Join(',', YoloConfiguration.ImageExtsBatch)})");
+            }
+        }
+
+        private List<string> ValidationImageBatch(string imgDir, int batchSize)
+        {
+            if (string.IsNullOrWhiteSpace(imgDir))
+            {
+                throw new ArgumentNullException($"imgDir is null or empty");
+            }
+            if (!Directory.Exists(imgDir))
+            {
+                throw new DirectoryNotFoundException($"{imgDir} directory not found");
+            }
+            if (batchSize <= 0)
+            {
+                throw new ArgumentNullException("batchSize must be greater than zero");
+            }
+
+            var files = YoloUtils.GetFilesFromDirectory(imgDir, YoloConfiguration.ImageExtsBatch);
+            if (files.Count == 0)
+            {
+                throw new ArgumentNullException($"there no any images in the directory for image ext({string.Join(',', YoloConfiguration.ImageExtsBatch)})");
+            }
+            return files;
         }
     }
 }

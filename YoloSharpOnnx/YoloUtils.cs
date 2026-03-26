@@ -16,5 +16,37 @@ namespace YoloSharpOnnx
             string confs = string.Join(", ", list.Select(p => Math.Round(p.Confidence, 2)));
             return $"{string.Join(", ", dict)} [{confs}]";
         }
+
+
+
+        public static List<string> GetFilesFromDirectory(string path, string[] exts)
+        {
+            List<string> list = new List<string>();
+            HashSet<string> set = new HashSet<string>(exts);
+            GetFiles(list, path, set);
+            return list;
+
+        }
+
+        public static void GetFiles(List<string> list, string path, HashSet<string> extSet)
+        {
+            DirectoryInfo directory = new DirectoryInfo(path);
+            var files = directory.GetFiles();
+
+            foreach (var item in files)
+            {
+                string fileExt = item.Extension.ToLower();
+                if (extSet.Contains(fileExt))
+                {
+                    list.Add(item.FullName);
+                }
+            }
+            var subDirectories = Directory.GetDirectories(path);
+
+            foreach (string subDir in subDirectories)
+            {
+                GetFiles(list, subDir, extSet);
+            }
+        }
     }
 }

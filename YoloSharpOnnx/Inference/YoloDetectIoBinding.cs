@@ -18,7 +18,7 @@ namespace YoloSharpOnnx.Inference
         private OrtValue _inputOrtValue;
         private readonly OrtSafeMemoryHandle _inputNativeAllocation;
 
-      
+
 
         public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
           : base(session, options, postprocess, onnxModel)
@@ -137,10 +137,15 @@ namespace YoloSharpOnnx.Inference
             return result;
         }
 
-        public void BatchDetect(string[] listImg, int batchSize, YoloConfiguration yoloConfig)
+        public DetectionBatchResult[] BatchDetect(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig)
         {
-            BatchDetectBase(listImg, batchSize, yoloConfig, this);
+            var task = BatchDetectBase(listImg, batchPoolSize, yoloConfig, this);
+            return task.GetAwaiter().GetResult();
+        }
 
+        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig)
+        {
+            return await BatchDetectBase(listImg, batchPoolSize, yoloConfig, this); 
         }
     }
 }
