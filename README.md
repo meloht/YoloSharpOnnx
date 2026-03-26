@@ -1,5 +1,5 @@
 # YoloSharpOnnx
-![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f)
+![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![CSharp](https://img.shields.io/badge/log-csharp-blue?logo=dotnet)
 
 🚀a high performance, memory reuse, production-ready C# YOLO library for object detection  base on OpenCV and ONNX Runtime.
 
