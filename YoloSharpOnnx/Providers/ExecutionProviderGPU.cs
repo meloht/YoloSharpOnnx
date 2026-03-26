@@ -6,12 +6,12 @@ using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using static System.Collections.Specialized.BitVector32;
 
-namespace YoloSharpOnnx
+namespace YoloSharpOnnx.Providers
 {
     public class ExecutionProviderGPU : ExecutionProvider, IExecutionProvider
     {
-        public int DeviceId { get; set; }
-        public Dictionary<string, string> ProviderOptionsDict { get; set; } = [];
+        private int _deviceId;
+        private Dictionary<string, string> _providerOptionsDict;
 
 
         public ExecutionProviderGPU(string modelPath) : this(modelPath, 0)
@@ -24,31 +24,31 @@ namespace YoloSharpOnnx
         }
         public ExecutionProviderGPU(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
         {
-            this.DeviceId = deviceId;
-            this.ProviderOptionsDict = providerOptionsDict;
+            this._deviceId = deviceId;
+            this._providerOptionsDict = providerOptionsDict;
 
         }
 
         public IYoloDetect CreateYoloDetect()
         {
             SessionOptions options;
-            if (this.ProviderOptionsDict != null && this.ProviderOptionsDict.Count > 0)
+            if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
             {
-                if (ProviderOptionsDict.ContainsKey("device_id"))
+                if (_providerOptionsDict.ContainsKey("device_id"))
                 {
-                    ProviderOptionsDict["device_id"] = DeviceId.ToString();
+                    _providerOptionsDict["device_id"] = _deviceId.ToString();
                 }
                 else
                 {
-                    ProviderOptionsDict.Add("device_id", DeviceId.ToString());
+                    _providerOptionsDict.Add("device_id", _deviceId.ToString());
                 }
                 var cudaProviderOptions = new OrtCUDAProviderOptions();
-                cudaProviderOptions.UpdateOptions(ProviderOptionsDict);
+                cudaProviderOptions.UpdateOptions(_providerOptionsDict);
                 options = SessionOptions.MakeSessionOptionWithCudaProvider(cudaProviderOptions);
             }
             else
             {
-                options = SessionOptions.MakeSessionOptionWithCudaProvider(DeviceId);
+                options = SessionOptions.MakeSessionOptionWithCudaProvider(_deviceId);
             }
 
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;

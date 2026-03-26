@@ -8,7 +8,7 @@ using System.Text;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx
+namespace YoloSharpOnnx.Providers
 {
     public abstract class ExecutionProvider
     {

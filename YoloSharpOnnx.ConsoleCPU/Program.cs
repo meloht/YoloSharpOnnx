@@ -1,4 +1,6 @@
-﻿namespace YoloSharpOnnx.ConsoleCPU
+﻿using YoloSharpOnnx.Providers;
+
+namespace YoloSharpOnnx.ConsoleCPU
 {
     internal class Program
     {

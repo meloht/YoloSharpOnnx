@@ -1,4 +1,6 @@
-﻿namespace YoloSharpOnnx.ConsoleGPU
+﻿using YoloSharpOnnx.Providers;
+
+namespace YoloSharpOnnx.ConsoleGPU
 {
     internal class Program
     {

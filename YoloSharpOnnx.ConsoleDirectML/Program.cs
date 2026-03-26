@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using YoloSharpOnnx.Providers;
 
 namespace YoloSharpOnnx.ConsoleDirectML
 {

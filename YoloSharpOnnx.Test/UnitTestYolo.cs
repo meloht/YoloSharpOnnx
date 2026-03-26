@@ -1,4 +1,6 @@
-﻿namespace YoloSharpOnnx.Test
+﻿using YoloSharpOnnx.Providers;
+
+namespace YoloSharpOnnx.Test
 {
     public class UnitTestYolo
     {
