@@ -12,9 +12,9 @@ namespace YoloSharpOnnx.Test
         {
             string imgPath = GetImagePath(path);
             string model = GetModelPath("yolo11n.onnx");
-            using YoloSharp _yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
-            var res = _yolo.RunDetect(imgPath);
+            var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
             Assert.Equal(boxs, ans);
         }
@@ -26,9 +26,9 @@ namespace YoloSharpOnnx.Test
         {
             string imgPath = GetImagePath(path);
             string model = GetModelPath("yolov8n.onnx");
-            using YoloSharp _yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
-            var res = _yolo.RunDetect(imgPath);
+            var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
             Assert.Equal(boxs, ans);
         }
@@ -40,9 +40,9 @@ namespace YoloSharpOnnx.Test
         {
             string imgPath = GetImagePath(path);
             string model = GetModelPath("yolo26s.onnx");
-            using YoloSharp _yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
-            var res = _yolo.RunDetect(imgPath);
+            var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
             Assert.Equal(boxs, ans);
         }

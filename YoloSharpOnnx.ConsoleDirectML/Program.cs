@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using OpenCvSharp;
+using System.Threading.Channels;
 using YoloSharpOnnx.Providers;
 
 namespace YoloSharpOnnx.ConsoleDirectML
@@ -13,7 +14,6 @@ namespace YoloSharpOnnx.ConsoleDirectML
             TestBatchInfer();
             //TestInfer();
 
-            Console.ReadKey();
         }
 
         private static void TestInfer()

@@ -1,1 +1,134 @@
 # YoloSharpOnnx
+![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f)
+🚀a high performance, memory reuse, production-ready C# YOLO library for object detection  base on OpenCV and ONNX Runtime.
+
+# Features
+ - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect) 
+ - **Execution Provider** CPU, CUDA / TensorRT, CoreML, DirectML
+ - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
+ - **Image Processing** OpenCvSharp4
+ - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11) ,[YOLO26](https://docs.ultralytics.com/models/yolo26)
+
+
+# Usage
+
+### 1. Export model to ONNX format:
+
+For convert the pre-trained PyTorch model to ONNX format, run the following Python code:
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO('path/to/best.pt')
+
+# Export the model to ONNX format
+model.export(format='onnx')
+```
+
+### 2. Load the ONNX model with C#:
+
+Add the `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
+
+CPU Inference
+```shell
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime
+```
+
+GPU Inference
+```shell
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
+```
+
+DirectML Inference
+```shell
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime.DirectML
+```
+
+Use the following C# code to load the model and run basic prediction:
+
+```csharp
+
+using Mat image = Cv2.ImRead("bus.jpg");
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
+
+List<DetectionResult> res = yolo.RunDetect(image);
+yolo.DrawDetections(image,res);
+
+string printString = YoloUtils.GetResult(res);
+Console.WriteLine(printString)
+
+```
+
+YoloSharpOnnx performance testing api
+
+```csharp
+
+using Mat image = Cv2.ImRead("bus.jpg");
+     
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML("yolo11n.onnx",1));
+var res = yolo.RunDetectWithTime(item.FullName);
+
+Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+
+```
+
+Config 
+```csharp
+using Mat image = Cv2.ImRead("bus.jpg");
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
+ yolo.YoloConfiguration.IoU = 0.4f;
+ yolo.YoloConfiguration.Confidence = 0.3f;
+ yolo.YoloConfiguration.ResizeAlgorithm = InterpolationFlags.Linear;
+ yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
+var res = yolo.RunDetect(image);
+```
+
+Batch processing images
+
+```csharp
+ private static void TestBatchInfer()
+ {
+     string modelPath = @"D:\code\model\best.onnx";
+     string dir = @"D:\code\model\TestImages";
+
+     DirectoryInfo directory = new DirectoryInfo(dir);
+     var files = directory.GetFiles();
+
+     System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+     _stopwatch.Start();
+     using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+     {
+         yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
+
+         var list = yolo.RunBatchDetect(dir, 30);
+
+     }
+     _stopwatch.Stop();
+
+     Console.WriteLine($"time:{_stopwatch.Elapsed}");
+ }
+
+ private static void Yolo_BatchDetectItemCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
+ {
+     string ans = YoloUtils.GetResult(e.Results);
+     Console.WriteLine(ans);
+ }
+
+```
+
+# Roadmap
+
+| Time  | Feature |
+| ------------- | ------------- |
+| 2026-10  | Yolo task Image Classification  |
+| 2026-11  | Yolo task Instance Segmentation  |
+| 2026-11  | Yolo task Pose Estimation  |
+| 2026-12  | Yolo task OBB  |
+  
