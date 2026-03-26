@@ -34,12 +34,12 @@ namespace YoloSharpOnnx.Test
         }
 
         [Theory]
-        [InlineData("bus.jpg", "1 person [0.53]")]
-        [InlineData("zidane.jpg", "")]
+        [InlineData("bus.jpg", "1 bus, 4 person [0.93, 0.92, 0.9, 0.86, 0.53]")]
+        [InlineData("zidane.jpg", "2 person, 1 tie [0.92, 0.9, 0.53]")]
         public void TestDetectYolo26(string path, string boxs)
         {
             string imgPath = GetImagePath(path);
-            string model = GetModelPath("yolo26s.onnx");
+            string model = GetModelPath("yolo26n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
             var res = yolo.RunDetect(imgPath);
