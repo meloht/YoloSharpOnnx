@@ -14,6 +14,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             TestBatchInfer();
             //TestInfer();
 
+            Console.ReadKey();
+
         }
 
         private static void TestInfer()
@@ -83,6 +85,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
+            int num=files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
@@ -92,7 +95,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             }
             _stopwatch.Stop();
 
-            Console.WriteLine($"time:{_stopwatch.Elapsed}");
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
 
         private static void Yolo_BatchDetectCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
