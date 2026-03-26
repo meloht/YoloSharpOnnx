@@ -44,12 +44,12 @@ namespace YoloSharpOnnx.Inference
             _paddingColor = new Scalar(114, 114, 114);
             _inputBuffer = new float[_onnxModel.InputShapeSize];
             _postprocess = postprocess;
-          
+
         }
 
         private void InitChannel(int batchPoolSize)
         {
-            lock (_detectLock) 
+            lock (_detectLock)
             {
                 if (_channel == null)
                 {
@@ -151,16 +151,18 @@ namespace YoloSharpOnnx.Inference
             ChannelWriter<PreResultBatch> writer = _channel.Writer;
             ChannelReader<PreResultBatch> reader = _channel.Reader;
 
-            await PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
-
-            await foreach (PreResultBatch item in reader.ReadAllAsync())
+            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
+            var consumer = Task.Run(async () =>
             {
-                var result = batchDetect.RunBatchDetect(item, yoloConfig);
-                batchResults[idx++] = new DetectionBatchResult(item.ImagePath, result);
-                BatchDetectItemCompleted?.Invoke(this, new BatchDetectionResultEventArgs(item.ImagePath, result));
-            }
-
-
+                await foreach (PreResultBatch item in reader.ReadAllAsync())
+                {
+                    var result = batchDetect.RunBatchDetect(item, yoloConfig);
+                    batchResults[idx] = new DetectionBatchResult(item.ImagePath, result);
+                    Interlocked.Increment(ref idx);
+                    BatchDetectItemCompleted?.Invoke(this, new BatchDetectionResultEventArgs(item.ImagePath, result));
+                }
+            });
+            await Task.WhenAll(producer, consumer);
             return batchResults;
         }
 

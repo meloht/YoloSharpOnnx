@@ -86,7 +86,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                yolo.RunBatchDetect(dir, 30);
+                var list = yolo.RunBatchDetect(dir, 30);
 
             }
             _stopwatch.Stop();
