@@ -1,6 +1,6 @@
-﻿![YoloSharpOnnx](https://socialify.git.ci/meloht/YoloSharpOnnx/image?forks=1&language=1&name=1&owner=1&stargazers=1&theme=Light)
+﻿![YoloSharpOnnx](https://socialify.git.ci/meloht/YoloSharpOnnx/image?forks=1&language=1&name=1&owner=1&pulls=1&stargazers=1&theme=Light)
 # YoloSharpOnnx
-![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![CSharp](https://img.shields.io/badge/logo-csharp-blue?logo=dotnet) ![GitHub license](https://img.shields.io/github/license/meloht/YoloSharpOnnx)
+![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![C#](https://img.shields.io/badge/language-C%23-blue.svg) ![.NET Version](https://img.shields.io/badge/dynamic/xml?url=https://raw.githubusercontent.com/meloht/YoloSharpOnnx/refs/heads/master/YoloSharpOnnx/YoloSharpOnnx.csproj&query=//TargetFramework&label=.NET) ![GitHub license](https://img.shields.io/github/license/meloht/YoloSharpOnnx)
 
 🚀a high performance, memory reuse, production-ready C# YOLO library for object detection  base on OpenCV and ONNX Runtime.
 
@@ -13,10 +13,14 @@
 
 
 ## Example Images:
+<div align="center">
+ 
+| Object Detection Result  |
+|---------------|
+|<img src="/ExampleImages/bus_detect.jpg" width="500" >|
+| <img src="ExampleImages/zidane_detect.jpg" width="500">|
 
- **Detect**   
-  ![detect](/ExampleImages/bus_detect.jpg)
-  ![detect](/ExampleImages/zidane_detect.jpg)
+</div>
 
 # Usage
 
