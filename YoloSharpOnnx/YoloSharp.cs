@@ -92,6 +92,11 @@ namespace YoloSharpOnnx
         {
             _yoloDetect.DrawDetections(inputImage, list);
         }
+        public void DrawDetectionsAndSave(Mat inputImage, List<DetectionResult> list, string saveFileName)
+        {
+            _yoloDetect.DrawDetections(inputImage, list);
+            Cv2.ImWrite(saveFileName, inputImage);
+        }
 
         public void Dispose()
         {
