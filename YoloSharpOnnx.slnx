@@ -12,6 +12,7 @@
   <Project Path="YoloSharpOnnx.ConsoleGPU/YoloSharpOnnx.ConsoleGPU.csproj" Id="abf6b715-508b-4ad8-9886-1b66e0abf4fb">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="YoloSharpOnnx.ConsoleOpenVINO/YoloSharpOnnx.ConsoleOpenVINO.csproj" Id="fe14d266-253b-4511-9301-863bf155d71c" />
   <Project Path="YoloSharpOnnx.Test/YoloSharpOnnx.Test.csproj" Id="737fba87-3fee-4a37-a53f-c7275abb14e2">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
