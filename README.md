@@ -83,7 +83,9 @@ using Mat image = Cv2.ImRead("bus.jpg");
 using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
 
 List<DetectionResult> res = yolo.RunDetect(image);
+
 yolo.DrawDetections(image,res);
+Cv2.ImWrite("bus_res.jpg", image);
 
 string printString = YoloUtils.GetResult(res);
 Console.WriteLine(printString)
