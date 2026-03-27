@@ -8,7 +8,7 @@
  - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect) 
  - **Execution Provider** CPU, CUDA / TensorRT, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
- - **Image Processing** OpenCvSharp4
+ - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
  - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11) ,[YOLO26](https://docs.ultralytics.com/models/yolo26)
 
 
