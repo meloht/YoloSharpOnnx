@@ -24,8 +24,8 @@
 
 </div>
 
-# Build Release
-x64
+# Build Release x64
+
 
 # Usage
 
