@@ -1,6 +1,6 @@
 ﻿![YoloSharpOnnx](https://socialify.git.ci/meloht/YoloSharpOnnx/image?forks=1&language=1&name=1&owner=1&stargazers=1&theme=Light)
 # YoloSharpOnnx
-![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![CSharp](https://img.shields.io/badge/logo-csharp-blue?logo=dotnet)
+![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![CSharp](https://img.shields.io/badge/logo-csharp-blue?logo=dotnet) ![GitHub license](https://img.shields.io/github/license/meloht/YoloSharpOnnx)
 
 🚀a high performance, memory reuse, production-ready C# YOLO library for object detection  base on OpenCV and ONNX Runtime.
 
