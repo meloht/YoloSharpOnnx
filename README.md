@@ -6,7 +6,7 @@
 
 # Features
  - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect) 
- - **Execution Provider** CPU, CUDA / TensorRT, CoreML, DirectML
+ - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference I/O Binding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
