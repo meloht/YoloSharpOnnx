@@ -8,8 +8,9 @@
  - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect) 
  - **Execution Provider** CPU, CUDA / TensorRT, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
+ - **High Performance Inference** Memory reuse,GPU Inference IoBinding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
- - **Inference Framework** [ONNX Runtime is a cross-platform inference and training machine-learning accelerator.](https://github.com/microsoft/onnxruntime)
+ - **Inference Engine** [ONNX Runtime is a cross-platform inference and training machine-learning accelerator.](https://github.com/microsoft/onnxruntime)
  - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11) ,[YOLO26](https://docs.ultralytics.com/models/yolo26)
 
 
@@ -147,4 +148,24 @@ Batch processing images
 | 2026-11  | Yolo task Instance Segmentation  |
 | 2026-11  | Yolo task Pose Estimation  |
 | 2026-12  | Yolo task OBB  |
+
+# Model Licensing & Responsibility
+
+* YoloSharpOnnx is licensed under the [MIT License](./LICENSE.txt) and provides an ONNX inference
+engine for YOLO models exported using Ultralytics YOLO tooling.
+
+* This project does **not** include, distribute, download, or bundle any
+pretrained models.
+
+* Users must supply their own ONNX models.
+
+* YOLO ONNX models produced using Ultralytics tooling are typically licensed
+under **AGPL-3.0** or a separate commercial license from Ultralytics.
+
+* YoloSharpOnnx does **not** impose, modify, or transfer any license terms related
+to user-supplied models.
+
+* **Users are solely responsible** for ensuring that their use of any model
+complies with the applicable license terms, including requirements related
+to commercial use, distribution, or network deployment.
   
