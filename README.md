@@ -25,7 +25,7 @@
 </div>
 
 # Build Release
-AnyCPU; x64
+x64
 
 # Usage
 
