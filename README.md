@@ -68,6 +68,13 @@ dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
+#### OpenVINO Inference
+```shell
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Intel.ML.OnnxRuntime.OpenVino
+```
+
 #### Use the following C# code to load the model and run basic prediction:
 
 ```csharp
