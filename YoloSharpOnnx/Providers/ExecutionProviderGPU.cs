@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
-using static System.Collections.Specialized.BitVector32;
+
 
 namespace YoloSharpOnnx.Providers
 {

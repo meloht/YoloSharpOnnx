@@ -7,18 +7,23 @@ namespace YoloSharpOnnx.ConsoleGPU
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
+            TestInferPerf();
+            Console.WriteLine("end!");
+            Console.ReadKey();
         }
 
         private static void TestInfer()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderGPU(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderGPU(modelPath, 0)))
             {
                 foreach (var item in files)
                 {
@@ -33,6 +38,39 @@ namespace YoloSharpOnnx.ConsoleGPU
                     }
                 }
             }
+
+            _stopwatchTotal.Stop();
+
+            Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
+
+        }
+        private static void TestInferPerf()
+        {
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
+
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
+
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderGPU(modelPath, 0)))
+            {
+                foreach (var item in files)
+                {
+                    string filePath = item.Extension.ToLower();
+                    if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
+                    {
+
+                        var res = yolo.RunDetectWithTime(item.FullName);
+
+                        Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+                    }
+                }
+            }
+            _stopwatchTotal.Stop();
+
+            Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
 
         }
     }
