@@ -45,7 +45,7 @@ model.export(format='onnx')
 
 ### 2. Load the ONNX model with C#:
 
-Add the `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
+Add the packages `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
 
 #### CPU Inference
 ```shell
