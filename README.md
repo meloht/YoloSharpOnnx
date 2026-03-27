@@ -99,10 +99,10 @@ Config
 ```csharp
 using Mat image = Cv2.ImRead("bus.jpg");
 using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
- yolo.YoloConfiguration.IoU = 0.4f;
- yolo.YoloConfiguration.Confidence = 0.3f;
- yolo.YoloConfiguration.ResizeAlgorithm = InterpolationFlags.Linear;
- yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
+yolo.YoloConfiguration.IoU = 0.4f;
+yolo.YoloConfiguration.Confidence = 0.3f;
+yolo.YoloConfiguration.ResizeAlgorithm = InterpolationFlags.Linear;
+yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
 var res = yolo.RunDetect(image);
 ```
 
