@@ -1,16 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <Platforms>AnyCPU;x64</Platforms>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Platforms>AnyCPU;x64</Platforms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Title>YoloSharpOnnx</Title>
+		<PackageProjectUrl>https://github.com/meloht/YoloSharpOnnx</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/meloht/YoloSharpOnnx</RepositoryUrl>
+		<PackageTags>yolov8,yolov11;yolov26;yolo8;yolo11;yolo26;yolo;opencv;csharp;onnx;onnx-runtime;execution-provider;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;object-detection;image-processing;computer-vision;inference</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<Description>YoloSharpOnnx is a high performance, memory reuse, production-ready C# YOLO inference library for object detection  base on OpenCV and ONNX Runtime.</Description>
+		<Authors>Luo Hongtao</Authors>
+		<Version>1.0.0</Version>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Copyright>Copyright © Luo Hongtao</Copyright>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
-    <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260317" />
-  </ItemGroup>
+	<ItemGroup>
+	  <None Include="..\README.md" Link="README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.24.3" />
+		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260317" />
+	</ItemGroup>
 
 </Project>

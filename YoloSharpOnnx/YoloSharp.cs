@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
@@ -108,7 +109,7 @@ namespace YoloSharpOnnx
                 throw new DirectoryNotFoundException($"{imagePath} file is not found");
             }
             string ext = Path.GetExtension(imagePath);
-            if (YoloConfiguration.ImageExtsBatch.IndexOf(ext) == -1)
+            if (YoloConfiguration.ImageExtsBatch.AsSpan().IndexOf(ext) == -1)
             {
                 throw new ArgumentNullException($"imagePath is not a image for ext({string.Join(',', YoloConfiguration.ImageExtsBatch)})");
             }
