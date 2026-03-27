@@ -22,6 +22,9 @@
 
 </div>
 
+# Build Release
+AnyCPU; x64
+
 # Usage
 
 ### 1. Export model to ONNX format:
