@@ -47,28 +47,28 @@ model.export(format='onnx')
 
 Add the `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
 
-CPU Inference
+#### CPU Inference
 ```shell
 dotnet add package YoloSharpOnnx
 dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
-GPU Inference
+#### GPU Inference
 ```shell
 dotnet add package YoloSharpOnnx
 dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
 ```
 
-DirectML Inference
+#### DirectML Inference
 ```shell
 dotnet add package YoloSharpOnnx
 dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
-Use the following C# code to load the model and run basic prediction:
+#### Use the following C# code to load the model and run basic prediction:
 
 ```csharp
 
@@ -83,7 +83,7 @@ Console.WriteLine(printString)
 
 ```
 
-YoloSharpOnnx performance testing api
+#### YoloSharpOnnx performance testing api
 
 ```csharp
 
@@ -96,7 +96,7 @@ Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
 
 ```
 
-Config 
+#### Config 
 ```csharp
 using Mat image = Cv2.ImRead("bus.jpg");
 using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
@@ -107,7 +107,7 @@ yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
 var res = yolo.RunDetect(image);
 ```
 
-Batch processing images
+#### Batch processing images
 
 ```csharp
  private static void TestBatchInfer()
