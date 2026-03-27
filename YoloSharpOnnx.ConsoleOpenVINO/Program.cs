@@ -15,15 +15,15 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
 
         private static void TestInferPerf()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.GPU)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.NPU)))
             {
                 foreach (var item in files)
                 {
