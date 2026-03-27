@@ -49,30 +49,30 @@ Add the packages `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
 
 #### CPU Inference
 ```shell
-dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Microsoft.ML.OnnxRuntime
+Install Nuget package YoloSharpOnnx
+Install Nuget package OpenCvSharp4.runtime.win
+Install Nuget package Microsoft.ML.OnnxRuntime
 ```
 
-#### GPU Inference
+#### CUDA/TensorRT Inference
 ```shell
-dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
+Install Nuget package YoloSharpOnnx
+Install Nuget package OpenCvSharp4.runtime.win
+Install Nuget package Microsoft.ML.OnnxRuntime.Gpu.Windows
 ```
 
 #### DirectML Inference
 ```shell
-dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Microsoft.ML.OnnxRuntime.DirectML
+Install Nuget package YoloSharpOnnx
+Install Nuget package OpenCvSharp4.runtime.win
+Install Nuget package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
 #### OpenVINO Inference
 ```shell
-dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Intel.ML.OnnxRuntime.OpenVino
+Install Nuget package YoloSharpOnnx
+Install Nuget package OpenCvSharp4.runtime.win
+Install Nuget package Intel.ML.OnnxRuntime.OpenVino
 ```
 
 #### Use the following C# code to load the model and run basic prediction:
