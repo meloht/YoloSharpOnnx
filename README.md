@@ -19,8 +19,8 @@
  
 | Object Detection Result  |
 |---------------|
-|<img src="/ExampleImages/bus_detect.jpg" width="500" >|
-| <img src="ExampleImages/zidane_detect.jpg" width="500">|
+|<img src="./ExampleImages/bus_detect.jpg" width="500" >|
+|<img src="./ExampleImages/zidane_detect.jpg" width="500">|
 
 </div>
 
