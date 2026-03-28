@@ -24,8 +24,8 @@
 
 </div>
 
-# Build Release
-AnyCPU; x64
+# Build Package 
+Release x64
 
 # Usage
 
@@ -45,34 +45,41 @@ model.export(format='onnx')
 
 ### 2. Load the ONNX model with C#:
 
-Add the packages `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
+Install Nuget packages `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
 
 #### CPU Inference
 ```shell
-Install Nuget package YoloSharpOnnx
-Install Nuget package OpenCvSharp4.runtime.win
-Install Nuget package Microsoft.ML.OnnxRuntime
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime
+```
+
+#### CoreML Inference
+```shell
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.osx.10.15-x64
+dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
 #### CUDA/TensorRT Inference
 ```shell
-Install Nuget package YoloSharpOnnx
-Install Nuget package OpenCvSharp4.runtime.win
-Install Nuget package Microsoft.ML.OnnxRuntime.Gpu.Windows
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
 ```
 
 #### DirectML Inference
 ```shell
-Install Nuget package YoloSharpOnnx
-Install Nuget package OpenCvSharp4.runtime.win
-Install Nuget package Microsoft.ML.OnnxRuntime.DirectML
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
 #### OpenVINO Inference
 ```shell
-Install Nuget package YoloSharpOnnx
-Install Nuget package OpenCvSharp4.runtime.win
-Install Nuget package Intel.ML.OnnxRuntime.OpenVino
+dotnet add package YoloSharpOnnx
+dotnet add package OpenCvSharp4.runtime.win
+dotnet add package Intel.ML.OnnxRuntime.OpenVino
 ```
 
 #### Use the following C# code to load the model and run basic prediction:
