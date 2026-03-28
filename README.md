@@ -148,7 +148,7 @@ var res = yolo.RunDetect(image);
      Console.WriteLine($"time:{_stopwatch.Elapsed}");
  }
 
- private static void Yolo_BatchDetectItemCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
+ private static void Yolo_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
  {
      string ans = YoloUtils.GetResult(e.Results);
      Console.WriteLine(ans);
