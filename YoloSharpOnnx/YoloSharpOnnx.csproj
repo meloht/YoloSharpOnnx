@@ -18,7 +18,7 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © Luo Hongtao</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 1.1.0 add OpenVINO™ Execution Provider</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 1.2.0 Performance Optimization</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
