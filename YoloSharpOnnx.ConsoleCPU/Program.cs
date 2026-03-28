@@ -10,15 +10,16 @@ namespace YoloSharpOnnx.ConsoleCPU
         {
             Console.WriteLine("Hello, World!");
             TestInfer();
+            //TestBatchInfer();
+            //TestInferPerf();
+            //using Mat image = Cv2.ImRead("bus.jpg");
+            //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
 
-            using Mat image = Cv2.ImRead("bus.jpg");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
-
-            List<DetectionResult> res = yolo.RunDetect(image);
-            yolo.DrawDetections(image, res);
-            Cv2.ImWrite("bus_res.jpg", image);
-            string printString = YoloUtils.GetResult(res);
-            Console.WriteLine(printString);
+            //List<DetectionResult> res = yolo.RunDetect(image);
+            //yolo.DrawDetections(image, res);
+            //Cv2.ImWrite("bus_res.jpg", image);
+            //string printString = YoloUtils.GetResult(res);
+            //Console.WriteLine(printString);
         }
 
         private static void TestInfer()
@@ -101,7 +102,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine($"time:{_stopwatch.Elapsed}");
         }
 
-        private static void Yolo_BatchDetectCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
+        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
         {
             string ans = YoloUtils.GetResult(e.Results);
             Console.WriteLine(ans);

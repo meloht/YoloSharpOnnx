@@ -19,7 +19,7 @@ namespace YoloSharpOnnx
 
         Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig);
 
-        event EventHandler<BatchDetectionResultEventArgs> BatchDetectItemCompleted;
+        event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
     }
 }

@@ -21,19 +21,17 @@ namespace YoloSharpOnnx.Inference
 
         public void Dispose()
         {
-            _session.Dispose();
-            _options.Dispose();
-            _runOptions.Dispose();
+            DisposeBase();
         }
 
         public List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig)
         {
             // 预处理图像
-            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = PreprocessImage(inputImage, _resizedImg,_inputFixedBuffer, yoloConfig.ResizeAlgorithm);
 
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _onnxModel.InputShape);
+           
             // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
 
             // 后处理
@@ -48,16 +46,16 @@ namespace YoloSharpOnnx.Inference
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
 
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(_inputBuffer, _onnxModel.InputShape);
+          
 
             // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
 
             _stopwatch.Stop();
@@ -77,11 +75,11 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
         {
-            using var inputOrtValue = OrtValue.CreateTensorValueFromMemory(preRes.Data, _onnxModel.InputShape);
+            
             // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
-            ArrayPool<float>.Shared.Return(preRes.Data);
+            _matPool.Return(preRes.Data);
             // 后处理
             var result = _postprocess.PostProcess(output0, preRes.PreResult, yoloConfig);
 

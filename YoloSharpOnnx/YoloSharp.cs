@@ -12,7 +12,7 @@ namespace YoloSharpOnnx
     {
         private IYoloDetect _yoloDetect;
 
-        public event EventHandler<BatchDetectionResultEventArgs> BatchDetectItemCompleted;
+        public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
         public YoloConfiguration YoloConfiguration { get; set; }
 
@@ -83,7 +83,7 @@ namespace YoloSharpOnnx
 
             return await _yoloDetect.BatchDetectAsync(files, batchPoolSize, YoloConfiguration);
         }
-        private void YoloDetect_BatchDetectItemCompleted(object? sender, BatchDetectionResultEventArgs e)
+        private void YoloDetect_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
         {
             BatchDetectItemCompleted?.Invoke(sender, e);
         }
@@ -96,6 +96,21 @@ namespace YoloSharpOnnx
         {
             _yoloDetect.DrawDetections(inputImage, list);
             Cv2.ImWrite(saveFileName, inputImage);
+        }
+
+
+        public void DrawDetections(string inputImage, List<DetectionResult> list)
+        {
+            ValidationImagePath(inputImage);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloDetect.DrawDetections(img, list);
+        }
+        public void DrawDetectionsAndSave(string inputImage, List<DetectionResult> list, string saveFileName)
+        {
+            ValidationImagePath(inputImage);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloDetect.DrawDetections(img, list);
+            Cv2.ImWrite(saveFileName, img);
         }
 
         public void Dispose()

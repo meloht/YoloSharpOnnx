@@ -15,23 +15,17 @@ namespace YoloSharpOnnx.Inference
     public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect, IBatchDetect
     {
         private OrtIoBinding _binding;
-        private OrtValue _inputOrtValue;
-        private readonly OrtSafeMemoryHandle _inputNativeAllocation;
-
-
+        protected OrtValue _outputOrtValue;
 
         public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
           : base(session, options, postprocess, onnxModel)
         {
-            var inputSizeInBytes = _onnxModel.InputShapeSize * sizeof(float);
-            nint allocPtrIn = Marshal.AllocHGlobal((int)inputSizeInBytes);
-            _inputNativeAllocation = new OrtSafeMemoryHandle(allocPtrIn);
 
+            var outputSizeInBytes = _onnxModel.OutputShapeSize * sizeof(float);
             _binding = _session.CreateIoBinding();
 
-            _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-                _onnxModel.InputShape, _inputNativeAllocation.Handle, inputSizeInBytes);
-
+            _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
+          _onnxModel.OutputShape, _outputFixedBuffer.Address, outputSizeInBytes);
         }
 
 
@@ -52,31 +46,46 @@ namespace YoloSharpOnnx.Inference
                 elements.AsSpan().Slice(0, len).CopyTo(bufferSpan);
             }
         }
+        private void PopulateNativeBuffer1(IntPtr buffer)
+        {
+            int len = (int)_onnxModel.InputShapeSize;
+            Span<float> bufferSpan;
+            unsafe
+            {
+                bufferSpan = new Span<float>(buffer.ToPointer(), len);
+                float* p = _inputFixedBuffer.Pointer;
+                for (int i = 0; i < len; i++)
+                {
+                    bufferSpan[i] = p[i];
+                }
+
+            }
+
+        }
         public void Dispose()
         {
-            _session.Dispose();
+            DisposeBase();
+
             _binding.Dispose();
-            _options.Dispose();
-            _runOptions.Dispose();
-            _inputOrtValue.Dispose();
-            _inputNativeAllocation.Dispose();
+            _outputOrtValue.Dispose();
+
         }
 
         public List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig)
         {
             // 预处理图像
-            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
-            PopulateNativeBuffer(_inputNativeAllocation.Handle, _inputBuffer);
+            var preRes = PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
+
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
             _binding.SynchronizeBoundInputs();
 
             // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
+
+            _session.RunWithBinding(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
-            using var output = results[0];
             // 后处理
-            var result = _postprocess.PostProcess(output, preRes, yoloConfig);
+            var result = _postprocess.PostProcess(_outputOrtValue, preRes, yoloConfig);
             return result;
 
         }
@@ -84,31 +93,30 @@ namespace YoloSharpOnnx.Inference
         public YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfiguration yoloConfig)
         {
             SpeedResult speed = new SpeedResult();
-            _stopwatch.Restart();
 
+            _stopwatch.Restart();
             // 预处理图像
-            var preRes = PreprocessImg(inputImage, _inputBuffer, yoloConfig.ResizeAlgorithm);
-            PopulateNativeBuffer(_inputNativeAllocation.Handle, _inputBuffer);
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
+            var preRes = PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
 
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.SynchronizeBoundInputs();
 
             // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
+
+            _session.RunWithBinding(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
-            using var output = results[0];
 
             _stopwatch.Stop();
             speed.Inference = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
 
             // 后处理
-            var res = _postprocess.PostProcess(output, preRes, yoloConfig);
+            var res = _postprocess.PostProcess(_outputOrtValue, preRes, yoloConfig);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
@@ -121,7 +129,6 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
         {
-            PopulateNativeBuffer(_inputNativeAllocation.Handle, preRes.Data);
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
             _binding.SynchronizeBoundInputs();
@@ -130,7 +137,7 @@ namespace YoloSharpOnnx.Inference
             using var results = _session.RunWithBoundResults(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
             using var output = results[0];
-            ArrayPool<float>.Shared.Return(preRes.Data);
+            _matPool.Return(preRes.Data);
             // 后处理
             var result = _postprocess.PostProcess(output, preRes.PreResult, yoloConfig);
 
@@ -145,7 +152,7 @@ namespace YoloSharpOnnx.Inference
 
         public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig)
         {
-            return await BatchDetectBase(listImg, batchPoolSize, yoloConfig, this); 
+            return await BatchDetectBase(listImg, batchPoolSize, yoloConfig, this);
         }
     }
 }
