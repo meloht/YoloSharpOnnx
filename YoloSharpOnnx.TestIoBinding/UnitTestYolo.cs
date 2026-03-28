@@ -1,7 +1,7 @@
 ﻿using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
-namespace YoloSharpOnnx.Test
+namespace YoloSharpOnnx.TestIoBinding
 {
     public class UnitTestYolo
     {

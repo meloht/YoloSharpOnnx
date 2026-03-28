@@ -31,7 +31,7 @@ namespace YoloSharpOnnx.Inference
         protected readonly OnnxModel _onnxModel;
 
         protected OrtValue _inputOrtValue;
- 
+
 
         protected readonly Stopwatch _stopwatch;
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
@@ -41,6 +41,7 @@ namespace YoloSharpOnnx.Inference
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
         protected Mat _resizedImg;
+        protected readonly long _inputSizeInBytes;
         public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             _resizedImg = new Mat();
@@ -58,22 +59,22 @@ namespace YoloSharpOnnx.Inference
             _outputFixedBuffer = new FixedBuffer((int)_onnxModel.OutputShapeSize);
             _postprocess = postprocess;
 
-            var inputSizeInBytes = _onnxModel.InputShapeSize * sizeof(float);
+            _inputSizeInBytes = _onnxModel.InputShapeSize * sizeof(float);
 
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-               _onnxModel.InputShape, _inputFixedBuffer.Address, inputSizeInBytes);
+               _onnxModel.InputShape, _inputFixedBuffer.Address, _inputSizeInBytes);
 
-          
+
 
         }
 
-        private void InitChannel(int batchPoolSize, int inputShapeSize)
+        private void InitChannel(int batchPoolSize)
         {
             lock (_detectLock)
             {
                 if (_matPool == null)
                 {
-                    _matPool = new MatBufferPool(inputShapeSize);
+                    _matPool = new MatBufferPool(_inputSizeInBytes, _onnxModel);
                 }
                 if (_channel == null)
                 {
@@ -86,7 +87,7 @@ namespace YoloSharpOnnx.Inference
                     _channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
                     _batchPoolSize = batchPoolSize;
                 }
-               
+
             }
         }
         public void DisposeBase()
@@ -103,7 +104,7 @@ namespace YoloSharpOnnx.Inference
             _runOptions.Dispose();
             _inputOrtValue.Dispose();
         }
-      
+
 
         protected PreResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
         {
@@ -122,12 +123,12 @@ namespace YoloSharpOnnx.Inference
             // 4. 计算填充值（左右填充、上下填充，确保最终尺寸=1280×1280）
             int padW = (_onnxModel.InputWidth - newImgW) / 2; // 左右填充的一半
             int padH = (_onnxModel.InputHeight - newImgH) / 2; // 上下填充的一半
-                                                              
+
 
             // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
 
             Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
-            
+
             // BGR转RGB
             Cv2.CvtColor(resizedImg, resizedImg, ColorConversionCodes.BGR2RGB);
 
@@ -157,7 +158,7 @@ namespace YoloSharpOnnx.Inference
             {
                 int index = 0;
                 byte* ptr = (byte*)paddedImg.DataPointer;
-                float* data = _inputFixedBuffer.Pointer;
+                float* data = buffer.Pointer;
                 for (int c = 0; c < channels; c++)
                 {
                     for (int y = 0; y < height; y++)
@@ -171,50 +172,61 @@ namespace YoloSharpOnnx.Inference
                 }
             }
         }
-      
 
-        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer, int len)
+
+        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
+
             int preprocessWorkers = Environment.ProcessorCount / 2;
             int size = listImg.Count / preprocessWorkers;
-            var arr = listImg.Chunk(size);
-            foreach (string[] subList in arr)
+            if (size < 3)
             {
-                await Task.Run(async () =>
+                await RunPreprocessSplitAsync(listImg, interpolationFlags, writer);
+            }
+            else
+            {
+                var arr = listImg.Chunk(size);
+                foreach (string[] subList in arr)
                 {
-                    foreach (string imgPath in subList)
-                    {
-                        var data = _matPool.Rent();
-                        using Mat img = Cv2.ImRead(imgPath);
-                        var res = PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
-                        await writer.WriteAsync(new PreResultBatch(res, imgPath, data));
-                    }
-
-                });
+                    await RunPreprocessSplitAsync(subList, interpolationFlags, writer);
+                }
             }
 
             writer.Complete();
         }
+        private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
+        {
+
+            await Task.Run(async () =>
+            {
+                foreach (string imgPath in list)
+                {
+                    var data = _matPool.Rent();
+                    using Mat img = Cv2.ImRead(imgPath);
+                    var res = PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
+                    await writer.WriteAsync(new PreResultBatch(res, imgPath, data));
+                }
+
+            });
+        }
 
         protected async Task<DetectionBatchResult[]> BatchDetectBase(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
         {
-            InitChannel(batchPoolSize, (int)_onnxModel.InputShapeSize);
+            InitChannel(batchPoolSize);
             int idx = 0;
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
-
-            int len = (int)_onnxModel.InputShapeSize;
 
             // Producer/consumer
             ChannelWriter<PreResultBatch> writer = _channel.Writer;
             ChannelReader<PreResultBatch> reader = _channel.Reader;
 
-            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer, len);
+            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer);
             var consumer = Task.Run(async () =>
             {
                 await foreach (PreResultBatch item in reader.ReadAllAsync())
                 {
                     var result = batchDetect.RunBatchDetect(item, yoloConfig);
-                  
+
                     batchResults[idx] = new DetectionBatchResult(item.ImagePath, result);
                     BatchDetectItemCompleted?.Invoke(this, batchResults[idx]);
                     Interlocked.Increment(ref idx);

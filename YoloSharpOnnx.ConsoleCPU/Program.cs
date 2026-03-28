@@ -9,8 +9,8 @@ namespace YoloSharpOnnx.ConsoleCPU
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            TestInfer();
-            //TestBatchInfer();
+            //TestInfer();
+            TestBatchInfer();
             //TestInferPerf();
             //using Mat image = Cv2.ImRead("bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));

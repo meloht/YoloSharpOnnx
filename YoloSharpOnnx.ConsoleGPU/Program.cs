@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.ConsoleGPU
             _stopwatchTotal.Start();
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderGPU(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, 0)))
             {
                 foreach (var item in files)
                 {
@@ -54,7 +54,7 @@ namespace YoloSharpOnnx.ConsoleGPU
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderGPU(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, 0)))
             {
                 foreach (var item in files)
                 {

@@ -5,12 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.4" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -18,12 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <ProjectReference Include="..\YoloSharpOnnx.TestCommon\YoloSharpOnnx.TestCommon.csproj" />
+    <ProjectReference Include="..\YoloSharpOnnx\YoloSharpOnnx.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\YoloSharpOnnx.TestCommon\YoloSharpOnnx.TestCommon.csproj" />
-    <ProjectReference Include="..\YoloSharpOnnx\YoloSharpOnnx.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

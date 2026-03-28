@@ -129,7 +129,7 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
         {
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindInput(_onnxModel.InputName, preRes.Data.InputOrtValue);
             _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
             _binding.SynchronizeBoundInputs();
 

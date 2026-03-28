@@ -1,4 +1,6 @@
-﻿using OpenCvSharp;
+﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,16 +15,21 @@ namespace YoloSharpOnnx.Models
         public Mat ResizedImg { get; set; }
         public FixedBuffer FixedBuffer { get; set; }
 
-        public ImageBatchData(int len)
+        public OrtValue InputOrtValue { get; set; }
+
+        public ImageBatchData(long inputSizeInBytes, OnnxModel onnxModel)
         {
             ResizedImg = new Mat();
-            FixedBuffer = new FixedBuffer(len);
+            FixedBuffer = new FixedBuffer((int)onnxModel.InputShapeSize);
+            InputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
+            onnxModel.InputShape, FixedBuffer.Address, inputSizeInBytes);
         }
 
         public void Dispose()
         {
             ResizedImg?.Dispose();
             FixedBuffer?.Dispose();
+            InputOrtValue?.Dispose();
         }
     }
 }
