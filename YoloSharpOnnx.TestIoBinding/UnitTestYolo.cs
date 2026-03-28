@@ -18,7 +18,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -36,7 +36,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolov8n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -54,7 +54,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolo26n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -70,7 +70,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string dir = TestDataUtils.GetImageDir();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
             yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
 
             var list = yolo.RunBatchDetect(dir, 2);

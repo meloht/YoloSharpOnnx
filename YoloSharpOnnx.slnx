@@ -13,16 +13,18 @@
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.ConsoleOpenVINO/YoloSharpOnnx.ConsoleOpenVINO.csproj" Id="fe14d266-253b-4511-9301-863bf155d71c">
-    <Platform Solution="Debug|x64" Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
     <Build Solution="Debug|Any CPU" Project="false" />
   </Project>
   <Project Path="YoloSharpOnnx.Test/YoloSharpOnnx.Test.csproj" Id="737fba87-3fee-4a37-a53f-c7275abb14e2">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.TestCommon/YoloSharpOnnx.TestCommon.csproj" Id="77a335dd-c4a1-4443-a296-d52974521eb5">
+    <Platform Solution="*|x64" Project="x64" />
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="YoloSharpOnnx.TestIoBinding/YoloSharpOnnx.TestIoBinding.csproj" Id="426b9872-8a8a-4e6a-a402-35f707db425f">
+    <Platform Solution="*|x64" Project="x64" />
     <Build Solution="Release|*" Project="false" />
   </Project>
   <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj">
