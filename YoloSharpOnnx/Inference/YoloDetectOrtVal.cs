@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
 using System.Buffers;
@@ -75,9 +76,10 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
         {
-            
+           
+
             // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [preRes.Data.InputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
             _matPool.Return(preRes.Data);
             // 后处理

@@ -8,21 +8,21 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public class ExecutionProviderGPU : ExecutionProvider, IExecutionProvider
+    public class ExecutionProviderCUDA : ExecutionProvider, IExecutionProvider
     {
         private int _deviceId;
         private Dictionary<string, string> _providerOptionsDict;
 
 
-        public ExecutionProviderGPU(string modelPath) : this(modelPath, 0)
+        public ExecutionProviderCUDA(string modelPath) : this(modelPath, 0)
         {
 
         }
-        public ExecutionProviderGPU(string modelPath, int deviceId) : this(modelPath, deviceId, [])
+        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, [])
         {
 
         }
-        public ExecutionProviderGPU(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
+        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
         {
             this._deviceId = deviceId;
             this._providerOptionsDict = providerOptionsDict;

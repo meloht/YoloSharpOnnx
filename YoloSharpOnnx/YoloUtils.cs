@@ -11,7 +11,7 @@ namespace YoloSharpOnnx
         {
             if (list == null || list.Count == 0)
                 return string.Empty;
-
+            list.Sort((x, y) => x.ClassName.CompareTo(y.ClassName));
             var dict = list.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
             string confs = string.Join(", ", list.Select(p => Math.Round(p.Confidence, 2)));
             return $"{string.Join(", ", dict)} [{confs}]";

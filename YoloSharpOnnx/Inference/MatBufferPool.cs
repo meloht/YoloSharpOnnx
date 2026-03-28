@@ -15,20 +15,26 @@ namespace YoloSharpOnnx.Inference
         private int _nullIdx = -1;
         private readonly object _lock = new object();
         private readonly int _buffLenght;
+        private readonly long _inputSizeInBytes;
+        private OnnxModel _OnnxModel;
 
-        public MatBufferPool(int buffLenght)
+        public MatBufferPool( long inputSizeInBytes, OnnxModel onnxModel)
         {
+
+            _OnnxModel = onnxModel;
+            _inputSizeInBytes = inputSizeInBytes;
+
             int size = Environment.ProcessorCount;
             if (size < 10)
             {
                 size = 10;
             }
-            _buffLenght = buffLenght;
+
 
             _matPool = new ImageBatchData[size];
             for (int i = 0; i < size; i++)
             {
-                _matPool[i] = new ImageBatchData(buffLenght);
+                _matPool[i] = new ImageBatchData(inputSizeInBytes, _OnnxModel);
             }
 
         }
@@ -49,13 +55,13 @@ namespace YoloSharpOnnx.Inference
                     {
                         _valIdx = _matPool.Length - 1;
                     }
-                   // Test();
+                    // Test();
                     return mat;
                 }
                 else
                 {
                     //Test();
-                    return new ImageBatchData(_buffLenght);
+                    return new ImageBatchData(_inputSizeInBytes, _OnnxModel);
                 }
 
             }
@@ -79,7 +85,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     mat.Dispose();
                 }
-               // Test();
+                // Test();
             }
 
 
