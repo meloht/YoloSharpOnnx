@@ -18,7 +18,7 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © Luo Hongtao</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 1.2.1 Performance Optimization</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 1.2.1 Batch images bug fixed</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
