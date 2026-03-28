@@ -4,6 +4,6 @@ using System.Text;
 
 namespace YoloSharpOnnx.Models
 {
-    public record PreResultBatch(PreResult PreResult, string ImagePath, float[] Data);
+    public record PreResultBatch(PreResult PreResult, string ImagePath, ImageBatchData Data);
    
 }

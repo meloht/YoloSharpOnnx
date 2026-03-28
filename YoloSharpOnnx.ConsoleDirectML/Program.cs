@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System.Threading.Channels;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 
 namespace YoloSharpOnnx.ConsoleDirectML
@@ -11,9 +12,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
-            TestBatchInfer();
-            //TestInfer();
-
+            //TestBatchInfer();
+            //TestInferPerf();
+            TestInfer();
+            Console.WriteLine("end!");
             Console.ReadKey();
 
         }
@@ -29,7 +31,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
             {
                 foreach (var item in files)
                 {
@@ -86,7 +88,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
             int num=files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
             {
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
@@ -98,7 +100,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
 
-        private static void Yolo_BatchDetectCompleted(object? sender, Models.BatchDetectionResultEventArgs e)
+        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
         {
             string ans = YoloUtils.GetResult(e.Results);
             Console.WriteLine(ans);

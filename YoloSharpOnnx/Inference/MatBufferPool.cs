@@ -1,0 +1,122 @@
+﻿using OpenCvSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using YoloSharpOnnx.Models;
+
+namespace YoloSharpOnnx.Inference
+{
+    public class MatBufferPool : IDisposable
+    {
+        private ImageBatchData[] _matPool;
+        private int _valIdx = 0;
+        private int _nullIdx = -1;
+        private readonly object _lock = new object();
+        private readonly int _buffLenght;
+
+        public MatBufferPool(int buffLenght)
+        {
+            int size = Environment.ProcessorCount;
+            if (size < 10)
+            {
+                size = 10;
+            }
+            _buffLenght = buffLenght;
+
+            _matPool = new ImageBatchData[size];
+            for (int i = 0; i < size; i++)
+            {
+                _matPool[i] = new ImageBatchData(buffLenght);
+            }
+
+        }
+
+
+        public ImageBatchData Rent()
+        {
+            lock (_lock)
+            {
+                if (_valIdx < _matPool.Length && _valIdx >= 0 && _matPool[_valIdx] != null)
+                {
+                    var mat = _matPool[_valIdx];
+                    _matPool[_valIdx] = null;
+                    _nullIdx = _valIdx;
+
+                    _valIdx++;
+                    if (_valIdx > _matPool.Length - 1)
+                    {
+                        _valIdx = _matPool.Length - 1;
+                    }
+                   // Test();
+                    return mat;
+                }
+                else
+                {
+                    //Test();
+                    return new ImageBatchData(_buffLenght);
+                }
+
+            }
+
+        }
+        public void Return(ImageBatchData mat)
+        {
+            lock (_lock)
+            {
+                if (_nullIdx < _matPool.Length && _nullIdx >= 0)
+                {
+                    _matPool[_nullIdx] = mat;
+                    _valIdx = _nullIdx;
+                    _nullIdx--;
+                    if (_nullIdx < 0)
+                    {
+                        _nullIdx = 0;
+                    }
+                }
+                else
+                {
+                    mat.Dispose();
+                }
+               // Test();
+            }
+
+
+
+        }
+
+        //public void Test()
+        //{
+        //    StringBuilder sb = new StringBuilder();
+        //    for (int i = 0; i < _matPool.Length; i++)
+        //    {
+        //        if (_matPool[i] == null)
+        //        {
+        //            sb.Append("null, ");
+        //        }
+        //        else
+        //        {
+        //            sb.Append("value, ");
+        //        }
+
+        //    }
+        //    Console.WriteLine(sb.ToString());
+        //}
+
+        public void Dispose()
+        {
+            for (int i = 0; i < _matPool.Length; i++)
+            {
+                if (_matPool[i] != null)
+                {
+                    _matPool[i].Dispose();
+                    _matPool[i] = null;
+                }
+
+            }
+            Array.Clear(_matPool);
+            _matPool = null;
+        }
+    }
+}
