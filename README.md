@@ -192,7 +192,7 @@ internal class ProcessCallback : IBatchProcessCallback
 
 **Yolo Model:**  Yolo11n InputShape 1280x1280
 
-**Inference Provider:**  DirectML Inference
+**Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime 1.24.3
 
 
 ## YoloSharp test result
