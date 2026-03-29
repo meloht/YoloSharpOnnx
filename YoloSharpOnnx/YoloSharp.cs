@@ -71,22 +71,109 @@ namespace YoloSharpOnnx
         {
             return _yoloDetect.RunWithTime(img, YoloConfiguration);
         }
-        public DetectionBatchResult[] RunBatchDetect(string imgDir, int batchPoolSize = 50)
+
+
+        #region BatchDetect
+
+        public DetectionBatchResult[] RunBatchDetect(string imgDir, int batchPoolSize = 20)
+        {
+            return RunBatchDetect(imgDir, null, null, batchPoolSize);
+        }
+        public DetectionBatchResult[] RunBatchDetect(string imgDir, Action<DetectionBatchResult> receiveAction, int batchPoolSize = 20)
+        {
+            return RunBatchDetect(imgDir, null, receiveAction, batchPoolSize);
+        }
+        public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback processCallback, int batchPoolSize = 20)
+        {
+            return RunBatchDetect(imgDir, processCallback, null, batchPoolSize);
+        }
+
+        public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null, int batchPoolSize = 20)
         {
             var files = ValidationImageBatch(imgDir, batchPoolSize);
 
-            return _yoloDetect.BatchDetect(files, batchPoolSize, YoloConfiguration);
+            return _yoloDetect.BatchDetect(files, processCallback, receiveAction, batchPoolSize, YoloConfiguration);
         }
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, int batchPoolSize = 50)
+
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, int batchPoolSize = 20)
         {
             var files = ValidationImageBatch(imgDir, batchPoolSize);
 
-            return await _yoloDetect.BatchDetectAsync(files, batchPoolSize, YoloConfiguration);
+            return await _yoloDetect.BatchDetectAsync(files, null, null, batchPoolSize, YoloConfiguration);
         }
+
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback processCallback, int batchPoolSize = 20)
+        {
+            return await RunBatchDetectAsync(imgDir, processCallback, null, batchPoolSize);
+        }
+
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, Action<DetectionBatchResult> receiveAction, int batchPoolSize = 20)
+        {
+            return await RunBatchDetectAsync(imgDir, null, receiveAction, batchPoolSize);
+        }
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null, int batchPoolSize = 20)
+        {
+            var files = ValidationImageBatch(imgDir, batchPoolSize);
+
+            return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction, batchPoolSize, YoloConfiguration);
+        }
+
+
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, int batchPoolSize = 20)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            ValidationImageListPath(files);
+            return await _yoloDetect.BatchDetectAsync(files, null, null, batchPoolSize, YoloConfiguration);
+        }
+
+
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback, int batchPoolSize = 20)
+        {
+            return await RunBatchDetectAsync(images, processCallback, null, batchPoolSize);
+        }
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, Action<DetectionBatchResult> receiveAction, int batchPoolSize = 20)
+        {
+            return await RunBatchDetectAsync(images, null, receiveAction, batchPoolSize);
+        }
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction=null, int batchPoolSize = 20)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            ValidationImageListPath(files);
+            return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction, batchPoolSize, YoloConfiguration);
+        }
+
+        public DetectionBatchResult[] RunBatchDetect(List<string> images, Action<DetectionBatchResult> receiveAction, int batchPoolSize = 20)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            ValidationImageListPath(files);
+            return _yoloDetect.BatchDetect(files, null, receiveAction, batchPoolSize, YoloConfiguration);
+        }
+
+        public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback, int batchPoolSize = 20)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            ValidationImageListPath(files);
+            return _yoloDetect.BatchDetect(files, processCallback, null, batchPoolSize, YoloConfiguration);
+        }
+
+        public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null, int batchPoolSize = 20)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            ValidationImageListPath(files);
+            return _yoloDetect.BatchDetect(files, processCallback, receiveAction, batchPoolSize, YoloConfiguration);
+        }
+
+
+
         private void YoloDetect_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
         {
             BatchDetectItemCompleted?.Invoke(sender, e);
         }
+
+        #endregion
+
+        #region DrawDetections
+
 
         public void DrawDetections(Mat inputImage, List<DetectionResult> list)
         {
@@ -113,11 +200,11 @@ namespace YoloSharpOnnx
             Cv2.ImWrite(saveFileName, img);
         }
 
-        public void Dispose()
-        {
-            _yoloDetect?.Dispose();
-        }
+        #endregion
 
+
+
+        #region Validation
         private void ValidationImagePath(string imagePath)
         {
             if (string.IsNullOrWhiteSpace(imagePath))
@@ -157,5 +244,23 @@ namespace YoloSharpOnnx
             }
             return files;
         }
+
+        private void ValidationImageListPath(List<string> list)
+        {
+            if (list == null || list.Count == 0)
+            {
+                throw new ArgumentNullException($"images is invalid for image ext({string.Join(',', YoloConfiguration.ImageExtsBatch)})");
+            }
+
+        }
+
+        #endregion
+
+
+        public void Dispose()
+        {
+            _yoloDetect?.Dispose();
+        }
+
     }
 }

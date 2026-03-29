@@ -28,11 +28,24 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = new SessionOptions();
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
-            options.AppendExecutionProvider_OpenVINO(GetDeviceType());
+            options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
             return BuildInferenceSession(options);
         }
 
-        public override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override DeviceType GetDeviceType()
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return DeviceType.CPU;
+            }
+            else if (_intelDeviceType == IntelDeviceType.NPU)
+            {
+                return DeviceType.NPU;
+            }
+            return DeviceType.GPU;
+        }
+
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -44,7 +57,7 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        private string GetDeviceType()
+        private string GetIntelDeviceType()
         {
             switch (_intelDeviceType)
             {

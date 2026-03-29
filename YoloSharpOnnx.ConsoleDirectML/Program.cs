@@ -11,10 +11,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             Console.WriteLine("Hello, World!");
 
-            //TestChannel();
-            //TestBatchInfer();
-            //TestInferPerf();
-            TestInfer();
+            TestChannel();
+           // TestBatchInfer();
+           // TestInferPerf();
+            //TestInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -58,7 +58,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
 
+            long totalInfer = 0;
 
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath)))
             {
@@ -69,11 +72,16 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     {
 
                         var res = yolo.RunDetectWithTime(item.FullName);
-
+                        totalInfer += res.SpeedResult.Inference;
                         Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
                     }
                 }
             }
+
+            _stopwatchTotal.Stop();
+
+            float avg = totalInfer / (float)files.Length;
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, Infer avg time:{avg}");
 
         }
 
@@ -118,7 +126,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             // 生产者
             var producer = Task.Run(async () =>
             {
-                for (int i = 1; i <= 500; i++)
+                for (int i = 1; i <= 100; i++)
                 {
                     await channel.Writer.WriteAsync(i);
                     Console.WriteLine($"生产：{i}");
@@ -134,11 +142,12 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 await foreach (var msg in channel.Reader.ReadAllAsync())
                 {
                     Console.WriteLine($"消费：{msg}");
-                    await Task.Delay(500);
+                    await Task.Delay(12);
                 }
             });
 
             Task.WaitAll(producer, consumer);
+         
         }
     }
 }

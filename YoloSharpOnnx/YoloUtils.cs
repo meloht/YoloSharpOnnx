@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using static System.Net.WebRequestMethods;
 
 namespace YoloSharpOnnx
 {
@@ -24,6 +25,24 @@ namespace YoloSharpOnnx
             List<string> list = new List<string>();
             HashSet<string> set = new HashSet<string>(exts);
             GetFiles(list, path, set);
+            return list;
+
+        }
+
+        public static List<string> GetFilesFromListPaths(List<string> images, string[] exts)
+        {
+
+            List<string> list = new List<string>();
+            HashSet<string> extSet = new HashSet<string>(exts);
+            foreach (var item in images)
+            {
+                string ext = Path.GetExtension(item);
+                string fileExt = ext.ToLower();
+                if (extSet.Contains(fileExt))
+                {
+                    list.Add(item);
+                }
+            }
             return list;
 
         }
