@@ -203,9 +203,9 @@ internal class ProcessCallback : IBatchProcessCallback
 
 ## YoloDotNet test result
 
-**Sequence inference time:** 15.964s **Memory Usage:** 162M
+**Sequence inference time:** 15.964s **Memory Usage:** 174M
 
-**Batch inference time:** 10.422s **Memory Usage:** 630M
+**Batch inference time:** 10.422s **Memory Usage:** 639M
 
 <img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/13fd4d3a-0a6a-4195-9c69-c3d8c970df6a" />
 <img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/8deb6066-02ef-47b7-ae64-3ffe104579ef" />
@@ -224,7 +224,7 @@ internal class ProcessCallback : IBatchProcessCallback
 |Yolo C# inference library|Version|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
 | ------------- | ------------- | ------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 40.869s, 1172M | - |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 15.964s, 162M | 10.422s, 630M |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 15.964s, 174M | 10.422s, 639M |
 | [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | 14.627s, 169M | 8.838s, 172M ||
 
 # Roadmap
