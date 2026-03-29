@@ -171,7 +171,7 @@ internal class ProcessCallback : IBatchProcessCallback
 | ------------- | ------------- | ------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | support | not support |
 | [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | support | support |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | support | support |
 
 ## Performance Test Tool 
 [YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
