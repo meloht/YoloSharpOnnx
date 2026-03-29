@@ -190,34 +190,37 @@ internal class ProcessCallback : IBatchProcessCallback
 
 **Images:**  300 2480x3494 images
 
-**Yolo Model:**  Yolo11n input shape 1280x1280
+**Yolo Model:**  Yolo11n InputShape 1280x1280
 
-**Inference Provider:**  DirectML inference
+**Inference Provider:**  DirectML Inference
 
 
 ## YoloSharp test result
 
-**Sequence inference time:** 40.869s  **Memory Usage:** 1172M
+**Sequence inference time:** 42.441s  **Memory Usage:** 1242M
 
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/16146e13-c7c6-4ee9-82ee-936460ba324b" />
+<img width="1141" height="796" alt="image" src="https://github.com/user-attachments/assets/b809bc79-0312-4185-83d0-c4dff91de7f0" />
+
 
 ## YoloDotNet test result
 
-**Sequence inference time:** 15.964s **Memory Usage:** 174M
+**Sequence inference time:** 17.665s **Memory Usage:** 169M
 
-**Batch inference time:** 10.422s **Memory Usage:** 639M
+**Batch inference time:** 10.587s **Memory Usage:** 639M
 
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/13fd4d3a-0a6a-4195-9c69-c3d8c970df6a" />
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/8deb6066-02ef-47b7-ae64-3ffe104579ef" />
+<img width="1156" height="744" alt="image" src="https://github.com/user-attachments/assets/0dff1405-be54-46c1-88bf-d7e556d6fa32" />
+
+<img width="1156" height="744" alt="image" src="https://github.com/user-attachments/assets/8fa757eb-e678-4fd5-9374-4c7dd81865fa" />
+
 
 ## YoloSharpOnnx test result
 
-**Sequence inference time:** 14.627s **Memory Usage:** 169M
+**Sequence inference time:** 15.303s **Memory Usage:** 169M
 
-**Batch inference time:** 8.838s **Memory Usage:** 172M
+**Batch inference time:** 3.492s **Memory Usage:** 601M
 
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/a050ccd7-c8c8-4c11-b96d-81bf521e7f5d" />
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/f5ccea42-a480-4843-a27d-27a2797ddcd7" />
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/44240239-6ef3-459b-8faf-2a5aca475c88" />
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/87c40036-9d94-4dae-8ba4-b1fcd3746911" />
 
 ## Performance Test Result
 
