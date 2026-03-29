@@ -159,7 +159,7 @@ namespace YoloSharpOnnx.Inference
         {
 
             int preprocessWorkers = Environment.ProcessorCount / 2;
-            if (_onnxModel.DeviceType == DeviceType.CPU)
+            if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
                 preprocessWorkers = 1;
             }
