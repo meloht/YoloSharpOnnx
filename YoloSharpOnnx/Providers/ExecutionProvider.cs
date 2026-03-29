@@ -17,7 +17,8 @@ namespace YoloSharpOnnx.Providers
 
         public string ModelPath { get; set; }
 
-        public abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel);
+        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel);
+        protected abstract DeviceType GetDeviceType();
 
         public ExecutionProvider(string modelPath)
         {
@@ -50,7 +51,7 @@ namespace YoloSharpOnnx.Providers
 
             model.InputName = session.InputNames[0];
             model.OutputName = session.OutputNames[0];
-
+            model.DeviceType = GetDeviceType();
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
@@ -62,6 +63,8 @@ namespace YoloSharpOnnx.Providers
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
             model.OutputShapeSize= ShapeUtils.GetSizeForShape(model.OutputShape);
+
+            model.InputSizeInBytes = model.InputShapeSize * sizeof(float);
 
             model.Labels = GetModelLabels(session);
             model.ColorPalette = GenerateColorPalette(model.Labels.Length);

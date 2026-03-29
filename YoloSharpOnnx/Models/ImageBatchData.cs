@@ -17,12 +17,12 @@ namespace YoloSharpOnnx.Models
 
         public OrtValue InputOrtValue { get; set; }
 
-        public ImageBatchData(long inputSizeInBytes, OnnxModel onnxModel)
+        public ImageBatchData( OnnxModel onnxModel)
         {
             ResizedImg = new Mat();
             FixedBuffer = new FixedBuffer((int)onnxModel.InputShapeSize);
             InputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-            onnxModel.InputShape, FixedBuffer.Address, inputSizeInBytes);
+            onnxModel.InputShape, FixedBuffer.Address, onnxModel.InputSizeInBytes);
         }
 
         public void Dispose()

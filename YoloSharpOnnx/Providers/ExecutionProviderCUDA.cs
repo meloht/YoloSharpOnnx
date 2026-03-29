@@ -57,7 +57,12 @@ namespace YoloSharpOnnx.Providers
             return BuildInferenceSession(options);
         }
 
-        public override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override DeviceType GetDeviceType()
+        {
+           return DeviceType.GPU;
+        }
+
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             return new YoloDetectIoBinding(session, options, postprocess, onnxModel);
         }

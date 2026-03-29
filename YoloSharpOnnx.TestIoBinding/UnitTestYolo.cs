@@ -1,4 +1,5 @@
-﻿using YoloSharpOnnx.Providers;
+﻿using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
 namespace YoloSharpOnnx.TestIoBinding
@@ -73,7 +74,8 @@ namespace YoloSharpOnnx.TestIoBinding
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
             yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
 
-            var list = yolo.RunBatchDetect(dir, 2);
+            var processCallback = new ProcessCallback(_dict);
+            var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess, 2);
 
 
             Assert.Equal(2, list.Length);
@@ -94,6 +96,27 @@ namespace YoloSharpOnnx.TestIoBinding
             Assert.Equal(_dict[e.ImagePath], res);
         }
 
+        private void ReceiveProcess(DetectionBatchResult e)
+        {
+            Assert.True(_dict.ContainsKey(e.ImagePath));
+            string res = YoloUtils.GetResult(e.Results);
+            Assert.Equal(_dict[e.ImagePath], res);
+        }
 
+        internal class ProcessCallback : IBatchProcessCallback
+        {
+            private Dictionary<string, string> _dict;
+            public ProcessCallback(Dictionary<string, string> dict)
+            {
+                _dict = dict;
+            }
+            public void ReceiveProcessResult(DetectionBatchResult e)
+            {
+                Assert.True(_dict.ContainsKey(e.ImagePath));
+                string res = YoloUtils.GetResult(e.Results);
+                Assert.Equal(_dict[e.ImagePath], res);
+            }
+
+        }
     }
 }

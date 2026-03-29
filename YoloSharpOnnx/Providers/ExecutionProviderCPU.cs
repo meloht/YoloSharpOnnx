@@ -22,7 +22,12 @@ namespace YoloSharpOnnx.Providers
             return BuildInferenceSession(sessionOptions);
         }
 
-        public override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override DeviceType GetDeviceType()
+        {
+           return DeviceType.CPU;
+        }
+
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             return new YoloDetectOrtVal(session, options, postprocess, onnxModel);
         }

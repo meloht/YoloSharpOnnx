@@ -6,6 +6,6 @@ namespace YoloSharpOnnx
 {
     public interface IExecutionProvider
     {
-        IYoloDetect CreateYoloDetect();
+         IYoloDetect CreateYoloDetect();
     }
 }

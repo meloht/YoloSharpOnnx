@@ -88,15 +88,15 @@ namespace YoloSharpOnnx.Inference
             return result;
         }
 
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, int batchSize, YoloConfiguration yoloConfig)
+        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchSize, YoloConfiguration yoloConfig)
         {
-            var task = BatchDetectBase(listImg, batchSize, yoloConfig, this);
+            var task = BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchSize, yoloConfig, this);
             return task.GetAwaiter().GetResult();
         }
 
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, int batchSize, YoloConfiguration yoloConfig)
+        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchSize, YoloConfiguration yoloConfig)
         {
-            return await BatchDetectBase(listImg, batchSize, yoloConfig, this);
+            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchSize, yoloConfig, this);
         }
 
     }

@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.Inference
         protected readonly RunOptions _runOptions;
 
         protected readonly Scalar _paddingColor;
-        protected readonly float[] _inputBuffer;
+
 
         protected readonly FixedBuffer _inputFixedBuffer;
         protected readonly FixedBuffer _outputFixedBuffer;
@@ -36,12 +36,10 @@ namespace YoloSharpOnnx.Inference
         protected readonly Stopwatch _stopwatch;
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
-        private int _batchPoolSize = 50;
-        private Channel<PreResultBatch> _channel;
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
         protected Mat _resizedImg;
-        protected readonly long _inputSizeInBytes;
+
         public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
         {
             _resizedImg = new Mat();
@@ -51,43 +49,26 @@ namespace YoloSharpOnnx.Inference
             this._options = options;
             _runOptions = new RunOptions();
 
-
-
             _paddingColor = new Scalar(114, 114, 114);
-            _inputBuffer = new float[_onnxModel.InputShapeSize];
+
             _inputFixedBuffer = new FixedBuffer((int)_onnxModel.InputShapeSize);
             _outputFixedBuffer = new FixedBuffer((int)_onnxModel.OutputShapeSize);
+
             _postprocess = postprocess;
 
-            _inputSizeInBytes = _onnxModel.InputShapeSize * sizeof(float);
-
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-               _onnxModel.InputShape, _inputFixedBuffer.Address, _inputSizeInBytes);
-
-
+               _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
 
         }
 
-        private void InitChannel(int batchPoolSize)
+        private void InitBufferPool(int batchPoolSize)
         {
             lock (_detectLock)
             {
                 if (_matPool == null)
                 {
-                    _matPool = new MatBufferPool(_inputSizeInBytes, _onnxModel);
+                    _matPool = new MatBufferPool(batchPoolSize, _onnxModel);
                 }
-                if (_channel == null)
-                {
-                    _channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
-                    _batchPoolSize = batchPoolSize;
-                    return;
-                }
-                if (batchPoolSize != _batchPoolSize)
-                {
-                    _channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
-                    _batchPoolSize = batchPoolSize;
-                }
-
             }
         }
         public void DisposeBase()
@@ -210,33 +191,62 @@ namespace YoloSharpOnnx.Inference
             });
         }
 
-        protected async Task<DetectionBatchResult[]> BatchDetectBase(List<string> listImg, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
+        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
         {
-            InitChannel(batchPoolSize);
+            InitBufferPool(batchPoolSize);
             int idx = 0;
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
 
+            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
             // Producer/consumer
-            ChannelWriter<PreResultBatch> writer = _channel.Writer;
-            ChannelReader<PreResultBatch> reader = _channel.Reader;
+            ChannelWriter<PreResultBatch> writer = channel.Writer;
+            ChannelReader<PreResultBatch> reader = channel.Reader;
 
             var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer);
+
             var consumer = Task.Run(async () =>
             {
+
                 await foreach (PreResultBatch item in reader.ReadAllAsync())
                 {
                     var result = batchDetect.RunBatchDetect(item, yoloConfig);
-
-                    batchResults[idx] = new DetectionBatchResult(item.ImagePath, result);
-                    BatchDetectItemCompleted?.Invoke(this, batchResults[idx]);
+                    var modelResult = new DetectionBatchResult(item.ImagePath, result);
+                    batchResults[idx] = modelResult;
                     Interlocked.Increment(ref idx);
+                    await InferCompleteAsync(modelResult, processCallback, receiveAction);
+
+
                 }
             });
             await Task.WhenAll(producer, consumer);
             return batchResults;
         }
 
+        private async Task InferCompleteAsync(DetectionBatchResult result, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
+        {
+            if (BatchDetectItemCompleted != null)
+            {
+                await Task.Run(async () =>
+                {
+                    BatchDetectItemCompleted(this, result);
+                });
+            }
 
+            if (processCallback != null)
+            {
+                await Task.Run(async () =>
+                 {
+                     processCallback.ReceiveProcessResult(result);
+                 });
+            }
+            if (receiveAction != null)
+            {
+                await Task.Run(async () =>
+                {
+                    receiveAction(result);
+                });
+            }
+        }
 
         protected LabelModel[] GetModelLabels(InferenceSession session)
         {
