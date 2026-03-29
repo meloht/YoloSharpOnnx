@@ -167,11 +167,11 @@ internal class ProcessCallback : IBatchProcessCallback
 ```
 # Performance Test
 
-|Yolo C# inference library|Version|Sequence inference| Batch inference|
-| ------------- | ------------- | ------------- |------------- |
-| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | support | not support |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | support | support |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | support | support |
+|Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference| Batch inference|
+| ------------- | ------------- | ------------- |------------- |------------- |------------- |
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12|  NearestNeighbor|support | not support |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear |support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear|support | support |
 
 ## Performance Test Tool 
 [YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
@@ -224,11 +224,11 @@ internal class ProcessCallback : IBatchProcessCallback
 
 ## Performance Test Result
 
-|Yolo C# inference library|Version|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
-| ------------- | ------------- | ------------- |------------- |
-| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 42.441s, 1242M | - |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 17.665s, 169M | 10.587s, 639M |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | 15.303s, 169M | 3.492s, 601M ||
+|Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
+| ------------- | ------------- | ------------- |------------- |------------- |------------- |
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12| NearestNeighbor| 42.441s, 1242M | - |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear| 17.665s, 169M | 10.587s, 639M |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear| 15.303s, 169M | 3.492s, 601M ||
 
 <img width="398" height="217" alt="image" src="https://github.com/user-attachments/assets/3763af6e-9328-4f74-b2ee-888f47891ea6" />
 
