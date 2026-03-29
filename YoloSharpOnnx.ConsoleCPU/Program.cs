@@ -8,9 +8,10 @@ namespace YoloSharpOnnx.ConsoleCPU
     {
         static void Main(string[] args)
         {
+            
             Console.WriteLine("Hello, World!");
             //TestInfer();
-            TestBatchInfer();
+            //TestBatchInfer();
             //TestInferPerf();
             //using Mat image = Cv2.ImRead("bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
@@ -61,7 +62,8 @@ namespace YoloSharpOnnx.ConsoleCPU
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
-
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            _stopwatch.Start();
 
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
@@ -77,6 +79,9 @@ namespace YoloSharpOnnx.ConsoleCPU
                     }
                 }
             }
+            _stopwatch.Stop();
+
+            Console.WriteLine($"time:{_stopwatch.Elapsed}");
 
         }
 
@@ -93,7 +98,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
-               
+
                 yolo.RunBatchDetect(dir, 30);
 
             }

@@ -29,6 +29,7 @@ namespace YoloSharpOnnx.Inference
             for (int i = 0; i < _poolSzie; i++)
             {
                 _matPool[i] = new ImageBatchData(_OnnxModel);
+                _flagArr[i] = true;
             }
 
         }
@@ -50,7 +51,7 @@ namespace YoloSharpOnnx.Inference
                     {
                         _valIdx = _matPool.Length - 1;
                     }
-                    // Test();
+                    //Test();
                     return mat;
                 }
                 else
@@ -66,7 +67,7 @@ namespace YoloSharpOnnx.Inference
         {
             lock (_lock)
             {
-                if (_nullIdx < _matPool.Length && _nullIdx >= 0)
+                if (_nullIdx < _matPool.Length && _nullIdx >= 0 && _flagArr[_nullIdx] == false)
                 {
                     _matPool[_nullIdx] = mat;
                     _flagArr[_nullIdx] = true;
@@ -83,7 +84,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     mat.Dispose();
                 }
-                // Test();
+               // Test();
             }
 
 
@@ -93,9 +94,9 @@ namespace YoloSharpOnnx.Inference
         //public void Test()
         //{
         //    StringBuilder sb = new StringBuilder();
-        //    for (int i = 0; i < _matPool.Length; i++)
+        //    for (int i = 0; i < _flagArr.Length; i++)
         //    {
-        //        if (_matPool[i] == null)
+        //        if (_flagArr[i] == false)
         //        {
         //            sb.Append("null, ");
         //        }
