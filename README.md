@@ -11,7 +11,7 @@
  - **High Performance Inference** Memory reuse, GPU Inference I/O Binding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
- - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11) ,[YOLO26](https://docs.ultralytics.com/models/yolo26)
+ - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO26](https://docs.ultralytics.com/models/yolo26)
 
 
 ## Example Images:
@@ -224,7 +224,7 @@ internal class ProcessCallback : IBatchProcessCallback
 
 ## Performance Test Result
 
-|Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
+|Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference (Time/Memory)| Batch inference (Time/Memory)|
 | ------------- | ------------- | ------------- |------------- |------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12| NearestNeighbor| 42.441s, 1242M | - |
 | [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear| 17.665s, 169M | 10.587s, 639M |
