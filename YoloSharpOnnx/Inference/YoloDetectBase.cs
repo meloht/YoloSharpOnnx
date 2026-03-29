@@ -159,6 +159,11 @@ namespace YoloSharpOnnx.Inference
         {
 
             int preprocessWorkers = Environment.ProcessorCount / 2;
+            if (_onnxModel.DeviceType == DeviceType.CPU)
+            {
+                preprocessWorkers = 1;
+            }
+
             int size = listImg.Count / preprocessWorkers;
             if (size < 3)
             {
@@ -167,10 +172,13 @@ namespace YoloSharpOnnx.Inference
             else
             {
                 var arr = listImg.Chunk(size);
+                Task[] tasks = new Task[arr.Count()];
+                int idx = 0;
                 foreach (string[] subList in arr)
                 {
-                    await RunPreprocessSplitAsync(subList, interpolationFlags, writer);
+                    tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
                 }
+                await Task.WhenAll(tasks);
             }
 
             writer.Complete();
@@ -190,14 +198,29 @@ namespace YoloSharpOnnx.Inference
 
             });
         }
+        private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
+        {
+            var channelOptions = new BoundedChannelOptions(batchPoolSize)
+            {
+                SingleWriter = false,
+                SingleReader = true,
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
+            };
+            if (_onnxModel.DeviceType == DeviceType.CPU)
+            {
+                channelOptions.SingleReader = true;
+            }
 
+            return channelOptions;
+        }
         protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig, IBatchDetect batchDetect)
         {
             InitBufferPool(batchPoolSize);
             int idx = 0;
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
-
-            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(batchPoolSize);
+            var ChannelOptions = GetChannelOptions(batchPoolSize);
+            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
             // Producer/consumer
             ChannelWriter<PreResultBatch> writer = channel.Writer;
             ChannelReader<PreResultBatch> reader = channel.Reader;
