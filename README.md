@@ -171,9 +171,9 @@ internal class ProcessCallback : IBatchProcessCallback
 | ------------- | ------------- | ------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | support | not support |
 | [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | support | support |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | support | support |
 
-## Performance Test tool 
+## Performance Test Tool 
 [YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
 
 ## Performance Test PC 
@@ -186,13 +186,13 @@ internal class ProcessCallback : IBatchProcessCallback
 |GPU| AMD Radeom RX6800 16GB|
 |Storage| SSD 2TB|
 
-## Performance Test data
+## Performance Test Data
 
 **Images:**  300 2480x3494 images
 
 **Yolo Model:**  Yolo11n InputShape 1280x1280
 
-**Inference Provider:**  DirectML Inference
+**Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime 1.24.3
 
 
 ## YoloSharp test result
@@ -226,9 +226,9 @@ internal class ProcessCallback : IBatchProcessCallback
 
 |Yolo C# inference library|Version|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
 | ------------- | ------------- | ------------- |------------- |
-| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 40.869s, 1172M | - |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 15.964s, 174M | 10.422s, 639M |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | 14.627s, 169M | 8.838s, 172M ||
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 42.441s, 1242M | - |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 17.665s, 169M | 10.587s, 639M |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | 15.303s, 169M | 3.492s, 601M ||
 
 # Roadmap
 
