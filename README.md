@@ -161,7 +161,7 @@ internal class ProcessCallback : IBatchProcessCallback
        
         string res = YoloUtils.GetResult(e.Results);
       
-    
+    }
 }
 
 ```
