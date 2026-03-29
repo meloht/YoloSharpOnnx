@@ -14,9 +14,9 @@ namespace YoloSharpOnnx
 
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
-        public YoloConfiguration YoloConfiguration { get; set; }
+        public YoloConfig YoloConfiguration { get; set; }
 
-        public YoloSharp(YoloConfiguration yoloConfig, IExecutionProvider executionProvider)
+        public YoloSharp(YoloConfig yoloConfig, IExecutionProvider executionProvider)
         {
             YoloConfiguration = yoloConfig;
             InitDetector(executionProvider);
@@ -24,19 +24,19 @@ namespace YoloSharpOnnx
 
         public YoloSharp(IExecutionProvider executionProvider)
         {
-            YoloConfiguration = YoloConfiguration.Default;
+            YoloConfiguration = YoloConfig.Default;
             InitDetector(executionProvider);
         }
 
         public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
         {
-            YoloConfiguration = new YoloConfiguration(confidence, iou);
+            YoloConfiguration = new YoloConfig(confidence, iou);
             InitDetector(executionProvider);
         }
 
         public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
         {
-            YoloConfiguration = new YoloConfiguration(confidence, iou, resizeAlgorithm);
+            YoloConfiguration = new YoloConfig(confidence, iou, resizeAlgorithm);
             InitDetector(executionProvider);
         }
         private void InitDetector(IExecutionProvider executionProvider)
@@ -142,18 +142,20 @@ namespace YoloSharpOnnx
             return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction, batchPoolSize, YoloConfiguration);
         }
 
+
+        public DetectionBatchResult[] RunBatchDetect(List<string> images,  int batchPoolSize = 20)
+        {
+            return RunBatchDetect(images, null, null, batchPoolSize);
+        }
+
         public DetectionBatchResult[] RunBatchDetect(List<string> images, Action<DetectionBatchResult> receiveAction, int batchPoolSize = 20)
         {
-            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
-            ValidationImageListPath(files);
-            return _yoloDetect.BatchDetect(files, null, receiveAction, batchPoolSize, YoloConfiguration);
+            return RunBatchDetect(images, null, receiveAction, batchPoolSize);
         }
 
         public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback, int batchPoolSize = 20)
         {
-            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
-            ValidationImageListPath(files);
-            return _yoloDetect.BatchDetect(files, processCallback, null, batchPoolSize, YoloConfiguration);
+            return RunBatchDetect(images, processCallback, null, batchPoolSize);
         }
 
         public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null, int batchPoolSize = 20)

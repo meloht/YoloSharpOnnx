@@ -9,6 +9,6 @@ namespace YoloSharpOnnx.Inference
 {
     public interface IPostprocess
     {
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfiguration yoloConfig);
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig);
     }
 }

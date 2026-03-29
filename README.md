@@ -116,43 +116,53 @@ Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
 ```csharp
 using Mat image = Cv2.ImRead("bus.jpg");
 using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
-yolo.YoloConfiguration.IoU = 0.4f;
-yolo.YoloConfiguration.Confidence = 0.3f;
-yolo.YoloConfiguration.ResizeAlgorithm = InterpolationFlags.Linear;
-yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
+yolo.YoloConfig.IoU = 0.4f;
+yolo.YoloConfig.Confidence = 0.3f;
+yolo.YoloConfig.ResizeAlgorithm = InterpolationFlags.Linear;
+yolo.YoloConfig.ImageExtsBatch = [".jpg", ".png"];
 var res = yolo.RunDetect(image);
 ```
 
 #### Batch processing images
 
 ```csharp
- private static void TestBatchInfer()
- {
-     string modelPath = @"D:\code\model\best.onnx";
-     string dir = @"D:\code\model\TestImages";
+private static void TestBatchInfer()
+{
+    string modelPath = @"D:\code\model\best.onnx";
+    string dir = @"D:\code\model\TestImages"
+    DirectoryInfo directory = new DirectoryInfo(dir);
+    var files = directory.GetFiles()
+    System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+    _stopwatch.Start();
+    int num=files.Length;
+    using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
+    {
+        yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted
+        var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30)
+    }
+    _stopwatch.Stop()
+    Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
 
-     DirectoryInfo directory = new DirectoryInfo(dir);
-     var files = directory.GetFiles();
+private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
+{
+    string ans = YoloUtils.GetResult(e.Results);
+    Console.WriteLine(ans);
 
-     System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-     _stopwatch.Start();
-     using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
-     {
-         yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
-
-         var list = yolo.RunBatchDetect(dir, 30);
-
-     }
-     _stopwatch.Stop();
-
-     Console.WriteLine($"time:{_stopwatch.Elapsed}");
- }
-
- private static void Yolo_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
- {
-     string ans = YoloUtils.GetResult(e.Results);
-     Console.WriteLine(ans);
- }
+private static void ReceiveProcess(DetectionBatchResult e)
+{
+   
+    string res = YoloUtils.GetResult(e.Results)
+}
+internal class ProcessCallback : IBatchProcessCallback
+{
+   
+    public void ReceiveProcessResult(DetectionBatchResult e)
+    {
+       
+        string res = YoloUtils.GetResult(e.Results);
+      
+    
+}
 
 ```
 

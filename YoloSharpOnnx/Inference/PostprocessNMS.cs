@@ -32,7 +32,7 @@ namespace YoloSharpOnnx.Inference
             _boxNums4 = _boxNums * 4;
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfiguration yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig)
         {
             _boxes.Clear();
             _scores.Clear();

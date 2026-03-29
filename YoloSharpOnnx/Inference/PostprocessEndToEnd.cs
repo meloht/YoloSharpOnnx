@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.Inference
         {
             _labels = labels;
         }
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfiguration yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig)
         {
             var detections = new List<DetectionResult>();
 

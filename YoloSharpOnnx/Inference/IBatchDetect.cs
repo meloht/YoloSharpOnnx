@@ -8,6 +8,6 @@ namespace YoloSharpOnnx.Inference
 {
     public interface IBatchDetect
     {
-        List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig);
+        List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfig yoloConfig);
     }
 }

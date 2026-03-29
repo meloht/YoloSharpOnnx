@@ -191,7 +191,7 @@ namespace YoloSharpOnnx.Inference
             });
         }
 
-        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfiguration yoloConfig, IBatchDetect batchDetect)
+        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig, IBatchDetect batchDetect)
         {
             InitBufferPool(batchPoolSize);
             int idx = 0;
@@ -209,8 +209,9 @@ namespace YoloSharpOnnx.Inference
 
                 await foreach (PreResultBatch item in reader.ReadAllAsync())
                 {
+                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     var result = batchDetect.RunBatchDetect(item, yoloConfig);
-                    var modelResult = new DetectionBatchResult(item.ImagePath, result);
+                    var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
                     batchResults[idx] = modelResult;
                     Interlocked.Increment(ref idx);
                     await InferCompleteAsync(modelResult, processCallback, receiveAction);
@@ -248,35 +249,7 @@ namespace YoloSharpOnnx.Inference
             }
         }
 
-        protected LabelModel[] GetModelLabels(InferenceSession session)
-        {
-            var metaData = session.ModelMetadata.CustomMetadataMap;
-            var onnxLabelData = metaData["names"];
-            // Labels to Dictionary
-            var onnxLabels = onnxLabelData
-                .Trim('{', '}')
-                .Replace("'", "")
-                .Split(", ")
-                .Select(x => x.Split(": "))
-                .ToDictionary(x => int.Parse(x[0]), x => x[1]);
 
-            return [.. onnxLabels!.Select((label, index) => new LabelModel
-            {
-                Index = index,
-                Name = label.Value,
-            })];
-        }
-        protected Scalar[] GenerateColorPalette(int count)
-        {
-            var rng = new Random();
-            var palette = new Scalar[count];
-            var colors = ColorTemplate.Get();
-            for (int i = 0; i < count; i++)
-            {
-                palette[i] = ColorTemplate.HexToRgbaScalar(colors[i % count]);
-            }
-            return palette;
-        }
         public void DrawDetections(Mat inputImage, List<DetectionResult> list)
         {
             foreach (var item in list)

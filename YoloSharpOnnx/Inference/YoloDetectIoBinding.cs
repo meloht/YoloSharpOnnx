@@ -39,7 +39,7 @@ namespace YoloSharpOnnx.Inference
 
         }
 
-        public List<DetectionResult> Run(Mat inputImage, YoloConfiguration yoloConfig)
+        public List<DetectionResult> Run(Mat inputImage, YoloConfig yoloConfig)
         {
             // 预处理图像
             var preRes = PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
@@ -58,7 +58,7 @@ namespace YoloSharpOnnx.Inference
 
         }
 
-        public YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfiguration yoloConfig)
+        public YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfig yoloConfig)
         {
             SpeedResult speed = new SpeedResult();
 
@@ -102,7 +102,7 @@ namespace YoloSharpOnnx.Inference
 
 
 
-        public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfiguration yoloConfig)
+        public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfig yoloConfig)
         {
             _binding.BindInput(_onnxModel.InputName, preRes.Data.InputOrtValue);
             _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
@@ -119,13 +119,13 @@ namespace YoloSharpOnnx.Inference
             return result;
         }
 
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfiguration yoloConfig)
+        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig)
         {
             var task = BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchPoolSize, yoloConfig, this);
             return task.GetAwaiter().GetResult();
         }
 
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfiguration yoloConfig)
+        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig)
         {
             return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchPoolSize, yoloConfig, this);
         }

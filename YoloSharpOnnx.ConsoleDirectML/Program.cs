@@ -11,8 +11,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             Console.WriteLine("Hello, World!");
 
-            TestChannel();
-           // TestBatchInfer();
+            //TestChannel();
+            TestBatchInfer();
            // TestInferPerf();
             //TestInfer();
             Console.WriteLine("end!");
@@ -100,7 +100,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                var list = yolo.RunBatchDetect(dir, 30);
+                var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30);
 
             }
             _stopwatch.Stop();
@@ -110,8 +110,27 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
         {
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
             string ans = YoloUtils.GetResult(e.Results);
-            Console.WriteLine(ans);
+            Console.WriteLine($"{ans} time:{cost}ms");
+        }
+
+        private static void ReceiveProcess(DetectionBatchResult e)
+        {
+           
+            string res = YoloUtils.GetResult(e.Results);
+
+        }
+        internal class ProcessCallback : IBatchProcessCallback
+        {
+           
+            public void ReceiveProcessResult(DetectionBatchResult e)
+            {
+               
+                string res = YoloUtils.GetResult(e.Results);
+              
+            }
+
         }
 
         public static void TestChannel()
