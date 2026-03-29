@@ -227,7 +227,7 @@ internal class ProcessCallback : IBatchProcessCallback
 |Yolo C# inference library|Version|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
 | ------------- | ------------- | ------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 42.441s, 1242M | - |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 17.665s, 174M | 10.587s, 639M |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 17.665s, 169M | 10.587s, 639M |
 | [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 | 15.303s, 169M | 3.492s, 601M ||
 
 # Roadmap
