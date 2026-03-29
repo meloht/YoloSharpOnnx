@@ -12,7 +12,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine("Hello, World!");
             //TestInfer();
             //TestBatchInfer();
-            //TestInferPerf();
+            TestInferPerf();
             //using Mat image = Cv2.ImRead("bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
 
