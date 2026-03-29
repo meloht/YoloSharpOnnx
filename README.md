@@ -165,6 +165,67 @@ internal class ProcessCallback : IBatchProcessCallback
 }
 
 ```
+# Performance Test
+
+|Yolo C# inference library|Version|Sequence inference| Batch inference|
+| ------------- | ------------- | ------------- |------------- |
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | support | not support |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | support | support |
+
+## Performance Test tool 
+[YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
+
+## Performance Test PC 
+
+|Hardware|Summary|
+| ------------- | ------------- | 
+|Windows |Windows 10 OS Version 19045.6466|
+|CPU| AMD Ryzen 7 5800X 8-Core Processor 3.8GHz|
+|Memory| DDR4 3200 MHZ 32GB|
+|GPU| AMD Radeom RX6800 16GB|
+|Storage| SSD 2TB|
+
+## Performance Test data
+
+**Images:**  300 2480x3494 images
+
+**Yolo Model:**  Yolo11n input shape 1280x1280
+
+**Inference Provider:**  DirectML inference
+
+
+## YoloSharp test result
+
+**Sequence inference time:** 40.869s  **Memory Usage:** 1172M
+
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/16146e13-c7c6-4ee9-82ee-936460ba324b" />
+
+## YoloDotNet test result
+
+**Sequence inference time:** 15.964s **Memory Usage:** 162M
+
+**Batch inference time:** 10.422s **Memory Usage:** 630M
+
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/13fd4d3a-0a6a-4195-9c69-c3d8c970df6a" />
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/8deb6066-02ef-47b7-ae64-3ffe104579ef" />
+
+## YoloSharpOnnx test result
+
+**Sequence inference time:** 14.627s **Memory Usage:** 169M
+
+**Batch inference time:** 8.838s **Memory Usage:** 172M
+
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/a050ccd7-c8c8-4c11-b96d-81bf521e7f5d" />
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/f5ccea42-a480-4843-a27d-27a2797ddcd7" />
+
+## Performance Test Result
+
+|Yolo C# inference library|Version|Sequence inference(Time/Memory)| Batch inference(Time/Memory)|
+| ------------- | ------------- | ------------- |------------- |
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 | 40.869s, 1172M | - |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 | 15.964s, 162M | 10.422s, 630M |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.3 | 14.627s, 169M | 8.838s, 172M ||
 
 # Roadmap
 
