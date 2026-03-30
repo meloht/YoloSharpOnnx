@@ -22,12 +22,12 @@ namespace YoloSharpOnnx.Inference
         protected readonly SessionOptions _options;
         protected readonly RunOptions _runOptions;
 
-        protected readonly Scalar _paddingColor;
-
 
         protected readonly FixedBuffer _inputFixedBuffer;
         protected readonly FixedBuffer _outputFixedBuffer;
         protected readonly IPostprocess _postprocess;
+        protected readonly IPreprocess _preprocess;
+
         protected readonly OnnxModel _onnxModel;
 
         protected OrtValue _inputOrtValue;
@@ -39,8 +39,9 @@ namespace YoloSharpOnnx.Inference
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
         protected Mat _resizedImg;
+        private int _batchPoolSize = 0;
 
-        public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
         {
             _resizedImg = new Mat();
             _onnxModel = onnxModel;
@@ -49,12 +50,11 @@ namespace YoloSharpOnnx.Inference
             this._options = options;
             _runOptions = new RunOptions();
 
-            _paddingColor = new Scalar(114, 114, 114);
-
             _inputFixedBuffer = new FixedBuffer((int)_onnxModel.InputShapeSize);
             _outputFixedBuffer = new FixedBuffer((int)_onnxModel.OutputShapeSize);
 
             _postprocess = postprocess;
+            _preprocess = preprocess;
 
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
@@ -63,14 +63,31 @@ namespace YoloSharpOnnx.Inference
 
         private void InitBufferPool(int batchPoolSize)
         {
-            lock (_detectLock)
+            if (batchPoolSize != _batchPoolSize)
             {
-                if (_matPool == null)
+                lock (_detectLock)
                 {
-                    _matPool = new MatBufferPool(batchPoolSize, _onnxModel);
+                    if (batchPoolSize != _batchPoolSize)
+                    {
+                        _matPool?.Dispose();
+                        _matPool = null;
+                        _batchPoolSize = batchPoolSize;
+                    }
+                }
+            }
+
+            if (_matPool == null)
+            {
+                lock (_detectLock)
+                {
+                    if (_matPool == null)
+                    {
+                        _matPool = new MatBufferPool(batchPoolSize, _onnxModel);
+                    }
                 }
             }
         }
+
         public void DisposeBase()
         {
             _resizedImg.Dispose();
@@ -86,73 +103,6 @@ namespace YoloSharpOnnx.Inference
             _inputOrtValue.Dispose();
         }
 
-
-        protected PreResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
-        {
-
-            // 1. 获取原始图像尺寸
-            int imgH = inputImage.Height;
-            int imgW = inputImage.Width;
-
-            // 2. 计算缩放比例（按最小比例缩放，避免图像畸变）
-            float scale = Math.Min((float)_onnxModel.InputHeight / imgH, (float)_onnxModel.InputWidth / imgW);
-
-            // 3. 计算缩放后的尺寸（确保按比例缩放）
-            int newImgW = (int)Math.Round(imgW * scale);
-            int newImgH = (int)Math.Round(imgH * scale);
-
-            // 4. 计算填充值（左右填充、上下填充，确保最终尺寸=1280×1280）
-            int padW = (_onnxModel.InputWidth - newImgW) / 2; // 左右填充的一半
-            int padH = (_onnxModel.InputHeight - newImgH) / 2; // 上下填充的一半
-
-
-            // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
-
-            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
-
-            // BGR转RGB
-            Cv2.CvtColor(resizedImg, resizedImg, ColorConversionCodes.BGR2RGB);
-
-            Cv2.CopyMakeBorder(
-               src: resizedImg,
-               dst: resizedImg,
-               top: padH,        // 顶部填充
-               bottom: _onnxModel.InputHeight - newImgH - padH, // 底部填充（补全到 1280）
-               left: padW,       // 左侧填充
-               right: _onnxModel.InputWidth - newImgW - padW,  // 右侧填充（补全到 1280）
-               borderType: BorderTypes.Constant,
-               value: _paddingColor // 填充色（BGR 格式）
-           );
-
-            GetChwArrPointer(resizedImg, buffer);
-
-            // 添加批次维度 (1, 3, H, W)
-            return new PreResult(imgH, imgW, padH, padW, scale);
-        }
-        public void GetChwArrPointer(Mat paddedImg, FixedBuffer buffer)
-        {
-            int height = paddedImg.Height;
-            int width = paddedImg.Width;
-            int channels = paddedImg.Channels();
-
-            unsafe
-            {
-                int index = 0;
-                byte* ptr = (byte*)paddedImg.DataPointer;
-                float* data = buffer.Pointer;
-                for (int c = 0; c < channels; c++)
-                {
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            data[index++] = ptr[(y * width + x) * channels + c] / 255.0f;
-                        }
-
-                    }
-                }
-            }
-        }
 
 
         protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
@@ -192,7 +142,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     var data = _matPool.Rent();
                     using Mat img = Cv2.ImRead(imgPath);
-                    var res = PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
+                    var res = _preprocess.PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
                     await writer.WriteAsync(new PreResultBatch(res, imgPath, data));
                 }
 
@@ -214,12 +164,12 @@ namespace YoloSharpOnnx.Inference
 
             return channelOptions;
         }
-        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig, IBatchDetect batchDetect)
+        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig, IBatchDetect batchDetect)
         {
-            InitBufferPool(batchPoolSize);
+            InitBufferPool(yoloConfig.BatchPoolSize);
             int idx = 0;
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
-            var ChannelOptions = GetChannelOptions(batchPoolSize);
+            var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
             Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
             // Producer/consumer
             ChannelWriter<PreResultBatch> writer = channel.Writer;
@@ -238,8 +188,6 @@ namespace YoloSharpOnnx.Inference
                     batchResults[idx] = modelResult;
                     Interlocked.Increment(ref idx);
                     await InferCompleteAsync(modelResult, processCallback, receiveAction);
-
-
                 }
             });
             await Task.WhenAll(producer, consumer);

@@ -72,10 +72,12 @@ namespace YoloSharpOnnx.TestIoBinding
             string dir = TestDataUtils.GetImageDir();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
-            yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
+            yolo.YoloConfiguration.BatchPoolSize = 4;
 
+            yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
+           
             var processCallback = new ProcessCallback(_dict);
-            var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess, 2);
+            var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess);
 
 
             Assert.Equal(2, list.Length);

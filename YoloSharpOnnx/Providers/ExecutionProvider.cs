@@ -17,7 +17,7 @@ namespace YoloSharpOnnx.Providers
 
         public string ModelPath { get; set; }
 
-        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel);
+        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
 
         public ExecutionProvider(string modelPath)
@@ -32,8 +32,9 @@ namespace YoloSharpOnnx.Providers
             OnnxModel onnxModel = ParseOnnxModel(session);
 
             var postprocess = GetPostprocessor(onnxModel);
+            var preprocess = GetPreprocess(onnxModel);
 
-            return GetYoloDetector(session, options, postprocess, onnxModel);
+            return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
         }
 
         private IPostprocess GetPostprocessor(OnnxModel onnxModel)
@@ -43,6 +44,11 @@ namespace YoloSharpOnnx.Providers
                 return new PostprocessEndToEnd(onnxModel.Labels);
             }
             return new PostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+        }
+
+        protected IPreprocess GetPreprocess(OnnxModel onnxModel)
+        {
+            return new PreprocessComm(onnxModel);
         }
 
         protected OnnxModel ParseOnnxModel(InferenceSession session)
@@ -62,7 +68,7 @@ namespace YoloSharpOnnx.Providers
             model.InputWidth = (int)model.InputShape[3];
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
-            model.OutputShapeSize= ShapeUtils.GetSizeForShape(model.OutputShape);
+            model.OutputShapeSize = ShapeUtils.GetSizeForShape(model.OutputShape);
 
             model.InputSizeInBytes = model.InputShapeSize * sizeof(float);
 

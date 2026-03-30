@@ -116,10 +116,10 @@ Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
 ```csharp
 using Mat image = Cv2.ImRead("bus.jpg");
 using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
-yolo.YoloConfig.IoU = 0.4f;
-yolo.YoloConfig.Confidence = 0.3f;
-yolo.YoloConfig.ResizeAlgorithm = InterpolationFlags.Linear;
-yolo.YoloConfig.ImageExtsBatch = [".jpg", ".png"];
+yolo.YoloConfiguration.IoU = 0.4f;
+yolo.YoloConfiguration.Confidence = 0.3f;
+yolo.YoloConfiguration.ResizeAlgorithm = InterpolationFlags.Linear;
+yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
 var res = yolo.RunDetect(image);
 ```
 

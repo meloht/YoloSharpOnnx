@@ -12,8 +12,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
-            TestBatchInfer();
-           // TestInferPerf();
+            //TestBatchInfer();
+           TestInferPerf();
             //TestInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -62,15 +62,15 @@ namespace YoloSharpOnnx.ConsoleDirectML
             _stopwatchTotal.Start();
 
             long totalInfer = 0;
-
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath)))
+            int count = 0;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath,1)))
             {
                 foreach (var item in files)
                 {
                     string filePath = item.Extension.ToLower();
                     if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
                     {
-
+                        count++;
                         var res = yolo.RunDetectWithTime(item.FullName);
                         totalInfer += res.SpeedResult.Inference;
                         Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
@@ -80,8 +80,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             _stopwatchTotal.Stop();
 
-            float avg = totalInfer / (float)files.Length;
-            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, Infer avg time:{avg}");
+            float avg = totalInfer / (float)count;
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed},count:{count} Infer avg time:{avg}");
 
         }
 
@@ -96,11 +96,12 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
             int num=files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30);
+                var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess);
 
             }
             _stopwatch.Stop();

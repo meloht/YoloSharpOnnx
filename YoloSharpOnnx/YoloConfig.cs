@@ -16,6 +16,8 @@ namespace YoloSharpOnnx
 
         public string[] ImageExtsBatch { get; set; } = [".jpg", ".png"];
 
+        public int BatchPoolSize { get; set; } = 20;
+
         public YoloConfig(float confidence, float iou, InterpolationFlags resizeAlgorithm)
         {
             this.Confidence = confidence;

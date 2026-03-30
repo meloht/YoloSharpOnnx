@@ -38,7 +38,7 @@ namespace YoloSharpOnnx.Providers
             {
                 options = SessionOptions.MakeSessionOptionWithTensorrtProvider(_deviceId);
             }
-        
+
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
 
@@ -50,9 +50,9 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.GPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectIoBinding(session, options, postprocess, onnxModel);
+            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel);
         }
     }
 }
