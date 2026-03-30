@@ -11,9 +11,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             Console.WriteLine("Hello, World!");
 
-            TestChannel();
+            //TestChannel();
             //TestBatchInfer();
-           //TestInferPerf();
+            //TestInferPerf();
             //TestInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -63,7 +63,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             long totalInfer = 0;
             int count = 0;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath,1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
                 foreach (var item in files)
                 {
@@ -95,13 +95,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
-            int num=files.Length;
+            int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess);
+                var list = yolo.RunBatchDetect(dir, new ProcessCallback(), ReceiveProcess);
 
             }
             _stopwatch.Stop();
@@ -118,18 +118,18 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void ReceiveProcess(DetectionBatchResult e)
         {
-           
+
             string res = YoloUtils.GetResult(e.Results);
 
         }
         internal class ProcessCallback : IBatchProcessCallback
         {
-           
+
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
-               
+
                 string res = YoloUtils.GetResult(e.Results);
-              
+
             }
 
         }
@@ -144,7 +144,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             });
 
             // 生产者
-            await Task.Run(async () =>
+            var producer = Task.Run(async () =>
             {
                 for (int i = 1; i <= 100; i++)
                 {
@@ -165,9 +165,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     await Task.Delay(12);
                 }
             });
-           
-            Task.WaitAll(consumer);
-           
+
+            Task.WaitAll(consumer, producer);
+
 
         }
     }
