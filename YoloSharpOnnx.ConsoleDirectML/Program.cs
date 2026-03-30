@@ -152,13 +152,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     Console.WriteLine($"生产：{i}");
                     await Task.Delay(10);
                 }
-               
+                channel.Writer.Complete();
             });
 
             // 消费者
             var consumer = Task.Run(async () =>
             {
-                // ✅ 极简读取写法（C# 8+）
+                // 极简读取写法（C# 8+）
                 await foreach (var msg in channel.Reader.ReadAllAsync())
                 {
                     Console.WriteLine($"消费：{msg}");
@@ -167,7 +167,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             });
            
             Task.WaitAll(consumer);
-            channel.Writer.Complete();
+           
 
         }
     }

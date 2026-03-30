@@ -18,11 +18,11 @@ namespace YoloSharpOnnx.Providers
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, [])
+        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, null)
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
+        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null) : base(modelPath)
         {
             this._deviceId = deviceId;
             this._providerOptionsDict = providerOptionsDict;
