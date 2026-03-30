@@ -11,9 +11,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             Console.WriteLine("Hello, World!");
 
-            //TestChannel();
+            TestChannel();
             //TestBatchInfer();
-           TestInferPerf();
+           //TestInferPerf();
             //TestInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -134,7 +134,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         }
 
-        public static void TestChannel()
+        public static async Task TestChannel()
         {
             // 1. 创建 有界通道（容量=2）
             Channel<int> channel = Channel.CreateBounded<int>(new BoundedChannelOptions(100)
@@ -144,7 +144,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             });
 
             // 生产者
-            var producer = Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 for (int i = 1; i <= 100; i++)
                 {
@@ -152,7 +152,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     Console.WriteLine($"生产：{i}");
                     await Task.Delay(10);
                 }
-                channel.Writer.Complete();
+               
             });
 
             // 消费者
@@ -165,9 +165,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     await Task.Delay(12);
                 }
             });
+           
+            Task.WaitAll(consumer);
+            channel.Writer.Complete();
 
-            Task.WaitAll(producer, consumer);
-         
         }
     }
 }

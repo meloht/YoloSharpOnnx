@@ -11,6 +11,11 @@ namespace YoloSharpOnnx.Providers
     {
         private int _deviceId;
         private Dictionary<string, string> _providerOptionsDict;
+
+        public ExecutionProviderTensorRT(string modelPath, int deviceId) : this(modelPath, deviceId, null)
+        {
+
+        }
         public ExecutionProviderTensorRT(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
         {
             _deviceId = deviceId;
