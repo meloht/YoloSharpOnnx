@@ -190,7 +190,7 @@ internal class ProcessCallback : IBatchProcessCallback
 
 **Images:**  300 2480x3494 images
 
-**Yolo Model:**  Yolo11n InputShape 1280x1280
+**Yolo Model:**  Yolo11n.onnx InputShape 1280x1280
 
 **Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime 1.24.3
 
