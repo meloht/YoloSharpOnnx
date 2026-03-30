@@ -169,9 +169,9 @@ internal class ProcessCallback : IBatchProcessCallback
 
 |Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference| Batch inference|
 | ------------- | ------------- | ------------- |------------- |------------- |------------- |
-| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12|  NearestNeighbor|support | not support |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear |support | support |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear|support | support |
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12|  Triangle(Bilinear)|support | not support |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear(Bilinear) |support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)|support | support |
 
 ## Performance Test Tool 
 [YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
@@ -188,7 +188,7 @@ internal class ProcessCallback : IBatchProcessCallback
 
 ## Performance Test Data
 
-**Images:**  300 2480x3494 images
+**Images:**  300 images (image size: 2480x3494)
 
 **Yolo Model:**  Yolo11n.onnx InputShape 1280x1280
 
@@ -197,9 +197,9 @@ internal class ProcessCallback : IBatchProcessCallback
 
 ## YoloSharp test result
 
-**Sequence inference time:** 42.441s  **Memory Usage:** 1242M
+**Sequence inference time:** 18.707s  **Memory Usage:** 1374M
 
-<img width="1141" height="796" alt="image" src="https://github.com/user-attachments/assets/b809bc79-0312-4185-83d0-c4dff91de7f0" />
+<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/b89ad044-ecc7-4857-93dd-329994c31c23" />
 
 
 ## YoloDotNet test result
@@ -226,13 +226,14 @@ internal class ProcessCallback : IBatchProcessCallback
 
 |Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference (Time/Memory)| Batch inference (Time/Memory)|
 | ------------- | ------------- | ------------- |------------- |------------- |------------- |
-| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12| NearestNeighbor| 42.441s, 1242M | - |
-| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear| 17.665s, 169M | 10.587s, 639M |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear| 15.303s, 169M | 3.492s, 601M ||
+| [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12| Triangle(Bilinear)| 18.707s, 1374M | - |
+| [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear(Bilinear)| 17.665s, 169M | 10.587s, 639M |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)| 15.303s, 169M | 3.492s, 601M ||
 
 <img width="398" height="217" alt="image" src="https://github.com/user-attachments/assets/3763af6e-9328-4f74-b2ee-888f47891ea6" />
 
-<img width="361" height="214" alt="image" src="https://github.com/user-attachments/assets/baae4513-e154-4c2a-a989-b707f70dc3d8" />
+<img width="371" height="279" alt="image" src="https://github.com/user-attachments/assets/6ae89f4d-cf54-4445-8e4f-0b47e1cfa939" />
+
 
 <img width="327" height="211" alt="image" src="https://github.com/user-attachments/assets/6950c17f-9977-4af2-9d32-58b7276b9113" />
 
