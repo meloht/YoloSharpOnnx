@@ -77,8 +77,8 @@ dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
 ```
 
 ```csharp
-using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderCoreML("yolo11n.onnx",0));
-using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderTensorRT("yolo11n.onnx",0));
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderCoreML("yolo11n.onnx",0));
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT("yolo11n.onnx",0));
 ```
 
 
@@ -90,7 +90,7 @@ dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
 ```csharp
-using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderDirectML("yolo11n.onnx",0));
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML("yolo11n.onnx",0));
 ```
 
 #### OpenVINO Inference
