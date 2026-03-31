@@ -61,7 +61,7 @@ namespace YoloSharpOnnx.Inference
 
         }
 
-        private void InitBufferPool(int batchPoolSize)
+        public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
             {
@@ -111,7 +111,7 @@ namespace YoloSharpOnnx.Inference
             int preprocessWorkers = Environment.ProcessorCount / 2;
             if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
-                preprocessWorkers = 1;
+                preprocessWorkers = 2;
             }
 
             int size = listImg.Count / preprocessWorkers;
@@ -135,19 +135,29 @@ namespace YoloSharpOnnx.Inference
         }
         private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
-
             await Task.Run(async () =>
             {
                 foreach (string imgPath in list)
                 {
-                    var data = _matPool.Rent();
-                    using Mat img = Cv2.ImRead(imgPath);
-                    var res = _preprocess.PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
-                    await writer.WriteAsync(new PreResultBatch(res, imgPath, data));
+                    var res = PreprocessImageChannel(imgPath, interpolationFlags);
+                    await writer.WriteAsync(res);
                 }
 
             });
         }
+        public PreResultBatch PreprocessImageChannel(string imagePath, InterpolationFlags interpolationFlags)
+        {
+            using Mat img = Cv2.ImRead(imagePath);
+            return PreprocessImageChannel(img, imagePath, interpolationFlags);
+        }
+
+        public PreResultBatch PreprocessImageChannel(Mat img, string imagePath, InterpolationFlags interpolationFlags)
+        {
+            var data = _matPool.Rent();
+            var res = _preprocess.PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
+            return new PreResultBatch(res, imagePath, data);
+        }
+
         private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
         {
             var channelOptions = new BoundedChannelOptions(batchPoolSize)
@@ -187,7 +197,7 @@ namespace YoloSharpOnnx.Inference
                     var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
                     batchResults[idx] = modelResult;
                     Interlocked.Increment(ref idx);
-                    await InferCompleteAsync(modelResult, processCallback, receiveAction);
+                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
                 }
             });
             await Task.WhenAll(producer, consumer);

@@ -11,7 +11,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IBatchDetect
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect,  IYoloDetectAsync
     {
 
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
@@ -29,7 +29,6 @@ namespace YoloSharpOnnx.Inference
         {
             // 预处理图像
             var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
-
 
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
@@ -53,8 +52,6 @@ namespace YoloSharpOnnx.Inference
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
 
-
-
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
@@ -76,8 +73,6 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfig yoloConfig)
         {
-
-
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [preRes.Data.InputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
@@ -99,5 +94,10 @@ namespace YoloSharpOnnx.Inference
             return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, yoloConfig, this);
         }
 
+
+        public IYoloDetectAsync GetYoloDetectAsync()
+        {
+            return this;
+        }
     }
 }

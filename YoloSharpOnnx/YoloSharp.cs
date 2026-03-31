@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -16,35 +17,34 @@ namespace YoloSharpOnnx
 
         public YoloConfig YoloConfiguration { get; set; }
 
+        #region Constructor
+
+
+        public YoloSharp(IExecutionProvider executionProvider) : this(YoloConfig.Default, executionProvider) { }
         public YoloSharp(YoloConfig yoloConfig, IExecutionProvider executionProvider)
         {
             YoloConfiguration = yoloConfig;
             InitDetector(executionProvider);
         }
 
-        public YoloSharp(IExecutionProvider executionProvider)
-        {
-            YoloConfiguration = YoloConfig.Default;
-            InitDetector(executionProvider);
-        }
-
         public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
-        {
-            YoloConfiguration = new YoloConfig(confidence, iou);
-            InitDetector(executionProvider);
-        }
+            : this(confidence, iou, InterpolationFlags.Linear, executionProvider) { }
 
         public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
         {
             YoloConfiguration = new YoloConfig(confidence, iou, resizeAlgorithm);
             InitDetector(executionProvider);
         }
+
         private void InitDetector(IExecutionProvider executionProvider)
         {
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloDetect.BatchDetectItemCompleted += YoloDetect_BatchDetectItemCompleted;
         }
 
+        #endregion
+
+        #region Synchronous
         public List<DetectionResult> RunDetect(string imagePath)
         {
             ValidationImagePath(imagePath);
@@ -71,6 +71,17 @@ namespace YoloSharpOnnx
         {
             return _yoloDetect.RunWithTime(img, YoloConfiguration);
         }
+        #endregion
+
+        #region Asynchronous
+
+        public IYoloAsync CreateAsyncChannel()
+        {
+            return new YoloChannelAsync(YoloConfiguration, _yoloDetect.GetYoloDetectAsync());
+        }
+
+
+        #endregion
 
 
         #region BatchDetect
@@ -135,7 +146,7 @@ namespace YoloSharpOnnx
         {
             return await RunBatchDetectAsync(images, null, receiveAction);
         }
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction=null)
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             ValidationImageListPath(files);

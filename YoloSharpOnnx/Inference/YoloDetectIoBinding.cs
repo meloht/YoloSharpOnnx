@@ -12,7 +12,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect, IBatchDetect
+    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect, IYoloDetectAsync
     {
         private OrtIoBinding _binding;
         protected OrtValue _outputOrtValue;
@@ -128,6 +128,11 @@ namespace YoloSharpOnnx.Inference
         public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig)
         {
             return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, yoloConfig, this);
+        }
+
+        public IYoloDetectAsync GetYoloDetectAsync()
+        {
+            return this;
         }
     }
 }

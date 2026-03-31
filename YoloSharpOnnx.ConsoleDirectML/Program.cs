@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
@@ -13,8 +14,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
             //TestBatchInfer();
-            //TestInferPerf();
+           // TestInferPerf();
             //TestInfer();
+            _= Task.Run(async () =>await TestInferAsync()); 
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -81,10 +83,33 @@ namespace YoloSharpOnnx.ConsoleDirectML
             _stopwatchTotal.Stop();
 
             float avg = totalInfer / (float)count;
-            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed},count:{count} Infer avg time:{avg}");
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed},count:{count} Infer avg time:{avg}ms");
 
         }
+        private static async Task TestInferAsync()
+        {
+            string modelPath = @"D:\code\model\best.onnx";
+            string dir = @"D:\code\model\TestImages";
+            using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1));
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
+            var files = Directory.GetFiles(dir);
+            using (var yoloAsync = yolo.CreateAsyncChannel())
+            {
+                
+                for (int i = 0; i < files.Length; i++)
+                {
+                    var res = await yoloAsync.RunDetectAsync(files[i]);
+                    Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+                }
 
+            }
+
+            _stopwatchTotal.Stop();
+            var avg = _stopwatchTotal.ElapsedMilliseconds / files.Length;
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms");
+
+        }
         private static void TestBatchInfer()
         {
             string modelPath = @"D:\code\model\best.onnx";

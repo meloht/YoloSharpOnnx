@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Models
 {
-    public interface IYoloDetectData
-    {
 
-    }
+
+    public record PreChannelModel(PreResultBatch PreResult, string Guid);
 }
