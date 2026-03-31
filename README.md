@@ -54,11 +54,19 @@ dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
+``` csharp
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
+```
+
 #### CoreML Inference
 ```shell
 dotnet add package YoloSharpOnnx
 dotnet add package OpenCvSharp4.runtime.osx.10.15-x64
 dotnet add package Microsoft.ML.OnnxRuntime
+```
+
+```csharp
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderCoreML("yolo11n.onnx"));
 ```
 
 #### CUDA/TensorRT Inference
@@ -68,6 +76,12 @@ dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
 ```
 
+```csharp
+using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderCoreML("yolo11n.onnx",0));
+using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderTensorRT("yolo11n.onnx",0));
+```
+
+
 #### DirectML Inference
 ```shell
 dotnet add package YoloSharpOnnx
@@ -75,11 +89,19 @@ dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
+```csharp
+using YoloSharp yolo = new ExecutionProviderCUDA(new ExecutionProviderDirectML("yolo11n.onnx",0));
+```
+
 #### OpenVINO Inference
 ```shell
 dotnet add package YoloSharpOnnx
 dotnet add package OpenCvSharp4.runtime.win
 dotnet add package Intel.ML.OnnxRuntime.OpenVino
+```
+
+```csharp
+using oloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO("yolo11n.onnx", IntelDeviceType.NPU));
 ```
 
 #### Use the following C# code to load the model and run basic prediction:
