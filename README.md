@@ -145,6 +145,32 @@ yolo.YoloConfiguration.ImageExtsBatch = [".jpg", ".png"];
 var res = yolo.RunDetect(image);
 ```
 
+#### Asynchronous inference
+```csharp
+private static async Task TestInferAsync()
+{
+    string modelPath = @"D:\code\model\best.onnx";
+    string dir = @"D:\code\model\TestImages";
+    using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1));
+    System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+    _stopwatchTotal.Start();
+    var files = Directory.GetFiles(dir);
+    using (var yoloAsync = yolo.CreateAsyncChannel())
+    {
+        
+        for (int i = 0; i < files.Length; i++)
+        {
+            var res = await yoloAsync.RunDetectAsync(files[i]);
+            Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+        
+    
+    _stopwatchTotal.Stop();
+    var avg = _stopwatchTotal.ElapsedMilliseconds / files.Length;
+    Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms")
+}
+
+```
+
 #### Batch processing images
 
 ```csharp
