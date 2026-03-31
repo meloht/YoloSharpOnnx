@@ -6,16 +6,18 @@ namespace YoloSharpOnnx.ConsoleCPU
 {
     internal class Program
     {
+        static string modelPath = @"D:\code\model\best.onnx";
+        static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
         {
-            
+
             Console.WriteLine("Hello, World!");
             //TestInfer();
             //TestBatchInfer();
             TestInferPerf();
             //using Mat image = Cv2.ImRead("bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
-            
+
             //List<DetectionResult> res = yolo.RunDetect(image);
             //yolo.DrawDetections(image, res);
             //Cv2.ImWrite("bus_res.jpg", image);
@@ -25,8 +27,7 @@ namespace YoloSharpOnnx.ConsoleCPU
 
         private static void TestInfer()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
+
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
@@ -57,9 +58,6 @@ namespace YoloSharpOnnx.ConsoleCPU
 
         private static void TestInferPerf()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
-
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
@@ -87,9 +85,6 @@ namespace YoloSharpOnnx.ConsoleCPU
 
         private static void TestBatchInfer()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
-
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
 

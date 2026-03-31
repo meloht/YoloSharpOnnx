@@ -4,6 +4,9 @@ namespace YoloSharpOnnx.ConsoleGPU
 {
     internal class Program
     {
+        static string modelPath = @"C:\code\model\best.onnx";
+        static string dir = @"C:\code\model\TestImages";
+        static int _deviceId = 0;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -14,16 +17,13 @@ namespace YoloSharpOnnx.ConsoleGPU
 
         private static void TestInfer()
         {
-            string modelPath = @"C:\code\model\best.onnx";
-            string dir = @"C:\code\model\TestImages";
-
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, _deviceId)))
             {
                 foreach (var item in files)
                 {
@@ -46,15 +46,12 @@ namespace YoloSharpOnnx.ConsoleGPU
         }
         private static void TestInferPerf()
         {
-            string modelPath = @"C:\code\model\best.onnx";
-            string dir = @"C:\code\model\TestImages";
-
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, _deviceId)))
             {
                 foreach (var item in files)
                 {

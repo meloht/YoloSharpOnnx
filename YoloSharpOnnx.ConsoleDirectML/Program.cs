@@ -9,6 +9,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
     internal class Program
     {
         static int _deviceId = 0;
+        static string modelPath = @"C:\code\model\best.onnx";
+        static string dir = @"C:\code\model\TestImages";
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -25,9 +27,6 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void TestInfer()
         {
-            string modelPath = @"C:\code\model\best.onnx";
-            string dir = @"C:\code\model\TestImages";
-
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
 
@@ -56,8 +55,6 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void TestInferPerf()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
@@ -89,8 +86,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static async Task TestInferAsync()
         {
-            string modelPath = @"C:\code\model\best.onnx";
-            string dir = @"C:\code\model\TestImages";
+          
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId));
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
@@ -114,8 +110,6 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static void TestBatchInfer()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
