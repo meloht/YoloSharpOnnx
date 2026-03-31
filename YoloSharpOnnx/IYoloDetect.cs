@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -15,11 +16,13 @@ namespace YoloSharpOnnx
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
 
-        DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig);
+        DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig);
 
-        Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchPoolSize, YoloConfig yoloConfig);
+        Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig);
 
         event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
+
+        IYoloDetectAsync GetYoloDetectAsync();
 
     }
 }

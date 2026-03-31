@@ -18,11 +18,11 @@ namespace YoloSharpOnnx.Providers
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, [])
+        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, null)
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict) : base(modelPath)
+        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null) : base(modelPath)
         {
             this._deviceId = deviceId;
             this._providerOptionsDict = providerOptionsDict;
@@ -59,12 +59,12 @@ namespace YoloSharpOnnx.Providers
 
         protected override DeviceType GetDeviceType()
         {
-           return DeviceType.GPU;
+            return DeviceType.GPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectIoBinding(session, options, postprocess, onnxModel);
+            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel);
         }
     }
 }

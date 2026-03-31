@@ -11,11 +11,11 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IBatchDetect
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect,  IYoloDetectAsync
     {
 
-        public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
-           : base(session, options, postprocess, onnxModel)
+        public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
+           : base(session, options, postprocess, preprocess, onnxModel)
         {
         }
 
@@ -28,9 +28,8 @@ namespace YoloSharpOnnx.Inference
         public List<DetectionResult> Run(Mat inputImage, YoloConfig yoloConfig)
         {
             // 预处理图像
-            var preRes = PreprocessImage(inputImage, _resizedImg,_inputFixedBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
 
-           
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
@@ -47,13 +46,11 @@ namespace YoloSharpOnnx.Inference
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, yoloConfig.ResizeAlgorithm);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
             _stopwatch.Restart();
-
-          
 
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
@@ -76,8 +73,6 @@ namespace YoloSharpOnnx.Inference
 
         public List<DetectionResult> RunBatchDetect(PreResultBatch preRes, YoloConfig yoloConfig)
         {
-           
-
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [preRes.Data.InputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
@@ -88,16 +83,21 @@ namespace YoloSharpOnnx.Inference
             return result;
         }
 
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchSize, YoloConfig yoloConfig)
+        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig)
         {
-            var task = BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchSize, yoloConfig, this);
+            var task = BatchDetectBaseAsync(listImg, processCallback, receiveAction, yoloConfig, this);
             return task.GetAwaiter().GetResult();
         }
 
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, int batchSize, YoloConfig yoloConfig)
+        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig)
         {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, batchSize, yoloConfig, this);
+            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, yoloConfig, this);
         }
 
+
+        public IYoloDetectAsync GetYoloDetectAsync()
+        {
+            return this;
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using YoloSharpOnnx.DataResult;
+﻿using OpenCvSharp;
+using System.Security.Cryptography;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
@@ -67,14 +69,36 @@ namespace YoloSharpOnnx.Test
         }
 
         [Fact]
+        public async Task TestDetectAsyncYolo11()
+        {
+
+            string model = TestDataUtils.GetModelPath("yolo11n.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using var yoloAsync = yolo.CreateAsyncChannel();
+
+            foreach (var item in _dict)
+            {
+                var res = await yoloAsync.RunDetectAsync(item.Key);
+                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+            }
+            foreach (var item in _dict)
+            {
+                using var img = Cv2.ImRead(item.Key);
+                var res = await yoloAsync.RunDetectAsync(img);
+                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+            }
+        }
+
+        [Fact]
         public void TestDetectBatch()
         {
             string dir = TestDataUtils.GetImageDir();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            yolo.YoloConfiguration.BatchPoolSize = 4;
             yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
             var processCallback = new ProcessCallback(_dict);
-            var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess, 2);
+            var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess);
 
 
             Assert.Equal(2, list.Length);

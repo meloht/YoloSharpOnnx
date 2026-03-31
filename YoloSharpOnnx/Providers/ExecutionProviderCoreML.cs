@@ -28,9 +28,9 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.CPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, OnnxModel onnxModel)
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectOrtVal(session, options, postprocess, onnxModel);
+            return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel);
         }
     }
 }

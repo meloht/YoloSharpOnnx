@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
@@ -12,9 +13,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
-            TestBatchInfer();
+            //TestBatchInfer();
            // TestInferPerf();
             //TestInfer();
+            _= Task.Run(async () =>await TestInferAsync()); 
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -62,15 +64,15 @@ namespace YoloSharpOnnx.ConsoleDirectML
             _stopwatchTotal.Start();
 
             long totalInfer = 0;
-
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath)))
+            int count = 0;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
                 foreach (var item in files)
                 {
                     string filePath = item.Extension.ToLower();
                     if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
                     {
-
+                        count++;
                         var res = yolo.RunDetectWithTime(item.FullName);
                         totalInfer += res.SpeedResult.Inference;
                         Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
@@ -80,11 +82,34 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             _stopwatchTotal.Stop();
 
-            float avg = totalInfer / (float)files.Length;
-            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, Infer avg time:{avg}");
+            float avg = totalInfer / (float)count;
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed},count:{count} Infer avg time:{avg}ms");
 
         }
+        private static async Task TestInferAsync()
+        {
+            string modelPath = @"D:\code\model\best.onnx";
+            string dir = @"D:\code\model\TestImages";
+            using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1));
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
+            var files = Directory.GetFiles(dir);
+            using (var yoloAsync = yolo.CreateAsyncChannel())
+            {
+                
+                for (int i = 0; i < files.Length; i++)
+                {
+                    var res = await yoloAsync.RunDetectAsync(files[i]);
+                    Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+                }
 
+            }
+
+            _stopwatchTotal.Stop();
+            var avg = _stopwatchTotal.ElapsedMilliseconds / files.Length;
+            Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms");
+
+        }
         private static void TestBatchInfer()
         {
             string modelPath = @"D:\code\model\best.onnx";
@@ -95,12 +120,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
-            int num=files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30);
+                var list = yolo.RunBatchDetect(dir, new ProcessCallback(), ReceiveProcess);
 
             }
             _stopwatch.Stop();
@@ -117,23 +143,23 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void ReceiveProcess(DetectionBatchResult e)
         {
-           
+
             string res = YoloUtils.GetResult(e.Results);
 
         }
         internal class ProcessCallback : IBatchProcessCallback
         {
-           
+
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
-               
+
                 string res = YoloUtils.GetResult(e.Results);
-              
+
             }
 
         }
 
-        public static void TestChannel()
+        public static async Task TestChannel()
         {
             // 1. 创建 有界通道（容量=2）
             Channel<int> channel = Channel.CreateBounded<int>(new BoundedChannelOptions(100)
@@ -157,7 +183,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             // 消费者
             var consumer = Task.Run(async () =>
             {
-                // ✅ 极简读取写法（C# 8+）
+                // 极简读取写法（C# 8+）
                 await foreach (var msg in channel.Reader.ReadAllAsync())
                 {
                     Console.WriteLine($"消费：{msg}");
@@ -165,8 +191,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 }
             });
 
-            Task.WaitAll(producer, consumer);
-         
+            Task.WaitAll(consumer, producer);
+
+
         }
     }
 }

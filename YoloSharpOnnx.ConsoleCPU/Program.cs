@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             TestInferPerf();
             //using Mat image = Cv2.ImRead("bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
-
+            
             //List<DetectionResult> res = yolo.RunDetect(image);
             //yolo.DrawDetections(image, res);
             //Cv2.ImWrite("bus_res.jpg", image);
@@ -97,9 +97,10 @@ namespace YoloSharpOnnx.ConsoleCPU
             _stopwatch.Start();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
-                yolo.RunBatchDetect(dir, 30);
+                yolo.RunBatchDetect(dir);
 
             }
             _stopwatch.Stop();
