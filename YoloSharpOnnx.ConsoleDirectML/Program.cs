@@ -8,15 +8,16 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
+        static int _deviceId = 0;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
             //TestBatchInfer();
-           // TestInferPerf();
+            // TestInferPerf();
             TestInfer();
-            _= Task.Run(async () =>await TestInferAsync()); 
+            _ = Task.Run(async () => await TestInferAsync());
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -24,8 +25,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void TestInfer()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
@@ -33,7 +34,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
                 foreach (var item in files)
                 {
@@ -65,7 +66,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             long totalInfer = 0;
             int count = 0;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
                 foreach (var item in files)
                 {
@@ -88,15 +89,16 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static async Task TestInferAsync()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
-            using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1));
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
+            using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId));
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
             var files = Directory.GetFiles(dir);
+            yolo.YoloConfiguration.BatchPoolSize = 50;
             using (var yoloAsync = yolo.CreateAsyncChannel())
             {
-                
+
                 for (int i = 0; i < files.Length; i++)
                 {
                     var res = await yoloAsync.RunDetectAsync(files[i]);
@@ -121,7 +123,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
             int num = files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
