@@ -1,4 +1,5 @@
-﻿using YoloSharpOnnx.DataResult;
+﻿using OpenCvSharp;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
@@ -64,6 +65,27 @@ namespace YoloSharpOnnx.TestIoBinding
             var res2 = yolo.RunDetectWithTime(imgPath);
             string ans2 = YoloUtils.GetResult(res2.Items);
             Assert.Equal(boxs, ans2);
+        }
+
+        [Fact]
+        public async Task TestDetectAsyncYolo11()
+        {
+
+            string model = TestDataUtils.GetModelPath("yolo11n.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using var yoloAsync = yolo.CreateAsyncChannel();
+
+            foreach (var item in _dict)
+            {
+                var res = await yoloAsync.RunDetectAsync(item.Key);
+                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+            }
+            foreach (var item in _dict)
+            {
+                using var img = Cv2.ImRead(item.Key);
+                var res = await yoloAsync.RunDetectAsync(img);
+                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+            }
         }
 
         [Fact]
