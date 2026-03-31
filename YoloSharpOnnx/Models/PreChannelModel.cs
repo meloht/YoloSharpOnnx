@@ -8,5 +8,5 @@ namespace YoloSharpOnnx.Models
 {
 
 
-    public record PreChannelModel(PreResultBatch PreResult, string Guid);
+    public record PreChannelModel(PreResultBatch PreResult, Guid Guid);
 }
