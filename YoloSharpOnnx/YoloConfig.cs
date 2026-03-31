@@ -7,16 +7,53 @@ namespace YoloSharpOnnx
 {
     public class YoloConfig
     {
-        public static readonly YoloConfig Default = new();
-        public float Confidence { get; set; }
+        private int _batchPoolSize = 20;
+        private float _confidence = 0.3f;
+        private float _iou = 0.4f;
+        public float Confidence
+        {
+            get { return _confidence; }
+            set 
+            {
+                if (value < 0 && value > 1)
+                {
+                    throw new ArgumentException("The Confidence must be between 0 and 1");
+                }
+                _confidence = value; 
+            }
+        }
 
-        public float IoU { get; set; }
+
+        public float IoU
+        {
+            get { return _iou; }
+            set
+            {
+                if (value < 0 && value > 1)
+                {
+                    throw new ArgumentException("The IoU must be between 0 and 1");
+                }
+                _iou = value;
+            }
+        }
 
         public InterpolationFlags ResizeAlgorithm { get; set; }
 
         public string[] ImageExtsBatch { get; set; } = [".jpg", ".png"];
 
-        public int BatchPoolSize { get; set; } = 20;
+
+        public int BatchPoolSize
+        {
+            get { return _batchPoolSize; }
+            set
+            {
+                if (value < 1 && value > 100)
+                {
+                    throw new ArgumentException("The BatchPoolSize must be between 1 and 100");
+                }
+                _batchPoolSize = value;
+            }
+        }
 
         public YoloConfig(float confidence, float iou, InterpolationFlags resizeAlgorithm)
         {

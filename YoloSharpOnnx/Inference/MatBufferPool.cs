@@ -18,6 +18,7 @@ namespace YoloSharpOnnx.Inference
         private readonly int _poolSzie;
         private OnnxModel _OnnxModel;
         private readonly bool[] _flagArr;
+        private int _usedCount = 0;
 
         public MatBufferPool(int poolSzie, OnnxModel onnxModel)
         {
@@ -34,9 +35,20 @@ namespace YoloSharpOnnx.Inference
 
         }
 
+        public int UsedCount
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _usedCount;
+                }
+            }
+        }
 
         public ImageBatchData Rent()
         {
+            Interlocked.Increment(ref _usedCount);
             lock (_lock)
             {
                 if (_valIdx < _matPool.Length && _valIdx >= 0 && _flagArr[_valIdx])
@@ -65,6 +77,7 @@ namespace YoloSharpOnnx.Inference
         }
         public void Return(ImageBatchData mat)
         {
+            Interlocked.Decrement(ref _usedCount);
             lock (_lock)
             {
                 if (_nullIdx < _matPool.Length && _nullIdx >= 0 && _flagArr[_nullIdx] == false)
@@ -84,7 +97,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     mat.Dispose();
                 }
-               // Test();
+                // Test();
             }
 
 

@@ -16,5 +16,7 @@ namespace YoloSharpOnnx.Inference
         PreResultBatch PreprocessImageChannel(Mat img, string imagePath, InterpolationFlags interpolationFlags);
 
         void InitBufferPool(int batchPoolSize);
+
+        int BufferPoolUsedCount { get; }
     }
 }

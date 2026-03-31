@@ -20,27 +20,30 @@ namespace YoloSharpOnnx
         #region Constructor
 
 
-        public YoloSharp(IExecutionProvider executionProvider) : this(YoloConfig.Default, executionProvider) { }
+        public YoloSharp(IExecutionProvider executionProvider) : this(new YoloConfig(), executionProvider)
+        {
+
+        }
         public YoloSharp(YoloConfig yoloConfig, IExecutionProvider executionProvider)
         {
             YoloConfiguration = yoloConfig;
-            InitDetector(executionProvider);
-        }
-
-        public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
-            : this(confidence, iou, InterpolationFlags.Linear, executionProvider) { }
-
-        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
-        {
-            YoloConfiguration = new YoloConfig(confidence, iou, resizeAlgorithm);
-            InitDetector(executionProvider);
-        }
-
-        private void InitDetector(IExecutionProvider executionProvider)
-        {
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloDetect.BatchDetectItemCompleted += YoloDetect_BatchDetectItemCompleted;
         }
+
+        public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
+            : this(confidence, iou, InterpolationFlags.Linear, executionProvider)
+        {
+
+        }
+
+        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
+            : this(new YoloConfig(confidence, iou, resizeAlgorithm), executionProvider)
+        {
+
+        }
+
+
 
         #endregion
 

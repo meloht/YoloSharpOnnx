@@ -40,18 +40,36 @@ namespace YoloSharpOnnx.Inference
         {
             YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
             string guid = Guid.NewGuid().ToString();
-       
-            _ = Task.Run(async () => await WritePreprocessAsync(inputImage, guid));
+
+            if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
+            {
+                await WritePreprocessAsync(inputImage, guid);
+            }
+            else 
+            {
+                _ = Task.Run(async () => await WritePreprocessAsync(inputImage, guid));
+            }
+
+           
             return await CreateTaskCompletionSource(guid);
         }
 
         public async Task<List<DetectionResult>> RunDetectAsync(Mat img)
         {
             string guid = Guid.NewGuid().ToString();
-     
-            _ = Task.Run(async () => await WritePreprocessAsync(img, guid));
+            if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
+            {
+                await WritePreprocessAsync(img, guid);
+            }
+            else
+            {
+                _ = Task.Run(async () => await WritePreprocessAsync(img, guid));
+            }
+           
             return await CreateTaskCompletionSource(guid);
         }
+
+
         private async ValueTask WritePreprocessAsync(string inputImage, string guid)
         {
             var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage, _yoloConfig.ResizeAlgorithm);

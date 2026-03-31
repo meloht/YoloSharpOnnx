@@ -104,7 +104,18 @@ namespace YoloSharpOnnx.Inference
         }
 
 
-
+        public int BufferPoolUsedCount
+        {
+            get 
+            {
+                if (_matPool == null)
+                {
+                    return 0;
+                }
+                return _matPool.UsedCount;
+            }
+            
+        }
         protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
 
