@@ -101,7 +101,7 @@ dotnet add package Intel.ML.OnnxRuntime.OpenVino
 ```
 
 ```csharp
-using oloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO("yolo11n.onnx", IntelDeviceType.NPU));
+using YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO("yolo11n.onnx", IntelDeviceType.NPU));
 ```
 
 #### Use the following C# code to load the model and run basic prediction:
