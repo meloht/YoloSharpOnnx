@@ -276,7 +276,7 @@ namespace YoloSharpOnnx.Inference
 
             // 标签背景
             Cv2.Rectangle(img,
-                new OpenCvSharp.Point(labelTop.X - 8, labelTop.Y - 8 - textSize.Height),
+                new OpenCvSharp.Point(labelTop.X - 1, labelTop.Y - 8 - textSize.Height),
                 new OpenCvSharp.Point(labelTop.X + textSize.Width, labelTop.Y + baseline),
                 color, -1);
 
