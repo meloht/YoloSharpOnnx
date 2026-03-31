@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestChannel();
             //TestBatchInfer();
            // TestInferPerf();
-            //TestInfer();
+            TestInfer();
             _= Task.Run(async () =>await TestInferAsync()); 
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -33,7 +33,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 1)))
             {
                 foreach (var item in files)
                 {
