@@ -162,11 +162,11 @@ private static async Task TestInferAsync()
         {
             var res = await yoloAsync.RunDetectAsync(files[i]);
             Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
-        
-    
+        }
+    }
     _stopwatchTotal.Stop();
     var avg = _stopwatchTotal.ElapsedMilliseconds / files.Length;
-    Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms")
+    Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms");
 }
 
 ```
