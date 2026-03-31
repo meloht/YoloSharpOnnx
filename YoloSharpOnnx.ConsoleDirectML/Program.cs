@@ -91,7 +91,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
             var files = Directory.GetFiles(dir);
-            yolo.YoloConfiguration.BatchPoolSize = 50;
+            yolo.YoloConfiguration.BatchPoolSize = 5;
             using (var yoloAsync = yolo.CreateAsyncChannel())
             {
 

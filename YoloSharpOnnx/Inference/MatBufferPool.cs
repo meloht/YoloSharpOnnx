@@ -68,7 +68,7 @@ namespace YoloSharpOnnx.Inference
                 }
                 else
                 {
-                    //Test();
+                   // Test();
                     return new ImageBatchData(_OnnxModel);
                 }
 
@@ -119,7 +119,7 @@ namespace YoloSharpOnnx.Inference
         //        }
 
         //    }
-        //    Console.WriteLine(sb.ToString());
+        //    Console.WriteLine($"{sb.ToString()}, UsedCount:{_usedCount}");
         //}
 
         public void Dispose()
