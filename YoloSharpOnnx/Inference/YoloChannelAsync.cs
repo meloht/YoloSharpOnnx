@@ -27,16 +27,18 @@ namespace YoloSharpOnnx.Inference
         {
             _yoloDetectAsync = yoloDetectAsync;
             _yoloConfig = yoloConfig;
+            _yoloDetectAsync.InitBufferPool(yoloConfig.BatchPoolSize);
             _concurrentDict = new ConcurrentDictionary<string, TaskCompletionSource<List<DetectionResult>>>();
             var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
             _channel = Channel.CreateBounded<PreChannelModel>(ChannelOptions);
-            _yoloDetectAsync.InitBufferPool(yoloConfig.BatchPoolSize);
+          
 
             _ = Task.Run(() => ExecuteInferAsync());
         }
 
         public async Task<List<DetectionResult>> RunDetectAsync(string inputImage)
         {
+            YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
             // 预处理图像
             var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage, _yoloConfig.ResizeAlgorithm);
             return await ComletedInferAsync(preResult);
