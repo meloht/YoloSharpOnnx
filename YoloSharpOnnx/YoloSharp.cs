@@ -201,13 +201,13 @@ namespace YoloSharpOnnx
 
         public void DrawDetections(string inputImage, List<DetectionResult> list)
         {
-            ValidationImagePath(inputImage);
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
             _yoloDetect.DrawDetections(img, list);
         }
         public void DrawDetectionsAndSave(string inputImage, List<DetectionResult> list, string saveFileName)
         {
-            ValidationImagePath(inputImage);
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
             _yoloDetect.DrawDetections(img, list);
             Cv2.ImWrite(saveFileName, img);
