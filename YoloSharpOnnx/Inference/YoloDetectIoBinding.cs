@@ -134,5 +134,10 @@ namespace YoloSharpOnnx.Inference
         {
             return this;
         }
+
+        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg, YoloConfig yoloConfig)
+        {
+            return BatchDetectBaseForeachAsync(listImg, yoloConfig, this);
+        }
     }
 }

@@ -20,6 +20,8 @@ namespace YoloSharpOnnx
 
         Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig);
 
+        IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg, YoloConfig yoloConfig);
+
         event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
         IYoloDetectAsync GetYoloDetectAsync();

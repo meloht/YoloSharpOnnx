@@ -99,7 +99,7 @@ namespace YoloSharpOnnx.Inference
                 var result = _yoloDetectAsync.RunBatchDetect(item.PreResult, _yoloConfig);
 
                 var tempTCS = _concurrentDict[item.Guid];
-                tempTCS.SetResult(result);
+                tempTCS.TrySetResult(result);
                 _concurrentDict.TryRemove(item.Guid, out tempTCS);
 
             }

@@ -18,8 +18,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestChannel();
             //TestBatchInfer();
             // TestInferPerf();
-            TestInfer();
-            _ = Task.Run(async () => await TestInferAsync());
+            //TestInfer();
+            //_ = Task.Run(async () => await TestInferAsync());
+            _ = TestBatchForeachInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -86,7 +87,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static async Task TestInferAsync()
         {
-          
+
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId));
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
@@ -123,6 +124,28 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
 
                 var list = yolo.RunBatchDetect(dir, new ProcessCallback(), ReceiveProcess);
+
+            }
+            _stopwatch.Stop();
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
+        private static async Task TestBatchForeachInfer()
+        {
+            var files = Directory.GetFiles(dir);
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            _stopwatch.Start();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
+            {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
+                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+
+                await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
+                {
+                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+                }
 
             }
             _stopwatch.Stop();
