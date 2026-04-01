@@ -116,38 +116,36 @@ namespace YoloSharpOnnx.Inference
             }
 
         }
-        public int GetPreprocessWorkers()
+        private IEnumerable<string[]> GetPreprocessWorkersSize(List<string> listImg)
         {
             int preprocessWorkers = Environment.ProcessorCount / 2;
             if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
                 preprocessWorkers = 2;
             }
-            return preprocessWorkers;
+            int size = listImg.Count / preprocessWorkers;
+            if (size < 3)
+            {
+                size = listImg.Count / 2;
+            }
+            if (size < 1)
+            {
+                size = listImg.Count;
+            }
+            return listImg.Chunk(size);
         }
 
 
         protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
-
-            int preprocessWorkers = GetPreprocessWorkers();
-           
-            int size = listImg.Count / preprocessWorkers;
-            if (size < 3)
+            var arr = GetPreprocessWorkersSize(listImg);
+            Task[] tasks = new Task[arr.Count()];
+            int idx = 0;
+            foreach (string[] subList in arr)
             {
-                await RunPreprocessSplitAsync(listImg, interpolationFlags, writer);
+                tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
             }
-            else
-            {
-                var arr = listImg.Chunk(size);
-                Task[] tasks = new Task[arr.Count()];
-                int idx = 0;
-                foreach (string[] subList in arr)
-                {
-                    tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
-                }
-                await Task.WhenAll(tasks);
-            }
+            await Task.WhenAll(tasks);
 
             writer.Complete();
         }
