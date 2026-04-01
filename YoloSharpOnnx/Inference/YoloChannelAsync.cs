@@ -33,7 +33,7 @@ namespace YoloSharpOnnx.Inference
             _channel = Channel.CreateBounded<PreChannelModel>(ChannelOptions);
 
 
-            _ = Task.Run(async() => ExecuteInferAsync());
+            _ = Task.Run(async () => ExecuteInferAsync());
         }
 
         public async Task<List<DetectionResult>> RunDetectAsync(string inputImage)
@@ -45,12 +45,12 @@ namespace YoloSharpOnnx.Inference
             {
                 await WritePreprocessAsync(inputImage, guid);
             }
-            else 
+            else
             {
                 _ = WritePreprocessAsync(inputImage, guid);
             }
 
-           
+
             return await CreateTaskCompletionSource(guid);
         }
 
@@ -65,8 +65,25 @@ namespace YoloSharpOnnx.Inference
             {
                 _ = WritePreprocessAsync(img, guid);
             }
-           
+
             return await CreateTaskCompletionSource(guid);
+        }
+        public async IAsyncEnumerable<DetectionBatchResult> RunDetectForeachAsync(List<string> images)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, _yoloConfig.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, _yoloConfig);
+            Dictionary<string, Task<List<DetectionResult>>> dict = new Dictionary<string, Task<List<DetectionResult>>>();
+            foreach (var file in files)
+            {
+                var res = RunDetectAsync(file);
+                dict.Add(file, res);
+            }
+            long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            foreach (var file in files)
+            {
+                var result = await dict[file];
+                yield return new DetectionBatchResult(file, result, startTime);
+            }
         }
 
 
@@ -87,7 +104,7 @@ namespace YoloSharpOnnx.Inference
             var tcs = new TaskCompletionSource<List<DetectionResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
-           
+
             ct.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
             return await tcs.Task;
         }
