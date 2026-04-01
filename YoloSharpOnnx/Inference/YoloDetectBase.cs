@@ -116,15 +116,22 @@ namespace YoloSharpOnnx.Inference
             }
 
         }
-        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
+        public int GetPreprocessWorkers()
         {
-
             int preprocessWorkers = Environment.ProcessorCount / 2;
             if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
                 preprocessWorkers = 2;
             }
+            return preprocessWorkers;
+        }
 
+
+        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
+        {
+
+            int preprocessWorkers = GetPreprocessWorkers();
+           
             int size = listImg.Count / preprocessWorkers;
             if (size < 3)
             {
@@ -214,7 +221,7 @@ namespace YoloSharpOnnx.Inference
         protected async IAsyncEnumerable<DetectionBatchResult> BatchDetectBaseForeachAsync(List<string> listImg, YoloConfig yoloConfig, IBatchDetect batchDetect)
         {
             InitBufferPool(yoloConfig.BatchPoolSize);
- 
+
             var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
             Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
 

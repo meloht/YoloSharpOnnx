@@ -72,18 +72,61 @@ namespace YoloSharpOnnx.Inference
         {
             var files = YoloUtils.GetFilesFromListPaths(images, _yoloConfig.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, _yoloConfig);
-            Dictionary<string, Task<List<DetectionResult>>> dict = new Dictionary<string, Task<List<DetectionResult>>>();
-            foreach (var file in files)
+
+            AsyncTaskDeteckModel[] models = new AsyncTaskDeteckModel[files.Count];
+
+            for (int i = 0; i < files.Count; i++)
             {
-                var res = RunDetectAsync(file);
-                dict.Add(file, res);
+                AsyncTaskDeteckModel model = new AsyncTaskDeteckModel();
+                model.Id = Guid.NewGuid();
+                model.DetectionResults = CreateTaskCompletionSource(model.Id);
+                model.ImagePath = files[i];
+                models[i] = model;
             }
+            _ = RunPreprocessSplitAsync(models);
             long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            foreach (var file in files)
+            foreach (var item in models)
             {
-                var result = await dict[file];
-                yield return new DetectionBatchResult(file, result, startTime);
+                var result = await item.DetectionResults;
+                yield return new DetectionBatchResult(item.ImagePath, result, startTime);
             }
+        }
+
+
+
+        protected async Task PreprocessBatch(AsyncTaskDeteckModel[] listImg)
+        {
+
+            int preprocessWorkers = _yoloDetectAsync.GetPreprocessWorkers();
+
+            int size = listImg.Length / preprocessWorkers;
+            if (size < 3)
+            {
+                await RunPreprocessSplitAsync(listImg);
+            }
+            else
+            {
+                var arr = listImg.Chunk(size);
+                Task[] tasks = new Task[arr.Count()];
+                int idx = 0;
+                foreach (AsyncTaskDeteckModel[] subList in arr)
+                {
+                    tasks[idx++] = RunPreprocessSplitAsync(subList);
+                }
+                await Task.WhenAll(tasks);
+            }
+
+        }
+        private async Task RunPreprocessSplitAsync(AsyncTaskDeteckModel[] list)
+        {
+            await Task.Run(async () =>
+            {
+                foreach (var item in list)
+                {
+                    await WritePreprocessAsync(item.ImagePath, item.Id);
+                }
+
+            });
         }
 
 
@@ -99,14 +142,14 @@ namespace YoloSharpOnnx.Inference
             await _channel.Writer.WriteAsync(new PreChannelModel(preResult, guid));
         }
 
-        private async Task<List<DetectionResult>> CreateTaskCompletionSource(Guid guid)
+        private Task<List<DetectionResult>> CreateTaskCompletionSource(Guid guid)
         {
             var tcs = new TaskCompletionSource<List<DetectionResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
 
             ct.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
-            return await tcs.Task;
+            return tcs.Task;
         }
 
 

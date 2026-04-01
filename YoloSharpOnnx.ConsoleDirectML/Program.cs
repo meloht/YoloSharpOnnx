@@ -8,7 +8,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -20,8 +20,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
-            _ = TestBatchForeachInfer();
-            _ = TestBatchForeachAsyncInfer();
+           // _ = TestBatchForeachInfer();
+           _ = TestBatchForeachAsyncInfer();
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -164,11 +164,11 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 using var yoloAsync = yolo.CreateAsyncChannel();
-
                 await foreach (var item in yoloAsync.RunDetectForeachAsync(files.ToList()))
                 {
                     Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
                 }
+
 
             }
             _stopwatch.Stop();
