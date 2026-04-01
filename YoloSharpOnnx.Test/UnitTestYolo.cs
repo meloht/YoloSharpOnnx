@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
-using static System.Net.WebRequestMethods;
+
 
 namespace YoloSharpOnnx.Test
 {
