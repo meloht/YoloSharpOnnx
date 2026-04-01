@@ -64,22 +64,18 @@ namespace YoloSharpOnnx.Inference
         {
             int height = paddedImg.Height;
             int width = paddedImg.Width;
-            int channels = paddedImg.Channels();
+            
+            float inv255 = 1.0f / 255.0f;
 
-
-            int index = 0;
             byte* ptr = (byte*)paddedImg.DataPointer;
             float* data = buffer.Pointer;
-            for (int c = 0; c < channels; c++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        data[index++] = ptr[(y * width + x) * channels + c] / 255.0f;
-                    }
+            int hw = width * height;
 
-                }
+            for (int i = 0; i < hw; i++)
+            {
+                data[i] = ptr[i * 3 + 0] * inv255;           // R
+                data[i + hw] = ptr[i * 3 + 1] * inv255;      // G
+                data[i + hw * 2] = ptr[i * 3 + 2] * inv255;  // B
             }
 
         }
