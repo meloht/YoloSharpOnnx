@@ -87,6 +87,26 @@ namespace YoloSharpOnnx.TestIoBinding
                 Assert.Equal(item.Value, YoloUtils.GetResult(res));
             }
         }
+        [Fact]
+        public async Task TestDetectBatchForeachAsync()
+        {
+            string dir = TestDataUtils.GetImageDir();
+            string model = TestDataUtils.GetModelPath("yolo11n.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+
+
+            List<string> imgs = TestDataUtils.GetImgPaths();
+            int idx = 0;
+            await foreach (var item in yolo.BatchDetectForeachAsync(imgs))
+            {
+                Interlocked.Increment(ref idx);
+                Assert.True(_dict.ContainsKey(item.ImagePath));
+                Assert.Equal(_dict[item.ImagePath], YoloUtils.GetResult(item.Results));
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
 
         [Fact]
         public void TestDetectBatch()

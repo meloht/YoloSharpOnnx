@@ -18,5 +18,6 @@ namespace YoloSharpOnnx.Inference
         void InitBufferPool(int batchPoolSize);
 
         int BufferPoolUsedCount { get; }
+
     }
 }

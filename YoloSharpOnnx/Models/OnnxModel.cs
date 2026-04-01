@@ -26,6 +26,7 @@ namespace YoloSharpOnnx.Models
         public Scalar[] ColorPalette { get; set; }
 
         public long InputSizeInBytes { get; set; }
+        public long OutputSizeInBytes { get; set; }
 
         public DeviceType DeviceType { get; set; }
     }

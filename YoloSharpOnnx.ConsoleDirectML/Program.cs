@@ -18,8 +18,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestChannel();
             //TestBatchInfer();
             // TestInferPerf();
-            TestInfer();
-            _ = Task.Run(async () => await TestInferAsync());
+            //TestInfer();
+            //_ = Task.Run(async () => await TestInferAsync());
+            _ = TestBatchForeachInfer();
+  
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -35,6 +37,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             _stopwatchTotal.Start();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
+
+
                 foreach (var item in files)
                 {
                     string filePath = item.Extension.ToLower();
@@ -86,7 +90,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static async Task TestInferAsync()
         {
-          
+
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId));
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
@@ -94,9 +98,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
             yolo.YoloConfiguration.BatchPoolSize = 5;
             using (var yoloAsync = yolo.CreateAsyncChannel())
             {
-
                 for (int i = 0; i < files.Length; i++)
                 {
+
                     var res = await yoloAsync.RunDetectAsync(files[i]);
                     Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
                 }
@@ -129,6 +133,28 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
+
+        private static async Task TestBatchForeachInfer()
+        {
+            var files = Directory.GetFiles(dir);
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            _stopwatch.Start();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
+            {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
+
+                await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
+                {
+                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+                }
+
+            }
+            _stopwatch.Stop();
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
 
         private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
         {

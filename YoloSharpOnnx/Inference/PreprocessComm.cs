@@ -8,11 +8,11 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class PreprocessComm: IPreprocess
+    public class PreprocessComm : IPreprocess
     {
         protected readonly Scalar _paddingColor;
         private readonly OnnxModel _onnxModel;
-      
+
         public PreprocessComm(OnnxModel onnxModel)
         {
             _onnxModel = onnxModel;
@@ -60,29 +60,28 @@ namespace YoloSharpOnnx.Inference
             // 添加批次维度 (1, 3, H, W)
             return new PreResult(imgH, imgW, padH, padW, scale);
         }
-        public void GetChwArrPointer(Mat paddedImg, FixedBuffer buffer)
+        public unsafe void GetChwArrPointer(Mat paddedImg, FixedBuffer buffer)
         {
             int height = paddedImg.Height;
             int width = paddedImg.Width;
             int channels = paddedImg.Channels();
 
-            unsafe
-            {
-                int index = 0;
-                byte* ptr = (byte*)paddedImg.DataPointer;
-                float* data = buffer.Pointer;
-                for (int c = 0; c < channels; c++)
-                {
-                    for (int y = 0; y < height; y++)
-                    {
-                        for (int x = 0; x < width; x++)
-                        {
-                            data[index++] = ptr[(y * width + x) * channels + c] / 255.0f;
-                        }
 
+            int index = 0;
+            byte* ptr = (byte*)paddedImg.DataPointer;
+            float* data = buffer.Pointer;
+            for (int c = 0; c < channels; c++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        data[index++] = ptr[(y * width + x) * channels + c] / 255.0f;
                     }
+
                 }
             }
+
         }
     }
 }

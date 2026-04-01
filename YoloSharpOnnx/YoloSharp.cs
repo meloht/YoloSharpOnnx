@@ -6,6 +6,7 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace YoloSharpOnnx
 {
@@ -180,6 +181,12 @@ namespace YoloSharpOnnx
         }
 
 
+        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> images)
+        {
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return _yoloDetect.BatchDetectForeachAsync(files, YoloConfiguration);
+        }
 
         private void YoloDetect_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
         {

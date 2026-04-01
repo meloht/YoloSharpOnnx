@@ -11,7 +11,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect,  IYoloDetectAsync
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync
     {
 
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
@@ -98,6 +98,11 @@ namespace YoloSharpOnnx.Inference
         public IYoloDetectAsync GetYoloDetectAsync()
         {
             return this;
+        }
+
+        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg, YoloConfig yoloConfig)
+        {
+            return BatchDetectBaseForeachAsync(listImg, yoloConfig, this);
         }
     }
 }

@@ -50,8 +50,8 @@ namespace YoloSharpOnnx.Inference
             this._options = options;
             _runOptions = new RunOptions();
 
-            _inputFixedBuffer = new FixedBuffer((int)_onnxModel.InputShapeSize);
-            _outputFixedBuffer = new FixedBuffer((int)_onnxModel.OutputShapeSize);
+            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputSizeInBytes);
+            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputSizeInBytes);
 
             _postprocess = postprocess;
             _preprocess = preprocess;
@@ -106,7 +106,7 @@ namespace YoloSharpOnnx.Inference
 
         public int BufferPoolUsedCount
         {
-            get 
+            get
             {
                 if (_matPool == null)
                 {
@@ -114,17 +114,24 @@ namespace YoloSharpOnnx.Inference
                 }
                 return _matPool.UsedCount;
             }
-            
-        }
-        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
-        {
 
+        }
+        public int GetPreprocessWorkers()
+        {
             int preprocessWorkers = Environment.ProcessorCount / 2;
             if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
                 preprocessWorkers = 2;
             }
+            return preprocessWorkers;
+        }
 
+
+        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
+        {
+
+            int preprocessWorkers = GetPreprocessWorkers();
+           
             int size = listImg.Count / preprocessWorkers;
             if (size < 3)
             {
@@ -192,16 +199,12 @@ namespace YoloSharpOnnx.Inference
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
             var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
             Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
-            // Producer/consumer
-            ChannelWriter<PreResultBatch> writer = channel.Writer;
-            ChannelReader<PreResultBatch> reader = channel.Reader;
 
-            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, writer);
+            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, channel.Writer);
 
             var consumer = Task.Run(async () =>
             {
-
-                await foreach (PreResultBatch item in reader.ReadAllAsync())
+                await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     var result = batchDetect.RunBatchDetect(item, yoloConfig);
@@ -213,6 +216,24 @@ namespace YoloSharpOnnx.Inference
             });
             await Task.WhenAll(producer, consumer);
             return batchResults;
+        }
+
+        protected async IAsyncEnumerable<DetectionBatchResult> BatchDetectBaseForeachAsync(List<string> listImg, YoloConfig yoloConfig, IBatchDetect batchDetect)
+        {
+            InitBufferPool(yoloConfig.BatchPoolSize);
+
+            var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
+            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
+
+            _ = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, channel.Writer);
+            await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
+            {
+                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                var result = batchDetect.RunBatchDetect(item, yoloConfig);
+                var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
+                yield return modelResult;
+            }
+
         }
 
         private async Task InferCompleteAsync(DetectionBatchResult result, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
