@@ -27,5 +27,11 @@
 
             return dict;
         }
+
+        public static List<string> GetImgPaths()
+        {
+            List<string> list = [GetImagePath(Bus),GetImagePath(Zidane)];
+            return list;
+        }
     }
 }
