@@ -21,25 +21,25 @@ namespace YoloSharpOnnx.Inference
         private readonly IYoloDetectAsync _yoloDetectAsync;
         private readonly YoloConfig _yoloConfig;
 
-        private ConcurrentDictionary<string, TaskCompletionSource<List<DetectionResult>>> _concurrentDict;
+        private ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>> _concurrentDict;
 
         public YoloChannelAsync(YoloConfig yoloConfig, IYoloDetectAsync yoloDetectAsync)
         {
             _yoloDetectAsync = yoloDetectAsync;
             _yoloConfig = yoloConfig;
             _yoloDetectAsync.InitBufferPool(yoloConfig.BatchPoolSize);
-            _concurrentDict = new ConcurrentDictionary<string, TaskCompletionSource<List<DetectionResult>>>();
+            _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>>();
             var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
             _channel = Channel.CreateBounded<PreChannelModel>(ChannelOptions);
 
 
-            _ = Task.Run(() => ExecuteInferAsync());
+            _ = Task.Run(async() => ExecuteInferAsync());
         }
 
         public async Task<List<DetectionResult>> RunDetectAsync(string inputImage)
         {
             YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
-            string guid = Guid.NewGuid().ToString();
+            var guid = Guid.NewGuid();
 
             if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
             {
@@ -47,7 +47,7 @@ namespace YoloSharpOnnx.Inference
             }
             else 
             {
-                _ = Task.Run(async () => await WritePreprocessAsync(inputImage, guid));
+                _ = WritePreprocessAsync(inputImage, guid);
             }
 
            
@@ -56,37 +56,38 @@ namespace YoloSharpOnnx.Inference
 
         public async Task<List<DetectionResult>> RunDetectAsync(Mat img)
         {
-            string guid = Guid.NewGuid().ToString();
+            var guid = Guid.NewGuid();
             if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
             {
                 await WritePreprocessAsync(img, guid);
             }
             else
             {
-                _ = Task.Run(async () => await WritePreprocessAsync(img, guid));
+                _ = WritePreprocessAsync(img, guid);
             }
            
             return await CreateTaskCompletionSource(guid);
         }
 
 
-        private async ValueTask WritePreprocessAsync(string inputImage, string guid)
+        private async ValueTask WritePreprocessAsync(string inputImage, Guid guid)
         {
             var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage, _yoloConfig.ResizeAlgorithm);
             await _channel.Writer.WriteAsync(new PreChannelModel(preResult, guid));
         }
 
-        private async ValueTask WritePreprocessAsync(Mat img, string guid)
+        private async ValueTask WritePreprocessAsync(Mat img, Guid guid)
         {
             var preResult = _yoloDetectAsync.PreprocessImageChannel(img, null, _yoloConfig.ResizeAlgorithm);
             await _channel.Writer.WriteAsync(new PreChannelModel(preResult, guid));
         }
 
-        private async Task<List<DetectionResult>> CreateTaskCompletionSource(string guid)
+        private async Task<List<DetectionResult>> CreateTaskCompletionSource(Guid guid)
         {
             var tcs = new TaskCompletionSource<List<DetectionResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var ct = new CancellationTokenSource(3000);
+            var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
+           
             ct.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
             return await tcs.Task;
         }

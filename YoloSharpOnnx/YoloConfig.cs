@@ -10,16 +10,17 @@ namespace YoloSharpOnnx
         private int _batchPoolSize = 20;
         private float _confidence = 0.3f;
         private float _iou = 0.4f;
+        private int _asyncChannelTimeout = 5000;
         public float Confidence
         {
             get { return _confidence; }
-            set 
+            set
             {
                 if (value < 0 && value > 1)
                 {
                     throw new ArgumentException("The Confidence must be between 0 and 1");
                 }
-                _confidence = value; 
+                _confidence = value;
             }
         }
 
@@ -36,7 +37,21 @@ namespace YoloSharpOnnx
                 _iou = value;
             }
         }
-
+        /// <summary>
+        /// default 5000 ms
+        /// </summary>
+        public int AsyncChannelTimeout
+        {
+            get { return _asyncChannelTimeout; }
+            set
+            {
+                if (value < 1000)
+                {
+                    throw new ArgumentException("The AsyncChannelTimeout must be greater than 1000 ms");
+                }
+                _asyncChannelTimeout = value;
+            }
+        }
         public InterpolationFlags ResizeAlgorithm { get; set; }
 
         public string[] ImageExtsBatch { get; set; } = [".jpg", ".png"];
