@@ -213,6 +213,30 @@ internal class ProcessCallback : IBatchProcessCallback
 }
 
 ```
+
+#### Batch processing images foreach api
+
+```csharp
+private static async Task TestBatchForeachInfer()
+{
+    var files = Directory.GetFiles(dir);
+    System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+    _stopwatch.Start();
+    int num = files.Length;
+    using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
+    {
+        yolo.YoloConfiguration.BatchPoolSize = 30;
+        await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
+        {
+            Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+        }
+    }
+    _stopwatch.Stop();
+    Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+}
+
+```
+
 # Performance Test
 
 |Yolo C# inference library|Version|Image Processing library|Image Resize Algorithm|Sequence inference| Batch inference|
