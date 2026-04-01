@@ -19,6 +19,5 @@ namespace YoloSharpOnnx.Inference
 
         int BufferPoolUsedCount { get; }
 
-        int GetPreprocessWorkers();
     }
 }

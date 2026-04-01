@@ -68,67 +68,7 @@ namespace YoloSharpOnnx.Inference
 
             return await CreateTaskCompletionSource(guid);
         }
-        public async IAsyncEnumerable<DetectionBatchResult> RunDetectForeachAsync(List<string> images)
-        {
-            var files = YoloUtils.GetFilesFromListPaths(images, _yoloConfig.ImageExtsBatch);
-            YoloValidation.ValidationImageListPath(files, _yoloConfig);
-
-            AsyncTaskDeteckModel[] models = new AsyncTaskDeteckModel[files.Count];
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                AsyncTaskDeteckModel model = new AsyncTaskDeteckModel();
-                model.Id = Guid.NewGuid();
-                model.DetectionResults = CreateTaskCompletionSource(model.Id);
-                model.ImagePath = files[i];
-                models[i] = model;
-            }
-            _ = RunPreprocessSplitAsync(models);
-            long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            foreach (var item in models)
-            {
-                var result = await item.DetectionResults;
-                yield return new DetectionBatchResult(item.ImagePath, result, startTime);
-            }
-        }
-
-
-
-        protected async Task PreprocessBatch(AsyncTaskDeteckModel[] listImg)
-        {
-
-            int preprocessWorkers = _yoloDetectAsync.GetPreprocessWorkers();
-
-            int size = listImg.Length / preprocessWorkers;
-            if (size < 3)
-            {
-                await RunPreprocessSplitAsync(listImg);
-            }
-            else
-            {
-                var arr = listImg.Chunk(size);
-                Task[] tasks = new Task[arr.Count()];
-                int idx = 0;
-                foreach (AsyncTaskDeteckModel[] subList in arr)
-                {
-                    tasks[idx++] = RunPreprocessSplitAsync(subList);
-                }
-                await Task.WhenAll(tasks);
-            }
-
-        }
-        private async Task RunPreprocessSplitAsync(AsyncTaskDeteckModel[] list)
-        {
-            await Task.Run(async () =>
-            {
-                foreach (var item in list)
-                {
-                    await WritePreprocessAsync(item.ImagePath, item.Id);
-                }
-
-            });
-        }
-
+       
 
         private async ValueTask WritePreprocessAsync(string inputImage, Guid guid)
         {
@@ -159,7 +99,7 @@ namespace YoloSharpOnnx.Inference
             {
                 var result = _yoloDetectAsync.RunBatchDetect(item.PreResult, _yoloConfig);
 
-                var tempTCS = _concurrentDict[item.Guid];
+                TaskCompletionSource<List<DetectionResult>> tempTCS= _concurrentDict[item.Guid];
                 tempTCS.TrySetResult(result);
                 _concurrentDict.TryRemove(item.Guid, out tempTCS);
 

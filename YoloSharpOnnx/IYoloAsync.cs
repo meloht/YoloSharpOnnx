@@ -14,6 +14,5 @@ namespace YoloSharpOnnx
 
         Task<List<DetectionResult>> RunDetectAsync(Mat img);
 
-        IAsyncEnumerable<DetectionBatchResult> RunDetectForeachAsync(List<string> images);
     }
 }

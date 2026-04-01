@@ -8,9 +8,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
-        static string modelPath = @"C:\code\model\best.onnx";
-        static string dir = @"C:\code\model\TestImages_300";
+        static int _deviceId = 1;
+        static string modelPath = @"D:\code\model\best.onnx";
+        static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -20,8 +20,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
-            //_ = TestBatchForeachInfer();
-           _ = TestBatchForeachAsyncInfer();
+            _ = TestBatchForeachInfer();
+  
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -154,27 +154,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
-        private static async Task TestBatchForeachAsyncInfer()
-        {
-            var files = Directory.GetFiles(dir);
-            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-            _stopwatch.Start();
-            int num = files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
-            {
-                yolo.YoloConfiguration.BatchPoolSize = 30;
-                using var yoloAsync = yolo.CreateAsyncChannel();
-                await foreach (var item in yoloAsync.RunDetectForeachAsync(files.ToList()))
-                {
-                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
-                }
 
-
-            }
-            _stopwatch.Stop();
-
-            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
-        }
 
         private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
         {
