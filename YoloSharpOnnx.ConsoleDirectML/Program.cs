@@ -8,9 +8,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 1;
-        static string modelPath = @"D:\code\model\best.onnx";
-        static string dir = @"D:\code\model\TestImages";
+        static int _deviceId = 0;
+        static string modelPath = @"C:\code\model\best.onnx";
+        static string dir = @"C:\code\model\TestImages_300";
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
@@ -20,7 +20,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
-           // _ = TestBatchForeachInfer();
+            //_ = TestBatchForeachInfer();
            _ = TestBatchForeachAsyncInfer();
             Console.WriteLine("end!");
             Console.ReadKey();

@@ -71,6 +71,7 @@ namespace YoloSharpOnnx.Providers
             model.OutputShapeSize = ShapeUtils.GetSizeForShape(model.OutputShape);
 
             model.InputSizeInBytes = model.InputShapeSize * sizeof(float);
+            model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
 
             model.Labels = GetModelLabels(session);
             model.ColorPalette = GenerateColorPalette(model.Labels.Length);

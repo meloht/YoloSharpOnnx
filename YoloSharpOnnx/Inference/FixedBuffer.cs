@@ -10,11 +10,11 @@ namespace YoloSharpOnnx.Inference
 {
     public unsafe sealed class FixedBuffer : IDisposable
     {
-        public int Length { get; }
+        public long Length { get; }
         public IntPtr Address => (IntPtr)Pointer;
         public float* Pointer { get; private set; }
 
-        public FixedBuffer(int length)
+        public FixedBuffer(long length)
         {
             Length = length;
             Pointer = (float*)NativeMemory.Alloc((nuint)length, sizeof(float));
