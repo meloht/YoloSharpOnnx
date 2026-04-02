@@ -10,6 +10,7 @@ namespace YoloSharpOnnx.ConsoleGPU
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
+            //TestInferPerfTensorRT();
             TestInferPerf();
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -52,6 +53,33 @@ namespace YoloSharpOnnx.ConsoleGPU
             _stopwatchTotal.Start();
 
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(modelPath, _deviceId)))
+            {
+                foreach (var item in files)
+                {
+                    string filePath = item.Extension.ToLower();
+                    if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
+                    {
+
+                        var res = yolo.RunDetectWithTime(item.FullName);
+
+                        Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+                    }
+                }
+            }
+            _stopwatchTotal.Stop();
+
+            Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
+
+        }
+
+        private static void TestInferPerfTensorRT()
+        {
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+            System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
+            _stopwatchTotal.Start();
+
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId)))
             {
                 foreach (var item in files)
                 {
