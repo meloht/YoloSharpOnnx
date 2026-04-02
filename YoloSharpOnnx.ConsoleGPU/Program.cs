@@ -5,13 +5,13 @@ namespace YoloSharpOnnx.ConsoleGPU
     internal class Program
     {
         static string modelPath = @"C:\code\model\best.onnx";
-        static string dir = @"C:\code\model\TestImages";
+        static string dir = @"C:\code\model\TestImages_300";
         static int _deviceId = 0;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            //TestInferPerfTensorRT();
-            TestInferPerf();
+            TestInferPerfTensorRT();
+            //TestInferPerf();
             Console.WriteLine("end!");
             Console.ReadKey();
         }
