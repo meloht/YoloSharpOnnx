@@ -1,4 +1,5 @@
-﻿using YoloSharpOnnx.Providers;
+﻿using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Providers;
 
 namespace YoloSharpOnnx.ConsoleGPU
 {
@@ -10,7 +11,7 @@ namespace YoloSharpOnnx.ConsoleGPU
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            TestInferPerfTensorRT();
+            TestBatchInferTensorRT();
             //TestInferPerf();
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -43,6 +44,37 @@ namespace YoloSharpOnnx.ConsoleGPU
             _stopwatchTotal.Stop();
 
             Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
+
+        }
+        private static void TestBatchInferTensorRT()
+        {
+
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            _stopwatch.Start();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId)))
+            {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
+               
+
+                var list = yolo.RunBatchDetect(dir, ReceiveProcess);
+
+            }
+            _stopwatch.Stop();
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
+
+        private static void ReceiveProcess(DetectionBatchResult e)
+        {
+
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = YoloUtils.GetResult(e.Results);
+            Console.WriteLine($"{ans} time:{cost}ms");
 
         }
         private static void TestInferPerf()
