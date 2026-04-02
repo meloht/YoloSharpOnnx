@@ -283,24 +283,25 @@ namespace YoloSharpOnnx.Inference
             string label = $"{className}: {score:F2}";
             int fontThick = 2;
             var textSize = Cv2.GetTextSize(label, HersheyFonts.HersheySimplex, fontScale, fontThick, out int baseline);
-            var labelTop = new OpenCvSharp.Point(box.X, box.Y - 10);
 
-            if (labelTop.Y < textSize.Height)
-                labelTop.Y = box.Y + 10;
+            int x = box.X;
+            int y = box.Y - 10; ;
+            if (y < textSize.Height)
+                y = box.Y + 10;
 
-            if (labelTop.X + textSize.Width > width)
+            if (x + textSize.Width > width)
             {
-                labelTop.X = labelTop.X - (labelTop.X + textSize.Width - width) - 4;
+                x = x - (x + textSize.Width - width) - 4;
             }
 
             // 标签背景
             Cv2.Rectangle(img,
-                new OpenCvSharp.Point(labelTop.X - 1, labelTop.Y - 8 - textSize.Height),
-                new OpenCvSharp.Point(labelTop.X + textSize.Width, labelTop.Y + baseline),
+                new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
+                new OpenCvSharp.Point(x + textSize.Width, y + baseline),
                 color, -1);
 
             // 标签文本
-            Cv2.PutText(img, label, labelTop, HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
+            Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
     }
 }
