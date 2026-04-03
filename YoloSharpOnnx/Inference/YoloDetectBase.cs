@@ -120,16 +120,24 @@ namespace YoloSharpOnnx.Inference
         }
         private IEnumerable<string[]> GetPreprocessWorkersSize(List<string> listImg)
         {
-            int preprocessWorkers = Environment.ProcessorCount / 2;
-            if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
+            int preprocessWorkers = Environment.ProcessorCount;
+            if (_onnxModel.DeviceType == DeviceType.CPU )
             {
                 preprocessWorkers = 2;
             }
-            int size = listImg.Count / preprocessWorkers;
-            if (size < 3)
+            else 
             {
-                size = listImg.Count / 2;
+                if (listImg.Count < Environment.ProcessorCount)
+                {
+                    preprocessWorkers = Environment.ProcessorCount / 2;
+                }
+                if (listImg.Count < preprocessWorkers)
+                {
+                    preprocessWorkers = 2;
+                }
             }
+            int size = listImg.Count / preprocessWorkers;
+           
             if (size < 1)
             {
                 size = listImg.Count;
