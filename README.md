@@ -243,7 +243,7 @@ private static async Task TestBatchForeachInfer()
 | ------------- | ------------- | ------------- |------------- |------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12|  Triangle(Bilinear)|support | not support |
 | [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear(Bilinear) |support | support |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)|support | support |
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.3.3 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)|support | support |
 
 ## Performance Test Tool 
 [YoloOnnxWinform](https://github.com/meloht/YoloOnnxWinform)
@@ -287,12 +287,14 @@ private static async Task TestBatchForeachInfer()
 
 ## YoloSharpOnnx test result
 
-**Sequence inference time:** 15.303s **Memory Usage:** 169M
+**Sequence inference time:** 13.693s **Memory Usage:** 169M
 
-**Batch inference time:** 3.492s **Memory Usage:** 601M
+**Batch inference time:** 2.980s **Memory Usage:** 601M
 
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/44240239-6ef3-459b-8faf-2a5aca475c88" />
-<img width="1251" height="737" alt="image" src="https://github.com/user-attachments/assets/87c40036-9d94-4dae-8ba4-b1fcd3746911" />
+<img width="1206" height="733" alt="image" src="https://github.com/user-attachments/assets/f63c2399-8989-4986-a225-63f0f35a5769" />
+
+<img width="1206" height="733" alt="image" src="https://github.com/user-attachments/assets/c0c1e6d9-6469-436c-b103-0437ff85dddc" />
+
 
 ## Performance Test Result
 
@@ -300,7 +302,7 @@ private static async Task TestBatchForeachInfer()
 | ------------- | ------------- | ------------- |------------- |------------- |------------- |
 | [YoloSharp](https://github.com/dme-compunet/YoloSharp)| 6.1.0 |SixLabors.ImageSharp 3.1.12| Triangle(Bilinear)| 18.707s, 1374M | - |
 | [YoloDotNet](https://github.com/NickSwardh/YoloDotNet)| 4.2.0 |SkiaSharp 3.119.1| Linear(Bilinear)| 17.665s, 169M | 10.587s, 639M |
-| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.2.4 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)| 15.303s, 169M | 3.492s, 601M ||
+| [YoloSharpOnnx](https://github.com/meloht/YoloSharpOnnx)| 1.3.3 |OpenCvSharp4 4.13.0.20260318|Linear(Bilinear)| 13.693s, 169M | 2.980s, 601M ||
 
 
 | YoloSharpOnnx |YoloSharp |YoloDotNet |
