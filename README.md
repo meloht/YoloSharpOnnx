@@ -262,7 +262,7 @@ private static async Task TestBatchForeachInfer()
 
 **Images:**  300 images (image size: 2480x3494)
 
-**Yolo Model:**  Yolo11n.onnx InputShape 1280x1280
+**Yolo Model:**  Yolo11n.onnx InputShape float32[1,3,1280,1280]
 
 **Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime 1.24.3
 
