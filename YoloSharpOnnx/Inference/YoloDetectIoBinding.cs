@@ -21,11 +21,12 @@ namespace YoloSharpOnnx.Inference
           : base(session, options, postprocess, preprocess, onnxModel)
         {
 
-            var outputSizeInBytes = _onnxModel.OutputShapeSize * sizeof(float);
             _binding = _session.CreateIoBinding();
 
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-          _onnxModel.OutputShape, _outputFixedBuffer.Address, outputSizeInBytes);
+          _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+
+            Warmup();
         }
 
 
@@ -39,6 +40,15 @@ namespace YoloSharpOnnx.Inference
 
         }
 
+        private void Warmup()
+        {
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.SynchronizeBoundInputs();
+
+            _session.RunWithBinding(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+        }
         public List<DetectionResult> Run(Mat inputImage, YoloConfig yoloConfig)
         {
             // 预处理图像

@@ -61,6 +61,8 @@ namespace YoloSharpOnnx.Inference
 
         }
 
+        
+
         public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
