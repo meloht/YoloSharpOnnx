@@ -17,6 +17,7 @@ namespace YoloSharpOnnx.Inference
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
            : base(session, options, postprocess, preprocess, onnxModel)
         {
+            Warmup();
         }
 
 
@@ -24,7 +25,11 @@ namespace YoloSharpOnnx.Inference
         {
             DisposeBase();
         }
-
+        private void Warmup()
+        {
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+        }
         public List<DetectionResult> Run(Mat inputImage, YoloConfig yoloConfig)
         {
             // 预处理图像

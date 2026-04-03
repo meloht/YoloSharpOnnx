@@ -61,6 +61,8 @@ namespace YoloSharpOnnx.Inference
 
         }
 
+        
+
         public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
@@ -116,38 +118,36 @@ namespace YoloSharpOnnx.Inference
             }
 
         }
-        public int GetPreprocessWorkers()
+        private IEnumerable<string[]> GetPreprocessWorkersSize(List<string> listImg)
         {
             int preprocessWorkers = Environment.ProcessorCount / 2;
             if (_onnxModel.DeviceType == DeviceType.CPU || preprocessWorkers < 1)
             {
                 preprocessWorkers = 2;
             }
-            return preprocessWorkers;
+            int size = listImg.Count / preprocessWorkers;
+            if (size < 3)
+            {
+                size = listImg.Count / 2;
+            }
+            if (size < 1)
+            {
+                size = listImg.Count;
+            }
+            return listImg.Chunk(size);
         }
 
 
         protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
-
-            int preprocessWorkers = GetPreprocessWorkers();
-           
-            int size = listImg.Count / preprocessWorkers;
-            if (size < 3)
+            var arr = GetPreprocessWorkersSize(listImg);
+            Task[] tasks = new Task[arr.Count()];
+            int idx = 0;
+            foreach (string[] subList in arr)
             {
-                await RunPreprocessSplitAsync(listImg, interpolationFlags, writer);
+                tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
             }
-            else
-            {
-                var arr = listImg.Chunk(size);
-                Task[] tasks = new Task[arr.Count()];
-                int idx = 0;
-                foreach (string[] subList in arr)
-                {
-                    tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
-                }
-                await Task.WhenAll(tasks);
-            }
+            await Task.WhenAll(tasks);
 
             writer.Complete();
         }
@@ -285,24 +285,25 @@ namespace YoloSharpOnnx.Inference
             string label = $"{className}: {score:F2}";
             int fontThick = 2;
             var textSize = Cv2.GetTextSize(label, HersheyFonts.HersheySimplex, fontScale, fontThick, out int baseline);
-            var labelTop = new OpenCvSharp.Point(box.X, box.Y - 10);
 
-            if (labelTop.Y < textSize.Height)
-                labelTop.Y = box.Y + 10;
+            int x = box.X;
+            int y = box.Y - 10; ;
+            if (y < textSize.Height)
+                y = box.Y + 10;
 
-            if (labelTop.X + textSize.Width > width)
+            if (x + textSize.Width > width)
             {
-                labelTop.X = labelTop.X - (labelTop.X + textSize.Width - width) - 4;
+                x = x - (x + textSize.Width - width) - 4;
             }
 
             // 标签背景
             Cv2.Rectangle(img,
-                new OpenCvSharp.Point(labelTop.X - 1, labelTop.Y - 8 - textSize.Height),
-                new OpenCvSharp.Point(labelTop.X + textSize.Width, labelTop.Y + baseline),
+                new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
+                new OpenCvSharp.Point(x + textSize.Width, y + baseline),
                 color, -1);
 
             // 标签文本
-            Cv2.PutText(img, label, labelTop, HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
+            Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
     }
 }
