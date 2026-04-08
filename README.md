@@ -264,7 +264,7 @@ private static async Task TestBatchForeachInfer()
 
 **Yolo Model:**  Yolo11n.onnx InputShape float32[1,3,1280,1280]
 
-**Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime 1.24.3
+**Inference Provider:**  DirectML Inference Microsoft.ML.OnnxRuntime.DirectML 1.24.3
 
 
 ## YoloSharp test result
