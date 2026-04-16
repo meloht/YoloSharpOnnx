@@ -22,7 +22,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly SessionOptions _options;
         protected readonly RunOptions _runOptions;
 
-
         protected readonly FixedBuffer _inputFixedBuffer;
         protected readonly FixedBuffer _outputFixedBuffer;
         protected readonly IPostprocess _postprocess;
@@ -31,7 +30,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly OnnxModel _onnxModel;
 
         protected OrtValue _inputOrtValue;
-
 
         protected readonly Stopwatch _stopwatch;
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
