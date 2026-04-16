@@ -10,7 +10,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 1;
+        static int _deviceId = 0;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -18,11 +18,12 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
+           
             //TestBatchInfer();
-            //TestInferPerf();
+           _ = TestBatchForeachInfer();
+            // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
-            //_ = TestBatchForeachInfer();
 
             //TestBufferPool();
 
@@ -141,17 +142,19 @@ namespace YoloSharpOnnx.ConsoleDirectML
             var files = directory.GetFiles();
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
-            _stopwatch.Start();
             int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
-                yolo.YoloConfiguration.BatchPoolSize = 30;
-                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
-
-                var list = yolo.RunBatchDetect(dir, new ProcessCallback(), ReceiveProcess);
-
+               
+             
+                yolo.YoloConfiguration.BatchPoolSize = 80;
+                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+                _stopwatch.Start();
+                var list = yolo.RunBatchDetect(dir, ReceiveProcess);
+                _stopwatch.Stop();
+               
             }
-            _stopwatch.Stop();
+          
 
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
@@ -164,7 +167,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
-                yolo.YoloConfiguration.BatchPoolSize = 50;
+                yolo.YoloConfiguration.BatchPoolSize = 60;
 
                 await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
                 {
@@ -188,7 +191,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
         private static void ReceiveProcess(DetectionBatchResult e)
         {
 
-            string res = YoloUtils.GetResult(e.Results);
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = YoloUtils.GetResult(e.Results);
+            Console.WriteLine($"{ans} time:{cost}ms");
 
         }
         internal class ProcessCallback : IBatchProcessCallback
