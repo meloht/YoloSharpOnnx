@@ -22,7 +22,7 @@ namespace YoloSharpOnnx.Inference
 
         public MatBufferPool(int poolSzie, OnnxModel onnxModel)
         {
-            _poolSzie = poolSzie;
+            _poolSzie = poolSzie + 1;
             _OnnxModel = onnxModel;
             _flagArr = new bool[_poolSzie];
 
@@ -63,13 +63,13 @@ namespace YoloSharpOnnx.Inference
                     {
                         _valIdx = _matPool.Length - 1;
                     }
-                   // Test("Rent");
+                    // Test("Rent");
                     return mat;
                 }
                 else
                 {
                     //Console.WriteLine("new mat()");
-                   // Test("Rent");
+                    // Test("Rent");
                     return new ImageBatchData(_OnnxModel);
                 }
 

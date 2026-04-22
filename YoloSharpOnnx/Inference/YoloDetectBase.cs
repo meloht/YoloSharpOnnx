@@ -11,8 +11,7 @@ using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
+
 
 namespace YoloSharpOnnx.Inference
 {
