@@ -190,11 +190,7 @@ namespace YoloSharpOnnx.Inference
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.Wait
             };
-            if (_onnxModel.DeviceType == DeviceType.CPU)
-            {
-                channelOptions.SingleReader = true;
-            }
-
+           
             return channelOptions;
         }
         protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig, IBatchDetect batchDetect)
