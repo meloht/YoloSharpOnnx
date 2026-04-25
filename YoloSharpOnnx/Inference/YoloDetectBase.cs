@@ -152,9 +152,12 @@ namespace YoloSharpOnnx.Inference
             {
                 tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
             }
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ContinueWith(t => 
+            {
+                writer.Complete();
+            });
 
-            writer.Complete();
+           
         }
         private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {

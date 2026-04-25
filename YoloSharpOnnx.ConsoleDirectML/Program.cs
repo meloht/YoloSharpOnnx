@@ -19,8 +19,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
            
-            //TestBatchInfer();
-           _ = TestBatchForeachInfer();
+            TestBatchInfer();
+          // _ = TestBatchForeachInfer();
             // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
