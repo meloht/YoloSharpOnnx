@@ -142,17 +142,17 @@ namespace YoloSharpOnnx.Inference
             float* dstR = dst;
             float* dstG = dst + hw;
             float* dstB = dst + hw * 2;
-            float scale1 = 1.0f / 255.0f;
+            float inv255 = 1.0f / 255.0f;
 
             Vector256<float> scale = Vector256.Create(1.0f / 255.0f);
 
             int stride = width * 3;
-
+            int x = 0;
             for (int y = 0; y < height; y++)
             {
                 byte* row = src + y * stride;
 
-                int x = 0;
+                x = 0;
 
                 // 每次处理 8 像素（24 字节）
                 for (; x <= width - 8; x += 8)
@@ -201,9 +201,9 @@ namespace YoloSharpOnnx.Inference
 
                     int idx = y * width + x;
 
-                    dstR[idx] = p[2] * scale1;
-                    dstG[idx] = p[1] * scale1;
-                    dstB[idx] = p[0] * scale1;
+                    dstR[idx] = p[2] * inv255;
+                    dstG[idx] = p[1] * inv255;
+                    dstB[idx] = p[0] * inv255;
                 }
             }
         }

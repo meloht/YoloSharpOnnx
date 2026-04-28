@@ -22,7 +22,7 @@ namespace YoloSharpOnnx.Inference
 
         public MatBufferPool(int poolSzie, OnnxModel onnxModel)
         {
-            _poolSzie = poolSzie;
+            _poolSzie = poolSzie + 1;
             _OnnxModel = onnxModel;
             _flagArr = new bool[_poolSzie];
 
@@ -63,12 +63,13 @@ namespace YoloSharpOnnx.Inference
                     {
                         _valIdx = _matPool.Length - 1;
                     }
-                    //Test();
+                    // Test("Rent");
                     return mat;
                 }
                 else
                 {
-                   // Test();
+                    //Console.WriteLine("new mat()");
+                    // Test("Rent");
                     return new ImageBatchData(_OnnxModel);
                 }
 
@@ -96,15 +97,16 @@ namespace YoloSharpOnnx.Inference
                 else
                 {
                     mat.Dispose();
+                    //Console.WriteLine("mat.Dispose()");
                 }
-                // Test();
+                //Test("Return");
             }
 
 
 
         }
 
-        //public void Test()
+        //public void Test(string flag)
         //{
         //    StringBuilder sb = new StringBuilder();
         //    for (int i = 0; i < _flagArr.Length; i++)
@@ -119,7 +121,7 @@ namespace YoloSharpOnnx.Inference
         //        }
 
         //    }
-        //    Console.WriteLine($"{sb.ToString()}, UsedCount:{_usedCount}");
+        //    Console.WriteLine($"{flag} {sb.ToString()}, UsedCount:{_usedCount}");
         //}
 
         public void Dispose()

@@ -11,8 +11,7 @@ using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
+
 
 namespace YoloSharpOnnx.Inference
 {
@@ -22,7 +21,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly SessionOptions _options;
         protected readonly RunOptions _runOptions;
 
-
         protected readonly FixedBuffer _inputFixedBuffer;
         protected readonly FixedBuffer _outputFixedBuffer;
         protected readonly IPostprocess _postprocess;
@@ -31,7 +29,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly OnnxModel _onnxModel;
 
         protected OrtValue _inputOrtValue;
-
 
         protected readonly Stopwatch _stopwatch;
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
@@ -50,8 +47,8 @@ namespace YoloSharpOnnx.Inference
             this._options = options;
             _runOptions = new RunOptions();
 
-            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputSizeInBytes);
-            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputSizeInBytes);
+            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
+            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize);
 
             _postprocess = postprocess;
             _preprocess = preprocess;
@@ -155,9 +152,12 @@ namespace YoloSharpOnnx.Inference
             {
                 tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
             }
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ContinueWith(t => 
+            {
+                writer.Complete();
+            });
 
-            writer.Complete();
+           
         }
         private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
@@ -193,11 +193,7 @@ namespace YoloSharpOnnx.Inference
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.Wait
             };
-            if (_onnxModel.DeviceType == DeviceType.CPU)
-            {
-                channelOptions.SingleReader = true;
-            }
-
+           
             return channelOptions;
         }
         protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig, IBatchDetect batchDetect)

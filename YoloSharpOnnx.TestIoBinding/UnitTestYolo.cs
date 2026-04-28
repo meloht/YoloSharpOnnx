@@ -8,6 +8,7 @@ namespace YoloSharpOnnx.TestIoBinding
     public class UnitTestYolo
     {
         private Dictionary<string, string> _dict;
+        private int _deviceId = 1;
         public UnitTestYolo()
         {
             _dict = TestDataUtils.GetYolo11Dict();
@@ -20,7 +21,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -38,7 +39,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolov8n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -56,7 +57,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string imgPath = TestDataUtils.GetImagePath(path);
             string model = TestDataUtils.GetModelPath("yolo26n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
             string ans = YoloUtils.GetResult(res);
@@ -72,7 +73,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
 
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             using var yoloAsync = yolo.CreateAsyncChannel();
 
             foreach (var item in _dict)
@@ -92,7 +93,7 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string dir = TestDataUtils.GetImageDir();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             yolo.YoloConfiguration.BatchPoolSize = 4;
 
 
@@ -113,11 +114,11 @@ namespace YoloSharpOnnx.TestIoBinding
         {
             string dir = TestDataUtils.GetImageDir();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             yolo.YoloConfiguration.BatchPoolSize = 4;
 
             yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
-           
+
             var processCallback = new ProcessCallback(_dict);
             var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess);
 

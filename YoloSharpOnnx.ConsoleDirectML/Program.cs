@@ -2,13 +2,15 @@
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
 
 namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -17,16 +19,35 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
            
-            //TestBatchInfer();
-           _ = TestBatchForeachInfer();
+            TestBatchInfer();
+          // _ = TestBatchForeachInfer();
             // TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
+            //TestBufferPool();
 
             Console.WriteLine("end!");
             Console.ReadKey();
 
+        }
+
+        private static void TestBufferPool()
+        {
+            OnnxModel model = new OnnxModel();
+            model.InputSizeInBytes = 1280 * 1280 * 3 * sizeof(float);
+            model.InputShape = [1, 3, 1280, 1280];
+            
+            MatBufferPool bufferPool = new MatBufferPool(10, model);
+            ImageBatchData[] arr = new ImageBatchData[20];
+            for (int i = 0; i < 20; i++)
+            {
+                arr[i] = bufferPool.Rent();
+            }
+            for (int i = 0; i < 20; i++)
+            {
+                bufferPool.Return(arr[i]);
+            }
         }
 
         private static void TestInfer()
