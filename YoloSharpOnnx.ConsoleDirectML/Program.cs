@@ -10,7 +10,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)

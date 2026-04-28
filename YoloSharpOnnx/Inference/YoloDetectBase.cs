@@ -47,8 +47,8 @@ namespace YoloSharpOnnx.Inference
             this._options = options;
             _runOptions = new RunOptions();
 
-            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputSizeInBytes);
-            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputSizeInBytes);
+            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
+            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize);
 
             _postprocess = postprocess;
             _preprocess = preprocess;
