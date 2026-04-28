@@ -20,7 +20,7 @@ namespace YoloSharpOnnx.Models
         public ImageBatchData(OnnxModel onnxModel)
         {
             ResizedImg = new Mat();
-            FixedBuffer = new FixedBuffer((int)onnxModel.InputShapeSize);
+            FixedBuffer = new FixedBuffer(onnxModel.InputShapeSize);
             InputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
             onnxModel.InputShape, FixedBuffer.Address, onnxModel.InputSizeInBytes);
         }
