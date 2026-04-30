@@ -25,7 +25,7 @@ namespace YoloSharpOnnx
             }
         }
 
-        public static List<string> ValidationImageBatch(string imgDir, int batchSize, YoloConfig yoloConfig)
+        public static List<string> ValidationImageBatch(string imgDir, YoloConfig yoloConfig)
         {
             if (string.IsNullOrWhiteSpace(imgDir))
             {
@@ -35,7 +35,7 @@ namespace YoloSharpOnnx
             {
                 throw new DirectoryNotFoundException($"{imgDir} directory not found");
             }
-            if (batchSize <= 0)
+            if (yoloConfig.BatchPoolSize <= 0)
             {
                 throw new ArgumentNullException("batchSize must be greater than zero");
             }
@@ -50,6 +50,10 @@ namespace YoloSharpOnnx
 
         public static void ValidationImageListPath(List<string> list, YoloConfig yoloConfig)
         {
+            if (yoloConfig.BatchPoolSize <= 0)
+            {
+                throw new ArgumentNullException("batchSize must be greater than zero");
+            }
             if (list == null || list.Count == 0)
             {
                 throw new ArgumentNullException($"images is invalid for image ext({string.Join(',', yoloConfig.ImageExtsBatch)})");

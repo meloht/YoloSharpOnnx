@@ -147,7 +147,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                
              
-                yolo.YoloConfiguration.BatchPoolSize = 80;
+                yolo.YoloConfiguration.BatchPoolSize = 50;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
                 var list = yolo.RunBatchDetect(dir, ReceiveProcess);
