@@ -37,7 +37,7 @@ namespace YoloSharpOnnx
             }
             if (yoloConfig.BatchPoolSize <= 0)
             {
-                throw new ArgumentNullException("batchSize must be greater than zero");
+                throw new ArgumentNullException("BatchPoolSize must be greater than zero");
             }
 
             var files = YoloUtils.GetFilesFromDirectory(imgDir, yoloConfig.ImageExtsBatch);
@@ -52,7 +52,7 @@ namespace YoloSharpOnnx
         {
             if (yoloConfig.BatchPoolSize <= 0)
             {
-                throw new ArgumentNullException("batchSize must be greater than zero");
+                throw new ArgumentNullException("BatchPoolSize must be greater than zero");
             }
             if (list == null || list.Count == 0)
             {
