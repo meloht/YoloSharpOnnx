@@ -19,8 +19,8 @@
  
 | Object Detection Result  |
 |---------------|
-| <img src="./ExampleImages/bus_detect.jpg" width="500" > |
-| <img src="./ExampleImages/zidane_detect.jpg" width="500"> |
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" width="500" > |
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/zidane_detect.jpg?raw=true" width="500"> |
 
 </div>
 
