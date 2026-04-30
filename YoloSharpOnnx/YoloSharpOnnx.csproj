@@ -10,7 +10,7 @@
 		<Title>YoloSharpOnnx</Title>
 		<PackageProjectUrl>https://github.com/meloht/YoloSharpOnnx</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/meloht/YoloSharpOnnx</RepositoryUrl>
-		<PackageTags>yolov8,yolov11;yolov26;yolo8;yolo11;yolo26;yolo;opencv;csharp;onnx;onnx-runtime;execution-provider;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;object-detection;image-processing;computer-vision;deep-learning;inference</PackageTags>
+		<PackageTags>yolov8;yolov11;yolov26;yolo8;yolo11;yolo26;yolo;opencv;csharp;onnx;onnx-runtime;execution-provider;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;object-detection;image-processing;computer-vision;deep-learning;inference</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, production-ready C# YOLO inference library for object detection  base on OpenCV and ONNX Runtime.</Description>
 		<Authors>Luo Hongtao</Authors>
