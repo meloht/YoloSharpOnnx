@@ -254,7 +254,7 @@ private static async Task TestBatchForeachInfer()
 | ------------- | ------------- | 
 |Windows |Windows 10 OS Version 19045.6466|
 |CPU| AMD Ryzen 7 5800X 8-Core Processor 3.8GHz|
-|Memory| DDR4 3200 MHz 32GB|
+|RAM| DDR4 3200 MHz 32GB|
 |GPU| AMD Radeom RX6800 16GB|
 |Storage| SSD 2TB|
 
