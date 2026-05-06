@@ -1,6 +1,16 @@
-﻿![YoloSharpOnnx](https://socialify.git.ci/meloht/YoloSharpOnnx/image?description=1&forks=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2Fmeloht%2FYoloSharpOnnx%2Frefs%2Fheads%2Fmaster%2Fimgs%2Fyolo_logo.svg&name=1&owner=1&pulls=1&stargazers=1&theme=Light)
+﻿![YoloSharpOnnx](https://socialify.git.ci/meloht/YoloSharpOnnx/image?description=1&forks=1&issues=1&language=1&logo=https%3A%2F%2Fraw.githubusercontent.com%2Fmeloht%2FYoloSharpOnnx%2Frefs%2Fheads%2Fmaster%2Fimgs%2Fyolo_logo.svg&name=1&owner=1&pulls=1&stargazers=1&theme=Light)
 # YoloSharpOnnx
-![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) ![C#](https://img.shields.io/badge/language-C%23-blue.svg) ![.NET Version](https://img.shields.io/badge/dynamic/xml?url=https://raw.githubusercontent.com/meloht/YoloSharpOnnx/refs/heads/master/YoloSharpOnnx/YoloSharpOnnx.csproj&query=//TargetFrameworks&label=.NET) ![ONNX Runtime](https://img.shields.io/badge/ONNX-Runtime-blue.svg?logo=onnx&logoColor=white) ![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green.svg?logo=opencv&logoColor=white) ![GitHub license](https://img.shields.io/github/license/meloht/YoloSharpOnnx) ![Release](https://img.shields.io/github/v/release/meloht/YoloSharpOnnx.svg?logo=github&label=Release) [![NuGet](https://img.shields.io/nuget/v/YoloSharpOnnx.svg?logo=nuget&logoColor=white)](https://www.nuget.org/packages/YoloSharpOnnx/) [![NuGet](https://img.shields.io/nuget/dt/YoloSharpOnnx.svg?logo=nuget)](https://www.nuget.org/packages/YoloSharpOnnx/)  [![GitHub last commit](https://img.shields.io/github/last-commit/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx) [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx)
+![YOLOv8-v26](https://img.shields.io/badge/YOLOv8--v26-supported-2ea44f) 
+![C#](https://img.shields.io/badge/language-C%23-blue.svg) 
+![.NET Version](https://img.shields.io/badge/dynamic/xml?url=https://raw.githubusercontent.com/meloht/YoloSharpOnnx/refs/heads/master/YoloSharpOnnx/YoloSharpOnnx.csproj&query=//TargetFrameworks&label=.NET) 
+![ONNX Runtime](https://img.shields.io/badge/ONNX-Runtime-blue.svg?logo=onnx&logoColor=white) 
+![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green.svg?logo=opencv&logoColor=white) 
+![GitHub license](https://img.shields.io/github/license/meloht/YoloSharpOnnx) 
+![Release](https://img.shields.io/github/v/release/meloht/YoloSharpOnnx.svg?logo=github&label=Release) 
+[![NuGet](https://img.shields.io/nuget/v/YoloSharpOnnx.svg?logo=nuget&logoColor=white)](https://www.nuget.org/packages/YoloSharpOnnx/) 
+[![NuGet](https://img.shields.io/nuget/dt/YoloSharpOnnx.svg?logo=nuget)](https://www.nuget.org/packages/YoloSharpOnnx/) 
+[![GitHub last commit](https://img.shields.io/github/last-commit/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx) 
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/t/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx)
 
 🚀a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library for object detection  base on OpenCV and ONNX Runtime.
 
