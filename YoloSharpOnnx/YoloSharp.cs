@@ -91,18 +91,7 @@ namespace YoloSharpOnnx
 
         #region BatchDetect
 
-        public DetectionBatchResult[] RunBatchDetect(string imgDir)
-        {
-            return RunBatchDetect(imgDir, null, null);
-        }
-        public DetectionBatchResult[] RunBatchDetect(string imgDir, Action<DetectionBatchResult> receiveAction)
-        {
-            return RunBatchDetect(imgDir, null, receiveAction);
-        }
-        public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback processCallback)
-        {
-            return RunBatchDetect(imgDir, processCallback, null);
-        }
+      
 
         public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
@@ -111,22 +100,7 @@ namespace YoloSharpOnnx
             return _yoloDetect.BatchDetect(files, processCallback, receiveAction);
         }
 
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir)
-        {
-            var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
 
-            return await _yoloDetect.BatchDetectAsync(files, null, null);
-        }
-
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback processCallback)
-        {
-            return await RunBatchDetectAsync(imgDir, processCallback, null);
-        }
-
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, Action<DetectionBatchResult> receiveAction)
-        {
-            return await RunBatchDetectAsync(imgDir, null, receiveAction);
-        }
         public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
@@ -135,43 +109,11 @@ namespace YoloSharpOnnx
         }
 
 
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images)
-        {
-            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
-            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return await _yoloDetect.BatchDetectAsync(files, null, null);
-        }
-
-
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback)
-        {
-            return await RunBatchDetectAsync(images, processCallback, null);
-        }
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, Action<DetectionBatchResult> receiveAction)
-        {
-            return await RunBatchDetectAsync(images, null, receiveAction);
-        }
         public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction);
-        }
-
-
-        public DetectionBatchResult[] RunBatchDetect(List<string> images)
-        {
-            return RunBatchDetect(images, null, null);
-        }
-
-        public DetectionBatchResult[] RunBatchDetect(List<string> images, Action<DetectionBatchResult> receiveAction)
-        {
-            return RunBatchDetect(images, null, receiveAction);
-        }
-
-        public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback)
-        {
-            return RunBatchDetect(images, processCallback, null);
         }
 
         public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)

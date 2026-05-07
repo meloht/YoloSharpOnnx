@@ -58,9 +58,9 @@ namespace YoloSharpOnnx.ConsoleGPU
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
-               
 
-                var list = yolo.RunBatchDetect(dir, ReceiveProcess);
+
+                var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
 
             }
             _stopwatch.Stop();

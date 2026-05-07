@@ -18,10 +18,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
-           
-           // TestBatchInfer();
-          // _ = TestBatchForeachInfer();
-             TestInferPerf();
+
+            // TestBatchInfer();
+            // _ = TestBatchForeachInfer();
+            TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
@@ -37,7 +37,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             OnnxModel model = new OnnxModel();
             model.InputSizeInBytes = 1280 * 1280 * 3 * sizeof(float);
             model.InputShape = [1, 3, 1280, 1280];
-            
+
             MatBufferPool bufferPool = new MatBufferPool(10, model);
             ImageBatchData[] arr = new ImageBatchData[20];
             for (int i = 0; i < 20; i++)
@@ -145,16 +145,16 @@ namespace YoloSharpOnnx.ConsoleDirectML
             int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
-               
-             
+
+
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
-                var list = yolo.RunBatchDetect(dir, ReceiveProcess);
+                var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
                 _stopwatch.Stop();
-               
+
             }
-          
+
 
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
