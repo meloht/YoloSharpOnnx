@@ -44,7 +44,7 @@ namespace YoloSharpOnnx.Inference
             Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
 
             // BGR转RGB
-           // Cv2.CvtColor(resizedImg, resizedImg, ColorConversionCodes.BGR2RGB);
+            // Cv2.CvtColor(resizedImg, resizedImg, ColorConversionCodes.BGR2RGB);
 
             Cv2.CopyMakeBorder(
             src: resizedImg,
@@ -56,9 +56,6 @@ namespace YoloSharpOnnx.Inference
             borderType: BorderTypes.Constant,
             value: _paddingColor);
 
-
-
-            //GetChwArrPointer(resizedImg, buffer);
             if (Avx2.IsSupported)
             {
                 ToCHW_RGB_Normalized_AVX2(resizedImg, buffer);
@@ -67,35 +64,16 @@ namespace YoloSharpOnnx.Inference
             {
                 ToCHW_RGB_Normalized(resizedImg, buffer);
             }
-          
+
             // 添加批次维度 (1, 3, H, W)
             return new PreResult(imgH, imgW, padH, padW, scale);
-        }
-        public unsafe void GetChwArrPointer(Mat paddedImg, FixedBuffer buffer)
-        {
-            int height = paddedImg.Height;
-            int width = paddedImg.Width;
-
-            float inv255 = 1.0f / 255.0f;
-
-            byte* ptr = (byte*)paddedImg.DataPointer;
-            float* data = buffer.Pointer;
-            int hw = width * height;
-
-            for (int i = 0; i < hw; i++)
-            {
-                data[i] = ptr[i * 3 + 0] * inv255;           // R
-                data[i + hw] = ptr[i * 3 + 1] * inv255;      // G
-                data[i + hw * 2] = ptr[i * 3 + 2] * inv255;  // B
-            }
-
         }
 
         private unsafe void ToCHW_RGB_Normalized(Mat mat, FixedBuffer buffer)
         {
             int width = mat.Cols;
             int height = mat.Rows;
-            int channels = mat.Channels(); 
+            int channels = mat.Channels();
 
             if (channels != 3)
                 throw new ArgumentException("Only 3-channel images supported");
@@ -109,21 +87,24 @@ namespace YoloSharpOnnx.Inference
             int gOffset = hw;
             int bOffset = hw * 2;
             float scale = 1.0f / 255.0f;
-
+            int step = (int)mat.Step();
             for (int y = 0; y < height; y++)
             {
-                int rowOffset = y * width * channels;
+                byte* rowPtr = ptr + y * step;
 
                 for (int x = 0; x < width; x++)
                 {
-                    int srcIndex = rowOffset + x * channels;
+                    int srcIdx = x * channels;
+                    byte b = rowPtr[srcIdx + 0];
+                    byte g = rowPtr[srcIdx + 1];
+                    byte r = rowPtr[srcIdx + 2];
 
                     int dstIndex = y * width + x;
 
                     //  BGR -> RGB + 归一化 + CHW
-                    data[rOffset + dstIndex] = ptr[srcIndex + 2] * scale;
-                    data[gOffset + dstIndex] = ptr[srcIndex + 1] * scale;
-                    data[bOffset + dstIndex] = ptr[srcIndex + 0] * scale;
+                    data[rOffset + dstIndex] = r * scale;
+                    data[gOffset + dstIndex] = g * scale;
+                    data[bOffset + dstIndex] = b * scale;
                 }
             }
         }
@@ -135,9 +116,9 @@ namespace YoloSharpOnnx.Inference
 
             int width = mat.Width;
             int height = mat.Height;
-            byte* src= (byte*)mat.DataPointer;
+            byte* src = (byte*)mat.DataPointer;
             float* dst = buffer.Pointer;
-            int hw =width *height;
+            int hw = width * height;
 
             float* dstR = dst;
             float* dstG = dst + hw;

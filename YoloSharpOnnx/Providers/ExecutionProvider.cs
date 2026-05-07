@@ -16,6 +16,7 @@ namespace YoloSharpOnnx.Providers
         private const string OnnxNames = "names";
 
         public string ModelPath { get; set; }
+        protected YoloConfig YoloConfiguration { get; private set; }
 
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
@@ -25,6 +26,10 @@ namespace YoloSharpOnnx.Providers
             ModelPath = modelPath;
         }
 
+        internal void SetYoloConfig(YoloConfig yoloConfig)
+        {
+            YoloConfiguration = yoloConfig;
+        }
         protected IYoloDetect BuildInferenceSession(SessionOptions options)
         {
             InferenceSession session = new InferenceSession(ModelPath, options);

@@ -64,7 +64,12 @@ namespace YoloSharpOnnx.Providers
 
         protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel);
+            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+        }
+
+        public void SetYoloConfiguration(YoloConfig yoloConfig)
+        {
+            SetYoloConfig(yoloConfig);
         }
     }
 }

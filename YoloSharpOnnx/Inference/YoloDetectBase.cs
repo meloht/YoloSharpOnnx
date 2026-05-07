@@ -37,9 +37,11 @@ namespace YoloSharpOnnx.Inference
         protected MatBufferPool _matPool;
         protected Mat _resizedImg;
         private int _batchPoolSize = 0;
+        protected YoloConfig _config; 
 
-        public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
+        public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
         {
+            _config = config;
             _resizedImg = new Mat();
             _onnxModel = onnxModel;
             _stopwatch = new Stopwatch();
@@ -196,25 +198,25 @@ namespace YoloSharpOnnx.Inference
            
             return channelOptions;
         }
-        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig, IBatchDetect batchDetect)
+        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, IBatchDetect batchDetect)
         {
-            InitBufferPool(yoloConfig.BatchPoolSize);
+            InitBufferPool(_config.BatchPoolSize);
             int idx = 0;
             DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
-            var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
+            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
             Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
 
-            var producer = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, channel.Writer);
+            var producer = PreprocessBatch(listImg, _config.ResizeAlgorithm, channel.Writer);
 
             var consumer = Task.Run(async () =>
             {
                 await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    var result = batchDetect.RunBatchDetect(item, yoloConfig);
+                    var result = batchDetect.RunBatchDetect(item);
                     var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
-                    batchResults[idx] = modelResult;
-                    Interlocked.Increment(ref idx);
+                    batchResults[idx++] = modelResult;
+                    //Interlocked.Increment(ref idx);
                     _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
                 }
             });
@@ -222,18 +224,18 @@ namespace YoloSharpOnnx.Inference
             return batchResults;
         }
 
-        protected async IAsyncEnumerable<DetectionBatchResult> BatchDetectBaseForeachAsync(List<string> listImg, YoloConfig yoloConfig, IBatchDetect batchDetect)
+        protected async IAsyncEnumerable<DetectionBatchResult> BatchDetectBaseForeachAsync(List<string> listImg, IBatchDetect batchDetect)
         {
-            InitBufferPool(yoloConfig.BatchPoolSize);
+            InitBufferPool(_config.BatchPoolSize);
 
-            var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
+            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
             Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
 
-            _ = PreprocessBatch(listImg, yoloConfig.ResizeAlgorithm, channel.Writer);
+            _ = PreprocessBatch(listImg, _config.ResizeAlgorithm, channel.Writer);
             await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
             {
                 long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var result = batchDetect.RunBatchDetect(item, yoloConfig);
+                var result = batchDetect.RunBatchDetect(item);
                 var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
                 yield return modelResult;
             }

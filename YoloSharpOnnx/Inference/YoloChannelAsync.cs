@@ -97,7 +97,7 @@ namespace YoloSharpOnnx.Inference
         {
             await foreach (PreChannelModel item in _channel.Reader.ReadAllAsync())
             {
-                var result = _yoloDetectAsync.RunBatchDetect(item.PreResult, _yoloConfig);
+                var result = _yoloDetectAsync.RunBatchDetect(item.PreResult);
 
                 TaskCompletionSource<List<DetectionResult>> tempTCS= _concurrentDict[item.Guid];
                 tempTCS.TrySetResult(result);

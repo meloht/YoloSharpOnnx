@@ -49,14 +49,17 @@ namespace YoloSharpOnnx.Providers
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel);
+                return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
             else
             {
-                return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel);
+                return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
-
+        public void SetYoloConfiguration(YoloConfig yoloConfig)
+        {
+            SetYoloConfig(yoloConfig);
+        }
         private string GetIntelDeviceType()
         {
             switch (_intelDeviceType)

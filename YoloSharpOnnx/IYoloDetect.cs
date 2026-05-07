@@ -10,17 +10,17 @@ namespace YoloSharpOnnx
 {
     public interface IYoloDetect : IDisposable
     {
-        List<DetectionResult> Run(Mat inputImage, YoloConfig yoloConfig);
+        List<DetectionResult> Run(Mat inputImage);
 
-        YoloResult<DetectionResult> RunWithTime(Mat inputImage, YoloConfig yoloConfig);
+        YoloResult<DetectionResult> RunWithTime(Mat inputImage);
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
 
-        DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig);
+        DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction);
 
-        Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, YoloConfig yoloConfig);
+        Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction);
 
-        IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg, YoloConfig yoloConfig);
+        IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg);
 
         event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 

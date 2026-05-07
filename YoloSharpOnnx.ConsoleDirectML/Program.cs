@@ -19,9 +19,9 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
            
-            TestBatchInfer();
+           // TestBatchInfer();
           // _ = TestBatchForeachInfer();
-            // TestInferPerf();
+             TestInferPerf();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
@@ -100,7 +100,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                         count++;
                         var res = yolo.RunDetectWithTime(item.FullName);
                         totalInfer += res.SpeedResult.Inference;
-                        Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+                        Console.WriteLine($"{item.Name} {res.ToString()}, {res.SpeedResult.ToString()}");
                     }
                 }
             }
@@ -147,7 +147,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                
              
-                yolo.YoloConfiguration.BatchPoolSize = 50;
+                yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
                 var list = yolo.RunBatchDetect(dir, ReceiveProcess);
