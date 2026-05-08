@@ -6,12 +6,12 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
-    public class PostprocessEndToEnd : IPostprocess
+    public class DetPostprocessEndToEnd : IDetPostprocess
     {
         private readonly LabelModel[] _labels;
-        public PostprocessEndToEnd(LabelModel[] labels)
+        public DetPostprocessEndToEnd(LabelModel[] labels)
         {
             _labels = labels;
         }

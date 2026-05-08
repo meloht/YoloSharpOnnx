@@ -4,7 +4,7 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
     public interface IBatchDetect
     {

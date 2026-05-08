@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
     public interface IYoloDetectAsync: IBatchDetect
     {

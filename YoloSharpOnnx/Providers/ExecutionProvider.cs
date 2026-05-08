@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -14,11 +15,12 @@ namespace YoloSharpOnnx.Providers
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
+        private const string ModelTask = "task";
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
 
-        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel);
+        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
 
         public ExecutionProvider(string modelPath)
@@ -42,18 +44,18 @@ namespace YoloSharpOnnx.Providers
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
         }
 
-        private IPostprocess GetPostprocessor(OnnxModel onnxModel)
+        private IDetPostprocess GetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new PostprocessEndToEnd(onnxModel.Labels);
+                return new DetPostprocessEndToEnd(onnxModel.Labels);
             }
-            return new PostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
         }
 
-        protected IPreprocess GetPreprocess(OnnxModel onnxModel)
+        protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
         {
-            return new PreprocessComm(onnxModel);
+            return new DetPreprocessComm(onnxModel);
         }
 
         protected OnnxModel ParseOnnxModel(InferenceSession session)
@@ -88,11 +90,43 @@ namespace YoloSharpOnnx.Providers
             {
                 isEndToEnd = bool.Parse(metaData[End2End]);
             }
+            if (metaData.ContainsKey(ModelTask))
+            {
+                model.ModelType = GetModelType(metaData[ModelTask].Trim());
+            }
             model.IsEndToEnd = isEndToEnd;
 
             model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
 
             return model;
+        }
+
+        private ModelType GetModelType(string task)
+        {
+            if (ModelType.ObjectDetection.GetDescription() == task)
+            {
+                return ModelType.ObjectDetection;
+            }
+            else if (ModelType.Classification.GetDescription() == task)
+            {
+                return ModelType.Classification;
+            }
+            else if (ModelType.ObbDetection.GetDescription() == task)
+            {
+                return ModelType.ObbDetection;
+            }
+            else if (ModelType.Segmentation.GetDescription() == task)
+            {
+                return ModelType.Segmentation;
+            }
+            else if (ModelType.PoseEstimation.GetDescription() == task)
+            {
+                return ModelType.PoseEstimation;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"model task: {task} is not support");
+            }
         }
 
         protected LabelModel[] GetModelLabels(InferenceSession session)

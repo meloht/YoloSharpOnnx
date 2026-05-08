@@ -3,10 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx
+namespace YoloSharpOnnx.Inference.Detect
 {
     public interface IYoloDetect : IDisposable
     {

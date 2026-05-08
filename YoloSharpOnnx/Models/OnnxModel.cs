@@ -29,5 +29,7 @@ namespace YoloSharpOnnx.Models
         public long OutputSizeInBytes { get; set; }
 
         public DeviceType DeviceType { get; set; }
+
+        public ModelType ModelType { get; set; }
     }
 }

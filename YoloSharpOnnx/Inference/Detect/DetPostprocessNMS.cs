@@ -8,9 +8,9 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
-    public class PostprocessNMS : IPostprocess
+    public class DetPostprocessNMS : IDetPostprocess
     {
         private readonly int _boxNums;
         private readonly int _boxNums2;
@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.Inference
         private List<float> _scores = new List<float>();
         private List<int> _classIds = new List<int>();
 
-        public PostprocessNMS(int boxNum, LabelModel[] labels)
+        public DetPostprocessNMS(int boxNum, LabelModel[] labels)
         {
             _labels = labels;
             _boxNums = boxNum;

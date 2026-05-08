@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -27,7 +27,7 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.CPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }

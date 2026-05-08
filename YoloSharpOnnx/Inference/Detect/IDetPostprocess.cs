@@ -5,9 +5,9 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
-    public interface IPostprocess
+    public interface IDetPostprocess
     {
         public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig);
     }

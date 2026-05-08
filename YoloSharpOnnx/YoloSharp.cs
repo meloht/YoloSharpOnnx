@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 using static System.Net.Mime.MediaTypeNames;
 

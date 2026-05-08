@@ -13,7 +13,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Models;
 
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
     public class YoloDetectBase
     {
@@ -23,8 +23,8 @@ namespace YoloSharpOnnx.Inference
 
         protected readonly FixedBuffer _inputFixedBuffer;
         protected readonly FixedBuffer _outputFixedBuffer;
-        protected readonly IPostprocess _postprocess;
-        protected readonly IPreprocess _preprocess;
+        protected readonly IDetPostprocess _postprocess;
+        protected readonly IDetPreprocess _preprocess;
 
         protected readonly OnnxModel _onnxModel;
 
@@ -39,7 +39,7 @@ namespace YoloSharpOnnx.Inference
         private int _batchPoolSize = 0;
         protected YoloConfig _config; 
 
-        public YoloDetectBase(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+        public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
         {
             _config = config;
             _resizedImg = new Mat();
