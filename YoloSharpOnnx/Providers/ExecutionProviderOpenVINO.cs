@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
@@ -76,6 +77,18 @@ namespace YoloSharpOnnx.Providers
                     return NPU;
                 default:
                     return CPU;
+            }
+        }
+
+        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            }
+            else
+            {
+                return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
             }
         }
     }

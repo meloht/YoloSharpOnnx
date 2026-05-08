@@ -18,7 +18,7 @@ namespace YoloSharpOnnx.Inference.Classify
             _onnxModel = onnxModel;
             _yoloConfig = yoloConfig;
         }
-        public ClsResult[] TopK(OrtValue outputValue)
+        public List<ClsResult> PostProcess(OrtValue outputValue)
         {
             var arr = outputValue.GetTensorDataAsSpan<float>();
             ClsItem[] res = new ClsItem[arr.Length];
@@ -34,7 +34,7 @@ namespace YoloSharpOnnx.Inference.Classify
             {
                 result[i] = new ClsResult(_onnxModel.Labels[res[i].Index].Name, res[i].Index, res[i].Value);
             }
-            return result;
+            return new List<ClsResult>(result);
         }
     }
 }

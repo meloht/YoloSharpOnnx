@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
@@ -70,6 +71,11 @@ namespace YoloSharpOnnx.Providers
         public void SetYoloConfiguration(YoloConfig yoloConfig)
         {
             SetYoloConfig(yoloConfig);
+        }
+
+        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
         }
     }
 }

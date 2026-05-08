@@ -15,133 +15,20 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectBase
+    public class YoloDetectBase : OnnxInferenceCore
     {
-        protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
-        protected readonly RunOptions _runOptions;
-
-        protected readonly FixedBuffer _inputFixedBuffer;
-        protected readonly FixedBuffer _outputFixedBuffer;
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
 
-        protected readonly OnnxModel _onnxModel;
-
-        protected OrtValue _inputOrtValue;
-
-        protected readonly Stopwatch _stopwatch;
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
-        private readonly object _detectLock = new();
-        protected MatBufferPool _matPool;
-        protected Mat _resizedImg;
-        private int _batchPoolSize = 0;
-        protected YoloConfig _config; 
 
         public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, options, onnxModel, config)
         {
-            _config = config;
-            _resizedImg = new Mat();
-            _onnxModel = onnxModel;
-            _stopwatch = new Stopwatch();
-            this._session = session;
-            this._options = options;
-            _runOptions = new RunOptions();
-
-            _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
-            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize);
-
             _postprocess = postprocess;
             _preprocess = preprocess;
 
-            _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-               _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
-
-        }
-
-        
-
-        public void InitBufferPool(int batchPoolSize)
-        {
-            if (batchPoolSize != _batchPoolSize)
-            {
-                lock (_detectLock)
-                {
-                    if (batchPoolSize != _batchPoolSize)
-                    {
-                        _matPool?.Dispose();
-                        _matPool = null;
-                        _batchPoolSize = batchPoolSize;
-                    }
-                }
-            }
-
-            if (_matPool == null)
-            {
-                lock (_detectLock)
-                {
-                    if (_matPool == null)
-                    {
-                        _matPool = new MatBufferPool(batchPoolSize, _onnxModel);
-                    }
-                }
-            }
-        }
-
-        public void DisposeBase()
-        {
-            _resizedImg.Dispose();
-            _matPool?.Dispose();
-
-            _inputFixedBuffer.Dispose();
-            _outputFixedBuffer.Dispose();
-            _runOptions.Dispose();
-            _session.Dispose();
-            _options.Dispose();
-
-            _runOptions.Dispose();
-            _inputOrtValue.Dispose();
-        }
-
-
-        public int BufferPoolUsedCount
-        {
-            get
-            {
-                if (_matPool == null)
-                {
-                    return 0;
-                }
-                return _matPool.UsedCount;
-            }
-
-        }
-        private IEnumerable<string[]> GetPreprocessWorkersSize(List<string> listImg)
-        {
-            int preprocessWorkers = Environment.ProcessorCount;
-            if (_onnxModel.DeviceType == DeviceType.CPU )
-            {
-                preprocessWorkers = 2;
-            }
-            else 
-            {
-                if (listImg.Count < Environment.ProcessorCount)
-                {
-                    preprocessWorkers = Environment.ProcessorCount / 2;
-                }
-                if (listImg.Count < preprocessWorkers)
-                {
-                    preprocessWorkers = 2;
-                }
-            }
-            int size = listImg.Count / preprocessWorkers;
-           
-            if (size < 1)
-            {
-                size = listImg.Count;
-            }
-            return listImg.Chunk(size);
         }
 
 
@@ -154,12 +41,12 @@ namespace YoloSharpOnnx.Inference.Detect
             {
                 tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
             }
-            await Task.WhenAll(tasks).ContinueWith(t => 
+            await Task.WhenAll(tasks).ContinueWith(t =>
             {
                 writer.Complete();
             });
 
-           
+
         }
         private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
         {
@@ -195,7 +82,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.Wait
             };
-           
+
             return channelOptions;
         }
         protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, IBatchDetect batchDetect)
@@ -246,7 +133,7 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             if (BatchDetectItemCompleted != null)
             {
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
                     BatchDetectItemCompleted(this, result);
                 });
@@ -254,14 +141,14 @@ namespace YoloSharpOnnx.Inference.Detect
 
             if (processCallback != null)
             {
-                await Task.Run(async () =>
+                await Task.Run(() =>
                  {
                      processCallback.ReceiveProcessResult(result);
                  });
             }
             if (receiveAction != null)
             {
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
                     receiveAction(result);
                 });

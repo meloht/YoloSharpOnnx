@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.OnnxRuntime;
+﻿using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +8,10 @@ using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public interface IClsPostprocess
+    public interface IYoloClassify: IDisposable
     {
-        List<ClsResult> PostProcess(OrtValue outputValue);
+        List<ClsResult> Run(Mat inputImage);
+
+        YoloResult<ClsResult> RunWithTime(Mat inputImage);
     }
 }

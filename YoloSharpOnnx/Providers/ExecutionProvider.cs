@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
@@ -21,6 +22,7 @@ namespace YoloSharpOnnx.Providers
         protected YoloConfig YoloConfiguration { get; private set; }
 
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
 
         public ExecutionProvider(string modelPath)
