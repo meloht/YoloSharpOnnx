@@ -30,7 +30,24 @@ namespace YoloSharpOnnx.Providers
 
         }
 
-        public IYoloDetect CreateYoloDetect()
+
+        protected override DeviceType GetDeviceType()
+        {
+            return DeviceType.GPU;
+        }
+
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+        }
+
+
+        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+        }
+
+        protected override SessionOptions BuildSessionOptions()
         {
             SessionOptions options;
             if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
@@ -55,27 +72,7 @@ namespace YoloSharpOnnx.Providers
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
 
-            return BuildInferenceSession(options);
-        }
-
-        protected override DeviceType GetDeviceType()
-        {
-            return DeviceType.GPU;
-        }
-
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
-        {
-            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
-        }
-
-        public void SetYoloConfiguration(YoloConfig yoloConfig)
-        {
-            SetYoloConfig(yoloConfig);
-        }
-
-        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
-        {
-            return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            return options;
         }
     }
 }

@@ -22,15 +22,6 @@ namespace YoloSharpOnnx.Providers
 
         }
 
-        public IYoloDetect CreateYoloDetect()
-        {
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            sessionOptions.AppendExecutionProvider_DML(this._deviceId);
-            sessionOptions.EnableCpuMemArena = true;
-
-            return BuildInferenceSession(sessionOptions);
-        }
 
         protected override DeviceType GetDeviceType()
         {
@@ -42,14 +33,20 @@ namespace YoloSharpOnnx.Providers
             return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        public void SetYoloConfiguration(YoloConfig yoloConfig)
-        {
-            SetYoloConfig(yoloConfig);
-        }
 
         protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloClsIoBinding(session, options,  onnxModel, YoloConfiguration, postprocess, preprocess);
+        }
+
+        protected override SessionOptions BuildSessionOptions()
+        {
+            SessionOptions sessionOptions = new SessionOptions();
+            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            sessionOptions.AppendExecutionProvider_DML(this._deviceId);
+            sessionOptions.EnableCpuMemArena = true;
+
+            return sessionOptions;
         }
     }
 }

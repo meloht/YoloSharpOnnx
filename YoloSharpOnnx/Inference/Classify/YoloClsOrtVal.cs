@@ -40,7 +40,32 @@ namespace YoloSharpOnnx.Inference.Classify
 
         public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
-            throw new NotImplementedException();
+            SpeedResult speed = new SpeedResult();
+            _stopwatch.Restart();
+
+            // 预处理图像
+             _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+
+            _stopwatch.Stop();
+            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            // 后处理
+            var res = _postprocess.PostProcess(output0);
+
+            _stopwatch.Stop();
+            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
+            speed.SumTotal();
+
+            return new YoloResult<ClsResult>(res, speed);
         }
 
         protected virtual void Dispose(bool disposing)

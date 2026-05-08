@@ -8,20 +8,12 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public class ExecutionProviderCoreML : ExecutionProvider, IExecutionProvider
+    public class ExecutionProviderCoreML : ExecutionProvider
     {
         private CoreMLFlags _coreMLFlags;
         public ExecutionProviderCoreML(string modelPath, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE) : base(modelPath)
         {
             _coreMLFlags = coreMLFlags;
-        }
-        public IYoloDetect CreateYoloDetect()
-        {
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            sessionOptions.EnableCpuMemArena = true;
-            sessionOptions.AppendExecutionProvider_CoreML(_coreMLFlags);
-            return BuildInferenceSession(sessionOptions);
         }
 
         protected override DeviceType GetDeviceType()
@@ -34,14 +26,20 @@ namespace YoloSharpOnnx.Providers
             return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        public void SetYoloConfiguration(YoloConfig yoloConfig)
-        {
-            SetYoloConfig(yoloConfig);
-        }
+       
 
         protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+        }
+
+        protected override SessionOptions BuildSessionOptions()
+        {
+            SessionOptions sessionOptions = new SessionOptions();
+            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            sessionOptions.EnableCpuMemArena = true;
+            sessionOptions.AppendExecutionProvider_CoreML(_coreMLFlags);
+            return sessionOptions;
         }
     }
 }

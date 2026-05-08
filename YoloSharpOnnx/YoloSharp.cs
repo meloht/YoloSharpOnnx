@@ -5,15 +5,18 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
-using static System.Net.Mime.MediaTypeNames;
+
 
 namespace YoloSharpOnnx
 {
     public class YoloSharp : IDisposable
     {
         private IYoloDetect _yoloDetect;
+        private IYoloClassify _yoloClassify;
+        private bool disposedValue;
 
         public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
@@ -31,6 +34,7 @@ namespace YoloSharpOnnx
             YoloConfiguration = yoloConfig;
             executionProvider.SetYoloConfiguration(yoloConfig);
             _yoloDetect = executionProvider.CreateYoloDetect();
+            _yoloClassify = executionProvider.CreateYoloClassify();
             _yoloDetect.BatchDetectItemCompleted += YoloDetect_BatchDetectItemCompleted;
         }
 
@@ -77,6 +81,34 @@ namespace YoloSharpOnnx
         {
             return _yoloDetect.RunWithTime(img);
         }
+
+
+        public List<ClsResult> RunClassify(string imagePath)
+        {
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloClassify.Run(img);
+            }
+        }
+        public List<ClsResult> RunClassify(Mat img)
+        {
+            return _yoloClassify.Run(img);
+        }
+
+        public YoloResult<ClsResult> RunClassifyWithTime(string imagePath)
+        {
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloClassify.RunWithTime(img);
+            }
+        }
+        public YoloResult<ClsResult> RunClassifyWithTime(Mat img)
+        {
+            return _yoloClassify.RunWithTime(img);
+        }
+
         #endregion
 
         #region Asynchronous
@@ -92,7 +124,7 @@ namespace YoloSharpOnnx
 
         #region BatchDetect
 
-      
+
 
         public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
@@ -167,6 +199,8 @@ namespace YoloSharpOnnx
             Cv2.ImWrite(saveFileName, img);
         }
 
+
+
         #endregion
 
 
@@ -177,9 +211,35 @@ namespace YoloSharpOnnx
         #endregion
 
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                _yoloDetect?.Dispose();
+                _yoloClassify?.Dispose();
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~YoloSharp()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
         public void Dispose()
         {
-            _yoloDetect?.Dispose();
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
     }

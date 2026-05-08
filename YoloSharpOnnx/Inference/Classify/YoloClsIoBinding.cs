@@ -36,12 +36,54 @@ namespace YoloSharpOnnx.Inference.Classify
         }
         public List<ClsResult> Run(Mat inputImage)
         {
-            throw new NotImplementedException();
+            // 预处理图像
+             _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.SynchronizeBoundInputs();
+
+            // 执行推理
+
+            _session.RunWithBinding(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+            // 后处理
+            var result = _postprocess.PostProcess(_outputOrtValue);
+            return result;
         }
 
         public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
-            throw new NotImplementedException();
+            SpeedResult speed = new SpeedResult();
+
+            _stopwatch.Restart();
+            // 预处理图像
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+
+            _stopwatch.Stop();
+            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+
+            // 执行推理
+
+            _session.RunWithBinding(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+            _stopwatch.Restart();
+
+            // 后处理
+            var res = _postprocess.PostProcess(_outputOrtValue);
+
+            _stopwatch.Stop();
+            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
+            speed.SumTotal();
+
+            return new YoloResult<ClsResult>(res, speed);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -56,6 +98,8 @@ namespace YoloSharpOnnx.Inference.Classify
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
                 DisposeCore();
+                _binding.Dispose();
+                _outputOrtValue.Dispose();
                 disposedValue = true;
             }
         }

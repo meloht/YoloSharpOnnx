@@ -12,7 +12,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public abstract class ExecutionProvider
+    public abstract class ExecutionProvider: IExecutionProvider
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
@@ -20,6 +20,8 @@ namespace YoloSharpOnnx.Providers
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
+
+        protected abstract SessionOptions BuildSessionOptions();
 
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
@@ -30,14 +32,15 @@ namespace YoloSharpOnnx.Providers
             ModelPath = modelPath;
         }
 
-        internal void SetYoloConfig(YoloConfig yoloConfig)
+        public void SetYoloConfiguration(YoloConfig yoloConfig)
         {
             YoloConfiguration = yoloConfig;
         }
-        protected IYoloDetect BuildInferenceSession(SessionOptions options)
-        {
-            InferenceSession session = new InferenceSession(ModelPath, options);
 
+        public IYoloDetect CreateYoloDetect()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
 
             var postprocess = GetPostprocessor(onnxModel);
@@ -45,6 +48,19 @@ namespace YoloSharpOnnx.Providers
 
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
         }
+
+        public IYoloClassify CreateYoloClassify()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+
+            var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
+            var preprocess = new ClsPreprocess(onnxModel);
+
+            return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
+        }
+
 
         private IDetPostprocess GetPostprocessor(OnnxModel onnxModel)
         {
@@ -161,5 +177,7 @@ namespace YoloSharpOnnx.Providers
             }
             return palette;
         }
+
+      
     }
 }
