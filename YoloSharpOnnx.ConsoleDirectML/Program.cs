@@ -21,7 +21,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             // TestBatchInfer();
             // _ = TestBatchForeachInfer();
-            TestInferPerf();
+            //TestInferPerf();
+            TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
@@ -49,7 +50,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 bufferPool.Return(arr[i]);
             }
         }
-
+        private static void TestInferCls()
+        {
+            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000009.jpg";
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            var res = yolo.RunClassifyWithTime(img);
+            Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+        }
         private static void TestInfer()
         {
             DirectoryInfo directory = new DirectoryInfo(dir);

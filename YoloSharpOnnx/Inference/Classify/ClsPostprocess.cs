@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,13 +30,13 @@ namespace YoloSharpOnnx.Inference.Classify
             }
 
             Array.Sort(res, (x, y) => y.Value.CompareTo(x.Value));
-            ClsResult[] result = new ClsResult[_yoloConfig.ClassifyTopK];
-            for (int i = 0; i < result.Length; i++)
+            List<ClsResult> result = new List<ClsResult>(_yoloConfig.ClassifyTopK);
+            for (int i = 0; i < _yoloConfig.ClassifyTopK; i++)
             {
-                result[i] = new ClsResult(_onnxModel.Labels[res[i].Index].Name, res[i].Index, res[i].Value);
+                result.Add(new ClsResult(_onnxModel.Labels[res[i].Index].Name, res[i].Index, res[i].Value));
             }
 
-            return new List<ClsResult>(result);
+            return result;
         }
 
     }
