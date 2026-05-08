@@ -68,12 +68,12 @@ namespace YoloSharpOnnx.Inference
             float inv255 = 1.0f / 255.0f;
 
             Vector256<float> scale = Vector256.Create(inv255);
-
-            int stride = width * 3;
+            int step = (int)mat.Step();
+           
             int x = 0;
             for (int y = 0; y < height; y++)
             {
-                byte* row = src + y * stride;
+                byte* row = src + y * step;
 
                 x = 0;
 

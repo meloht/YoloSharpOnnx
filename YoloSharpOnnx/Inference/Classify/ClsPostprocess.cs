@@ -34,7 +34,9 @@ namespace YoloSharpOnnx.Inference.Classify
             {
                 result[i] = new ClsResult(_onnxModel.Labels[res[i].Index].Name, res[i].Index, res[i].Value);
             }
+
             return new List<ClsResult>(result);
         }
+
     }
 }

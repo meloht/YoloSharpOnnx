@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 
 namespace YoloSharpOnnx.Inference.Classify
@@ -40,16 +41,17 @@ namespace YoloSharpOnnx.Inference.Classify
             int startX = (newW - _onnxModel.InputWidth) / 2;
             int startY = (newH - _onnxModel.InputHeight) / 2;
             Rect roi = new Rect(startX, startY, _onnxModel.InputWidth, _onnxModel.InputHeight);
-            using Mat cropped = new Mat(resizedImg, roi);
+            using Mat cropped = new(resizedImg, roi);
 
             if (Avx2.IsSupported)
             {
-                ToCHW_RGB_Normalized_AVX2(resizedImg, buffer);
+                ToCHW_RGB_Normalized_AVX2(cropped, buffer);
             }
             else
             {
-                ToCHW_RGB_Normalized(resizedImg, buffer);
+                ToCHW_RGB_Normalized(cropped, buffer);
             }
+
         }
 
 

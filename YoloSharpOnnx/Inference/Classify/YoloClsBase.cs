@@ -13,7 +13,8 @@ namespace YoloSharpOnnx.Inference.Classify
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
-        public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess) : base(session, options, onnxModel, config)
+        public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess) 
+            : base(session, options, onnxModel, config)
         {
             _postprocess = postprocess;
             _preprocess = preprocess;

@@ -13,7 +13,8 @@ namespace YoloSharpOnnx.ConsoleCPU
 
             Console.WriteLine("Hello, World!");
             //TestInfer();
-            TestBatchInfer();
+            //TestBatchInfer();
+            TestInferCls();
             //TestInferPerf();
             //using Mat image = Cv2.ImRead(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\bus.jpg");
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
@@ -54,6 +55,15 @@ namespace YoloSharpOnnx.ConsoleCPU
 
             Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
 
+        }
+
+        private static void TestInferCls()
+        {
+            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000009.jpg";
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            var res = yolo.RunClassifyWithTime(img);
+            Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
         }
 
         private static void TestInferPerf()

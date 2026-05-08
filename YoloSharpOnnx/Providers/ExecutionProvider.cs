@@ -3,6 +3,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.Inference;
@@ -12,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public abstract class ExecutionProvider: IExecutionProvider
+    public abstract class ExecutionProvider : IExecutionProvider
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
@@ -26,10 +27,11 @@ namespace YoloSharpOnnx.Providers
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
-
+        private readonly Random _rand;
         public ExecutionProvider(string modelPath)
         {
             ModelPath = modelPath;
+            _rand = new Random(0);
         }
 
         public void SetYoloConfiguration(YoloConfig yoloConfig)
@@ -99,6 +101,7 @@ namespace YoloSharpOnnx.Providers
             model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
 
             model.Labels = GetModelLabels(session);
+           
             model.ColorPalette = GenerateColorPalette(model.Labels.Length);
 
             var metaData = session.ModelMetadata.CustomMetadataMap;
@@ -114,7 +117,11 @@ namespace YoloSharpOnnx.Providers
             }
             model.IsEndToEnd = isEndToEnd;
 
-            model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+            if (model.ModelType == ModelType.ObjectDetection)
+            {
+                model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+            }
+           
 
             return model;
         }
@@ -168,16 +175,31 @@ namespace YoloSharpOnnx.Providers
 
         protected Scalar[] GenerateColorPalette(int count)
         {
-            var rng = new Random();
             var palette = new Scalar[count];
             var colors = ColorTemplate.Get();
             for (int i = 0; i < count; i++)
             {
-                palette[i] = ColorTemplate.HexToRgbaScalar(colors[i % count]);
+                int idx = i % count;
+                if (idx < colors.Length)
+                {
+                    palette[i] = ColorTemplate.HexToRgbaScalar(colors[idx]);
+                }
+                else
+                {
+                    palette[i] = GetRandomColor();
+                }
             }
             return palette;
         }
 
-      
+        private Scalar GetRandomColor()
+        {
+            return new Scalar(
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256)
+            );
+        }
+
     }
 }
