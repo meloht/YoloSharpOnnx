@@ -8,13 +8,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult>
+    public abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult>
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;
@@ -33,6 +31,12 @@ namespace YoloSharpOnnx.Inference
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
+
+
+        protected abstract OrtValue RunInference();
+        protected abstract void AfterInference(OrtValue ortValue);
+        protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
+
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
             _config = config;
@@ -162,18 +166,7 @@ namespace YoloSharpOnnx.Inference
             return _batchProcess.GetPreprocessImageBatchData(img, data, imagePath);
         }
 
-        private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
-        {
-            var channelOptions = new BoundedChannelOptions(batchPoolSize)
-            {
-                SingleWriter = false,
-                SingleReader = true,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            };
-
-            return channelOptions;
-        }
+ 
         protected async Task<TBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
             var (producer, consumer, results) = BatchDetectBaseFunc(listImg, processCallback, receiveAction);
@@ -191,7 +184,7 @@ namespace YoloSharpOnnx.Inference
             InitBufferPool(_config.BatchPoolSize);
 
             TBatchResult[] batchResults = new TBatchResult[listImg.Count];
-            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
+            var ChannelOptions = YoloUtils.GetChannelOptions(_config.BatchPoolSize);
             Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
 
             var producer = PreprocessBatch(listImg, channel.Writer);

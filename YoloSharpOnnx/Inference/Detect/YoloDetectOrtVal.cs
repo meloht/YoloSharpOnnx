@@ -12,13 +12,13 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync
     {
         private bool disposedValue;
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
            : base(session, options, postprocess, preprocess, onnxModel, config)
         {
-            InitBatchProcess(this);
+
             Warmup();
         }
         protected virtual void Dispose(bool disposing)
@@ -57,61 +57,15 @@ namespace YoloSharpOnnx.Inference.Detect
         }
         public List<DetectionResult> Run(Mat inputImage)
         {
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-
-            // 后处理
-            var result = _postprocess.PostProcess(output0, preRes, _config);
-            return result;
+            return RunCore(inputImage);
         }
 
         public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
         {
-
-            SpeedResult speed = new SpeedResult();
-            _stopwatch.Restart();
-
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _stopwatch.Stop();
-            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-
-            // 后处理
-            var res = _postprocess.PostProcess(output0, preRes, _config);
-
-            _stopwatch.Stop();
-            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
-            speed.SumTotal();
-
-            return new YoloResult<DetectionResult>(res, speed);
+            return RunWithTimeCore(inputImage);
         }
 
-        public List<DetectionResult> RunBatch(PreDetectResultBatch preRes)
-        {
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [preRes.Data.InputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-            _matPool.Return(preRes.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output0, preRes.PreResult, _config);
 
-            return result;
-        }
 
         public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
         {
@@ -135,23 +89,33 @@ namespace YoloSharpOnnx.Inference.Detect
         }
 
 
-        public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
-        {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
-            return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
-        }
-
-        public DetectionBatchResult BuildBatchResult(PreDetectResultBatch batchPreResult, List<DetectionResult> results, long timestamp)
-        {
-            return new DetectionBatchResult(batchPreResult.ImagePath, results, timestamp);
-        }
         public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
         {
             return this;
         }
 
-       
+        protected override OrtValue RunInference()
+        {
+            var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            return outputs[0];
+        }
 
+        protected override void AfterInference(OrtValue ortValue)
+        {
+            ortValue.Dispose();
+            ortValue = null;
+        }
 
+        protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
+        {
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+            _matPool.Return(preResult.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output0, preResult.PreResult, _config);
+
+            return result;
+        }
     }
 }

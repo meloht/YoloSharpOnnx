@@ -4,18 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
-using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IBatchProcess<TResult, TBatchPreResult, TBatchResult> :IRunBatch<TResult, TBatchPreResult>
+    public interface IYoloProcessAsync<TBatchPreResult>
     {
-        TBatchPreResult GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath);
-
-        TBatchResult BuildBatchResult(TBatchPreResult batchPreResult, List<TResult> results, long timestamp);
-
         TBatchPreResult PreprocessImageChannel(string imagePath);
         TBatchPreResult PreprocessImageChannel(Mat img, string imagePath);
 

@@ -8,11 +8,11 @@ using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx
 {
-    public interface IYoloAsync : IDisposable
+    public interface IYoloAsync<TResult> : IDisposable
     {
-        Task<List<DetectionResult>> RunDetectAsync(string inputImage);
+        Task<List<TResult>> RunAsync(string inputImage);
 
-        Task<List<DetectionResult>> RunDetectAsync(Mat img);
+        Task<List<TResult>> RunAsync(Mat img);
 
     }
 }

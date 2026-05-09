@@ -10,42 +10,50 @@ using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloChannelAsync : IYoloAsync
+    public abstract class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloAsync<TResult> where TPreChannelData : IGuidValue
     {
         // Producer/consumer
-        private readonly Channel<PreDetectChannelData> _channel;
-        private readonly IYoloDetectAsync _yoloDetectAsync;
-        private readonly IRunBatch<DetectionResult, PreDetectResultBatch> _runBatch;
+        private readonly Channel<TPreChannelData> _channel;
+        private readonly IYoloProcessAsync<TBatchPreResult> _yoloProcessAsync;
+        protected readonly IRunBatch<TResult, TBatchPreResult> _runBatch;
 
         private readonly YoloConfig _yoloConfig;
 
-        private ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>> _concurrentDict;
+        private ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>> _concurrentDict;
 
-        public YoloChannelAsync(YoloConfig yoloConfig, IYoloDetectAsync yoloDetectAsync, IRunBatch<DetectionResult, PreDetectResultBatch> runBatch)
+        protected abstract TPreChannelData BuildPreChannelData(TBatchPreResult batchPreResult, Guid guid);
+        protected abstract List<TResult> RunBatch(TPreChannelData batchPreResult);
+
+        public YoloChannelAsync(YoloConfig yoloConfig,
+            IYoloProcessAsync<TBatchPreResult> yoloProcessAsync,
+            IRunBatch<TResult, TBatchPreResult> runBatch)
         {
-            _yoloDetectAsync = yoloDetectAsync;
             _runBatch = runBatch;
             _yoloConfig = yoloConfig;
-            _yoloDetectAsync.InitBufferPool(yoloConfig.BatchPoolSize);
-            _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>>();
-            var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
-            _channel = Channel.CreateBounded<PreDetectChannelData>(ChannelOptions);
+            _yoloProcessAsync = yoloProcessAsync;
+            _yoloProcessAsync.InitBufferPool(yoloConfig.BatchPoolSize);
+
+            _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>>();
+            var ChannelOptions = YoloUtils.GetChannelOptions(yoloConfig.BatchPoolSize);
+            _channel = Channel.CreateBounded<TPreChannelData>(ChannelOptions);
 
 
             _ = Task.Run(async () => ExecuteInferAsync());
+           
         }
 
-        public async Task<List<DetectionResult>> RunDetectAsync(string inputImage)
+        public async Task<List<TResult>> RunAsync(string inputImage)
         {
             YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
             var guid = Guid.NewGuid();
 
-            if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
+            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
             {
                 await WritePreprocessAsync(inputImage, guid);
             }
@@ -58,10 +66,10 @@ namespace YoloSharpOnnx.Inference
             return await CreateTaskCompletionSource(guid);
         }
 
-        public async Task<List<DetectionResult>> RunDetectAsync(Mat img)
+        public async Task<List<TResult>> RunAsync(Mat img)
         {
             var guid = Guid.NewGuid();
-            if (_yoloDetectAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
+            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
             {
                 await WritePreprocessAsync(img, guid);
             }
@@ -72,23 +80,23 @@ namespace YoloSharpOnnx.Inference
 
             return await CreateTaskCompletionSource(guid);
         }
-       
+
 
         private async ValueTask WritePreprocessAsync(string inputImage, Guid guid)
         {
-            var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage);
-            await _channel.Writer.WriteAsync(new PreDetectChannelData(preResult, guid));
+            var preResult = _yoloProcessAsync.PreprocessImageChannel(inputImage);
+            await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid));
         }
 
         private async ValueTask WritePreprocessAsync(Mat img, Guid guid)
         {
-            var preResult = _yoloDetectAsync.PreprocessImageChannel(img, null);
-            await _channel.Writer.WriteAsync(new PreDetectChannelData(preResult, guid));
+            var preResult = _yoloProcessAsync.PreprocessImageChannel(img, null);
+            await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid));
         }
 
-        private Task<List<DetectionResult>> CreateTaskCompletionSource(Guid guid)
+        private Task<List<TResult>> CreateTaskCompletionSource(Guid guid)
         {
-            var tcs = new TaskCompletionSource<List<DetectionResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var tcs = new TaskCompletionSource<List<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
             var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
 
@@ -99,11 +107,11 @@ namespace YoloSharpOnnx.Inference
 
         private async ValueTask ExecuteInferAsync()
         {
-            await foreach (PreDetectChannelData item in _channel.Reader.ReadAllAsync())
+            await foreach (TPreChannelData item in _channel.Reader.ReadAllAsync())
             {
-                var result = _runBatch.RunBatch(item.PreResult);
+                var result = RunBatch(item);
 
-                TaskCompletionSource<List<DetectionResult>> tempTCS= _concurrentDict[item.Guid];
+                TaskCompletionSource<List<TResult>> tempTCS = _concurrentDict[item.Guid];
                 tempTCS.TrySetResult(result);
                 _concurrentDict.TryRemove(item.Guid, out tempTCS);
 
@@ -115,18 +123,7 @@ namespace YoloSharpOnnx.Inference
             _channel.Writer.Complete();
         }
 
-        private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
-        {
-            var channelOptions = new BoundedChannelOptions(batchPoolSize)
-            {
-                SingleWriter = false,
-                SingleReader = true,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            };
 
-            return channelOptions;
-        }
 
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using static System.Net.WebRequestMethods;
 
@@ -26,6 +27,21 @@ namespace YoloSharpOnnx
             return list;
 
         }
+
+        public static BoundedChannelOptions GetChannelOptions(int batchPoolSize)
+        {
+            var channelOptions = new BoundedChannelOptions(batchPoolSize)
+            {
+                SingleWriter = false,
+                SingleReader = true,
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
+            };
+
+            return channelOptions;
+        }
+
+       
 
         public static List<string> GetFilesFromListPaths(List<string> images, string[] exts)
         {

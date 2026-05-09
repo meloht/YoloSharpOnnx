@@ -11,14 +11,13 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsOrtVal : YoloClsBase, IYoloClassify, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>
+    public class YoloClsOrtVal : YoloClsBase, IYoloClassify
     {
         private bool disposedValue;
 
         public YoloClsOrtVal(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config, postprocess, preprocess)
         {
-            InitBatchProcess(this);
             Warmup();
         }
 
@@ -59,71 +58,13 @@ namespace YoloSharpOnnx.Inference.Classify
         }
         public List<ClsResult> Run(Mat inputImage)
         {
-            // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-
-            // 后处理
-            var result = _postprocess.PostProcess(output0);
-            return result;
+            return RunCore(inputImage);
         }
 
         public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
-            SpeedResult speed = new SpeedResult();
-            _stopwatch.Restart();
-
-            // 预处理图像
-             _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _stopwatch.Stop();
-            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            // 后处理
-            var res = _postprocess.PostProcess(output0);
-
-            _stopwatch.Stop();
-            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
-            speed.SumTotal();
-
-            return new YoloResult<ClsResult>(res, speed);
+            return RunWithTimeCore(inputImage);
         }
-
-        public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
-        {
-            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
-            return new PreClsResultBatch(imagePath, imageBatchData);
-        }
-
-        public ClsBatchResult BuildBatchResult(PreClsResultBatch batchPreResult, List<ClsResult> results, long timestamp)
-        {
-            return new ClsBatchResult(batchPreResult.ImagePath, results, timestamp);
-        }
-
-        public List<ClsResult> RunBatch(PreClsResultBatch preResult)
-        {
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-            _matPool.Return(preResult.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output0);
-
-            return result;
-        }
-
         public ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
             return BatchDetectBase(listImg, processCallback, receiveAction);
@@ -137,6 +78,30 @@ namespace YoloSharpOnnx.Inference.Classify
         public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg)
         {
             return BatchDetectBaseForeachAsync(listImg);
+        }
+
+        protected override OrtValue RunInference()
+        {
+            var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            return outputs[0];
+        }
+
+        protected override void AfterInference(OrtValue ortValue)
+        {
+            ortValue.Dispose();
+            ortValue = null;
+        }
+
+        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
+        {
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+            using var output0 = outputs[0];
+            _matPool.Return(preResult.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output0);
+
+            return result;
         }
     }
 }

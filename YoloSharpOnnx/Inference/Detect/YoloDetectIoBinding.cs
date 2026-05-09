@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect, IYoloDetectAsync, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>
+    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect
     {
         private OrtIoBinding _binding;
         protected OrtValue _outputOrtValue;
@@ -26,9 +26,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _binding = _session.CreateIoBinding();
 
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-          _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
-
-            InitBatchProcess(this);
+            _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
 
             Warmup();
         }
@@ -77,82 +75,12 @@ namespace YoloSharpOnnx.Inference.Detect
         }
         public List<DetectionResult> Run(Mat inputImage)
         {
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
-            _binding.SynchronizeBoundInputs();
-
-            // 执行推理
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            // 后处理
-            var result = _postprocess.PostProcess(_outputOrtValue, preRes, _config);
-            return result;
-
+            return RunCore(inputImage);
         }
 
         public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
         {
-            SpeedResult speed = new SpeedResult();
-
-            _stopwatch.Restart();
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _stopwatch.Stop();
-            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
-            //_binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
-            //_binding.SynchronizeBoundInputs();
-
-            // 执行推理
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-
-            //using var results = _session.RunWithBoundResults(_runOptions, _binding);
-            //_binding.SynchronizeBoundOutputs();
-            //using var output = results[0];
-
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            // 后处理
-            //var res = _postprocess.PostProcess(output, preRes, yoloConfig);
-            var res = _postprocess.PostProcess(_outputOrtValue, preRes, _config);
-
-            _stopwatch.Stop();
-            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
-            speed.SumTotal();
-
-            return new YoloResult<DetectionResult>(res, speed);
-        }
-
-
-
-        public List<DetectionResult> RunBatch(PreDetectResultBatch preRes)
-        {
-            _binding.BindInput(_onnxModel.InputName, preRes.Data.InputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
-
-            // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            using var output = results[0];
-            _matPool.Return(preRes.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output, preRes.PreResult, _config);
-
-            return result;
+            return RunWithTimeCore(inputImage);
         }
 
         public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
@@ -165,33 +93,56 @@ namespace YoloSharpOnnx.Inference.Detect
             return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
         }
 
-        public IYoloDetectAsync GetYoloDetectAsync()
-        {
-            return this;
-        }
+
 
         public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg)
         {
             return BatchDetectBaseForeachAsync(listImg);
         }
 
-        public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
-        {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
-            return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
-        }
-
-        public DetectionBatchResult BuildBatchResult(PreDetectResultBatch batchPreResult, List<DetectionResult> results, long timestamp)
-        {
-            return new DetectionBatchResult(batchPreResult.ImagePath, results, timestamp);
-        }
-        public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
-        {
-            return this;
-        }
-
-
-
        
+
+        protected override OrtValue RunInference()
+        {
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.SynchronizeBoundInputs();
+
+            //_binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            //_binding.SynchronizeBoundInputs();
+
+            // 执行推理
+
+            _session.RunWithBinding(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+
+            //using var results = _session.RunWithBoundResults(_runOptions, _binding);
+            //_binding.SynchronizeBoundOutputs();
+            //using var output = results[0];
+
+            return _outputOrtValue;
+        }
+
+        protected override void AfterInference(OrtValue ortValue)
+        {
+           
+        }
+
+        protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
+        {
+            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            _binding.SynchronizeBoundInputs();
+
+            // 执行推理
+            using var results = _session.RunWithBoundResults(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+            using var output = results[0];
+            _matPool.Return(preResult.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output, preResult.PreResult, _config);
+
+            return result;
+        }
     }
 }

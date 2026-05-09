@@ -12,7 +12,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsIoBinding : YoloClsBase, IYoloClassify, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>
+    public class YoloClsIoBinding : YoloClsBase, IYoloClassify
     {
         private bool disposedValue;
         private OrtIoBinding _binding;
@@ -23,8 +23,8 @@ namespace YoloSharpOnnx.Inference.Classify
             _binding = _session.CreateIoBinding();
 
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-          _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
-            InitBatchProcess(this);
+            _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+
             Warmup();
         }
 
@@ -71,83 +71,14 @@ namespace YoloSharpOnnx.Inference.Classify
         }
         public List<ClsResult> Run(Mat inputImage)
         {
-            // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
-            _binding.SynchronizeBoundInputs();
-
-            // 执行推理
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            // 后处理
-            var result = _postprocess.PostProcess(_outputOrtValue);
-            return result;
+            return RunCore(inputImage);
         }
 
         public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
-            SpeedResult speed = new SpeedResult();
-
-            _stopwatch.Restart();
-            // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            _stopwatch.Stop();
-            speed.Preprocess = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
-
-            // 执行推理
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
-            // 后处理
-            var res = _postprocess.PostProcess(_outputOrtValue);
-
-            _stopwatch.Stop();
-            speed.Postprocess = _stopwatch.ElapsedMilliseconds;
-            speed.SumTotal();
-
-            return new YoloResult<ClsResult>(res, speed);
+            return RunWithTimeCore(inputImage);
         }
 
-        public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
-        {
-            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
-            return new PreClsResultBatch(imagePath, imageBatchData);
-        }
-
-        public ClsBatchResult BuildBatchResult(PreClsResultBatch batchPreResult, List<ClsResult> results, long timestamp)
-        {
-            return new ClsBatchResult(batchPreResult.ImagePath, results, timestamp);
-        }
-
-        public List<ClsResult> RunBatch(PreClsResultBatch preResult)
-        {
-            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
-
-            // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            using var output = results[0];
-            _matPool.Return(preResult.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output);
-
-            return result;
-        }
 
         public ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
@@ -162,6 +93,42 @@ namespace YoloSharpOnnx.Inference.Classify
         public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg)
         {
             return BatchDetectBaseForeachAsync(listImg);
+        }
+
+        protected override OrtValue RunInference()
+        {
+            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.SynchronizeBoundInputs();
+
+            // 执行推理
+            _session.RunWithBinding(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+
+            return _outputOrtValue;
+
+        }
+
+        protected override void AfterInference(OrtValue ortValue)
+        {
+
+        }
+
+        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
+        {
+            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            _binding.SynchronizeBoundInputs();
+
+            // 执行推理
+            using var results = _session.RunWithBoundResults(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+            using var output = results[0];
+            _matPool.Return(preResult.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output);
+
+            return result;
         }
     }
 }
