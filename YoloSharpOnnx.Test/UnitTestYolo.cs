@@ -33,6 +33,22 @@ namespace YoloSharpOnnx.Test
             Assert.Equal(boxs, ans2);
         }
 
+        [Fact]
+        public void TestClsYolo11()
+        {
+            //string imgPath = TestDataUtils.GetImagePath(path);
+            //string model = TestDataUtils.GetModelPath("yolo11n.onnx");
+            //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+
+            //var res = yolo.RunDetect(imgPath);
+            //string ans = YoloUtils.GetResult(res);
+            //Assert.Equal(boxs, ans);
+
+            //var res2 = yolo.RunDetectWithTime(imgPath);
+            //string ans2 = YoloUtils.GetResult(res2.Items);
+            //Assert.Equal(boxs, ans2);
+        }
+
         [Theory]
         [InlineData(TestDataUtils.Bus, Yolo8.Bus)]
         [InlineData(TestDataUtils.Zidane, Yolo8.Zidane)]

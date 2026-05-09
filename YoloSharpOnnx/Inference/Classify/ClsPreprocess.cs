@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using YoloSharpOnnx.Models;
 using static System.Formats.Asn1.AsnWriter;
 
@@ -20,19 +21,19 @@ namespace YoloSharpOnnx.Inference.Classify
         }
         public void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
         {
-            // A. Resize: 将短边缩放到 targetSize
+            // A.Resize: 将短边缩放到 targetSize
             int minSize = Math.Min(inputImage.Height, inputImage.Width);
-            float scaleImg = (float)_onnxModel.InputHeight / minSize;
+            float scaleImg = (float)(_onnxModel.InputHeight) / minSize;
             int newW = _onnxModel.InputWidth;
             int newH = _onnxModel.InputHeight;
 
             if (inputImage.Height > inputImage.Width)
             {
-                newH = (int)(inputImage.Height * scaleImg);
+                newH = (int)Math.Round(inputImage.Height * scaleImg);
             }
             else
             {
-                newW = (int)(inputImage.Width * scaleImg);
+                newW = (int)Math.Round(inputImage.Width * scaleImg);
             }
 
             Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newW, newH), interpolation: interpolationFlags);
@@ -53,7 +54,5 @@ namespace YoloSharpOnnx.Inference.Classify
             }
 
         }
-
-
     }
 }

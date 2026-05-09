@@ -23,9 +23,8 @@ namespace YoloSharpOnnx.DataResult
             if (clsList == null || clsList.Count == 0)
                 return string.Empty;
 
-            var dict = clsList.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
-            string confs = string.Join(", ", clsList.Select(p => Math.Round(p.Confidence, 2)));
-            return $"{string.Join(", ", dict)} [{confs}]";
+            string confs = string.Join(", ", clsList.Select(p =>$"{p.ClassName} {Math.Round(p.Confidence, 2)}" ));
+            return confs;
 
         }
     }

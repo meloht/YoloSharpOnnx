@@ -37,7 +37,16 @@ namespace YoloSharpOnnx.Inference.Classify
             }
 
             return result;
+
+           
         }
 
+        public List<ClsResult> TopK(float[] probs, int k = 5)
+        {
+            return probs
+                .Select((v, i) => new ClsResult(_onnxModel.Labels[i].Name, i, v))
+                .OrderByDescending(x => x.Confidence)
+                .Take(k).ToList();
+        }
     }
 }

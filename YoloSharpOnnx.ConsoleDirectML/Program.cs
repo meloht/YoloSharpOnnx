@@ -52,7 +52,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
         private static void TestInferCls()
         {
-            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
+            string model = @"D:\DemoCode\WinFormsAppYoloCls\WinFormsAppYoloCls\yolo26n-cls.onnx";
             string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000009.jpg";
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             var res = yolo.RunClassifyWithTime(img);

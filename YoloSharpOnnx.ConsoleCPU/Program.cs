@@ -59,8 +59,8 @@ namespace YoloSharpOnnx.ConsoleCPU
 
         private static void TestInferCls()
         {
-            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
-            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000009.jpg";
+            string model = @"D:\DemoCode\WinFormsAppYoloCls\WinFormsAppYoloCls\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000025.jpg";
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
             var res = yolo.RunClassifyWithTime(img);
             Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");

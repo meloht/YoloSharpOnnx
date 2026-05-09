@@ -29,24 +29,26 @@ namespace YoloSharpOnnx.Inference
             int gOffset = hw;
             int bOffset = hw * 2;
             float scale = 1.0f / 255.0f;
-            int step = (int)mat.Step();
+            long step = mat.Step();
             for (int y = 0; y < height; y++)
             {
                 byte* rowPtr = ptr + y * step;
+                int rowOffset = y * width;
 
                 for (int x = 0; x < width; x++)
                 {
-                    int srcIdx = x * channels;
-                    byte b = rowPtr[srcIdx + 0];
-                    byte g = rowPtr[srcIdx + 1];
-                    byte r = rowPtr[srcIdx + 2];
 
-                    int dstIndex = y * width + x;
+                    byte* pixel = rowPtr + x * channels;
+                    byte b = pixel[0];
+                    byte g = pixel[1];
+                    byte r = pixel[2];
+
+                    int idx = rowOffset + x;
 
                     //  BGR -> RGB + 归一化 + CHW
-                    data[rOffset + dstIndex] = r * scale;
-                    data[gOffset + dstIndex] = g * scale;
-                    data[bOffset + dstIndex] = b * scale;
+                    data[rOffset + idx] = r * scale;
+                    data[gOffset + idx] = g * scale;
+                    data[bOffset + idx] = b * scale;
                 }
             }
         }
@@ -69,7 +71,7 @@ namespace YoloSharpOnnx.Inference
 
             Vector256<float> scale = Vector256.Create(inv255);
             int step = (int)mat.Step();
-           
+
             int x = 0;
             for (int y = 0; y < height; y++)
             {
