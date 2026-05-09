@@ -20,8 +20,6 @@ namespace YoloSharpOnnx.Inference.Detect
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
 
-        public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
-
 
         public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
@@ -131,14 +129,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         private async Task InferCompleteAsync(DetectionBatchResult result, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
         {
-            if (BatchDetectItemCompleted != null)
-            {
-                await Task.Run(() =>
-                {
-                    BatchDetectItemCompleted(this, result);
-                });
-            }
-
+          
             if (processCallback != null)
             {
                 await Task.Run(() =>

@@ -18,7 +18,6 @@ namespace YoloSharpOnnx
         private IYoloClassify _yoloClassify;
         private bool disposedValue;
 
-        public event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
         public YoloConfig YoloConfiguration { get; set; }
 
@@ -35,7 +34,7 @@ namespace YoloSharpOnnx
             executionProvider.SetYoloConfiguration(yoloConfig);
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloClassify = executionProvider.CreateYoloClassify();
-            _yoloDetect.BatchDetectItemCompleted += YoloDetect_BatchDetectItemCompleted;
+          
         }
 
         public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
@@ -164,10 +163,7 @@ namespace YoloSharpOnnx
             return _yoloDetect.BatchDetectForeachAsync(files);
         }
 
-        private void YoloDetect_BatchDetectItemCompleted(object? sender, DetectionBatchResult e)
-        {
-            BatchDetectItemCompleted?.Invoke(sender, e);
-        }
+      
 
         #endregion
 
@@ -200,6 +196,30 @@ namespace YoloSharpOnnx
         }
 
 
+        public void DrawClassification(Mat inputImage, List<ClsResult> list)
+        {
+            _yoloClassify.DrawClassification(inputImage, list);
+        }
+        public void DrawClassificationAndSave(Mat inputImage, List<ClsResult> list, string saveFileName)
+        {
+            _yoloClassify.DrawClassification(inputImage, list);
+            Cv2.ImWrite(saveFileName, inputImage);
+        }
+
+
+        public void DrawClassification(string inputImage, List<ClsResult> list)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloClassify.DrawClassification(img, list);
+        }
+        public void DrawClassificationAndSave(string inputImage, List<ClsResult> list, string saveFileName)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloClassify.DrawClassification(img, list);
+            Cv2.ImWrite(saveFileName, img);
+        }
 
         #endregion
 

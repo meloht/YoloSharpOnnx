@@ -21,7 +21,6 @@ namespace YoloSharpOnnx.Inference.Detect
 
         IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg);
 
-        event EventHandler<DetectionBatchResult> BatchDetectItemCompleted;
 
         IYoloDetectAsync GetYoloDetectAsync();
 

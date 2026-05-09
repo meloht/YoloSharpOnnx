@@ -117,7 +117,6 @@ namespace YoloSharpOnnx.TestIoBinding
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             yolo.YoloConfiguration.BatchPoolSize = 4;
 
-            yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
 
             var processCallback = new ProcessCallback(_dict);
             var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess);
@@ -133,13 +132,6 @@ namespace YoloSharpOnnx.TestIoBinding
 
         }
 
-
-        private void Yolo_BatchDetectItemCompleted(object? sender, DataResult.DetectionBatchResult e)
-        {
-            Assert.True(_dict.ContainsKey(e.ImagePath));
-            string res = YoloUtils.GetResult(e.Results);
-            Assert.Equal(_dict[e.ImagePath], res);
-        }
 
         private void ReceiveProcess(DetectionBatchResult e)
         {

@@ -13,5 +13,7 @@ namespace YoloSharpOnnx.Inference.Classify
         List<ClsResult> Run(Mat inputImage);
 
         YoloResult<ClsResult> RunWithTime(Mat inputImage);
+
+        void DrawClassification(Mat img, List<ClsResult> results);
     }
 }

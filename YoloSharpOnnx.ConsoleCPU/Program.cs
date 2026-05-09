@@ -103,8 +103,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
-                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
-
+               
                 yolo.RunBatchDetect(dir);
 
             }
