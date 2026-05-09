@@ -102,8 +102,6 @@ namespace YoloSharpOnnx.Providers
 
             model.Labels = GetModelLabels(session);
            
-            model.ColorPalette = GenerateColorPalette(model.Labels.Length);
-
             var metaData = session.ModelMetadata.CustomMetadataMap;
 
             bool isEndToEnd = false;
@@ -120,9 +118,9 @@ namespace YoloSharpOnnx.Providers
             if (model.ModelType == ModelType.ObjectDetection)
             {
                 model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+                model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
            
-
             return model;
         }
 
