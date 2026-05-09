@@ -7,8 +7,8 @@ using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx
 {
-    public interface IBatchProcessCallback
+    public interface IBatchProcessCallback<TBatchResult>
     {
-        void ReceiveProcessResult(DetectionBatchResult result);
+        void ReceiveProcessResult(TBatchResult result);
     }
 }

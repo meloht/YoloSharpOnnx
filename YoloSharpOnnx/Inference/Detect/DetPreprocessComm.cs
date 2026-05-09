@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
@@ -20,7 +21,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _onnxModel = onnxModel;
             _paddingColor = new Scalar(114, 114, 114);
         }
-        public PreResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
+        public PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
         {
 
             // 1. 获取原始图像尺寸
@@ -66,7 +67,7 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
             // 添加批次维度 (1, 3, H, W)
-            return new PreResult(imgH, imgW, padH, padW, scale);
+            return new PreDetectResult(imgH, imgW, padH, padW, scale);
         }
 
 

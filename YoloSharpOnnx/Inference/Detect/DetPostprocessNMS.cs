@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
@@ -32,7 +33,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _boxNums4 = _boxNums * 4;
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
         {
             _boxes.Clear();
             _scores.Clear();

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public class YoloResult<T>(List<T> items, SpeedResult speed) where T : IYoloPrediction<T>
+    public class YoloResult<T>(List<T> items, SpeedResult speed) where T : IYoloSummary<T>
     {
         public List<T> Items { get; } = items;
 

@@ -5,15 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public interface IYoloDetectAsync: IBatchDetect
+    public interface IYoloDetectAsync
     {
 
-        PreResultBatch PreprocessImageChannel(string imagePath, InterpolationFlags interpolationFlags);
-        PreResultBatch PreprocessImageChannel(Mat img, string imagePath, InterpolationFlags interpolationFlags);
+        PreDetectResultBatch PreprocessImageChannel(string imagePath);
+        PreDetectResultBatch PreprocessImageChannel(Mat img, string imagePath);
 
         void InitBufferPool(int batchPoolSize);
 

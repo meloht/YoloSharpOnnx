@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
     public interface IDetPostprocess
     {
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig);
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig);
     }
 }

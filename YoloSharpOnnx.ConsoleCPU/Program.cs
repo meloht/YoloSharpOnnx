@@ -46,7 +46,7 @@ namespace YoloSharpOnnx.ConsoleCPU
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = YoloUtils.GetResult(res);
+                        string ans = res.Summary();
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }
@@ -112,10 +112,6 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine($"time:{_stopwatch.Elapsed}");
         }
 
-        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
-        {
-            string ans = YoloUtils.GetResult(e.Results);
-            Console.WriteLine(ans);
-        }
+
     }
 }

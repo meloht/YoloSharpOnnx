@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public class DetectionBatchResult 
+    public class ClsBatchResult
     {
         public string ImagePath { get; set; }
 
-        public List<DetectionResult> Results { get; set; }
+        public List<ClsResult> Results { get; set; }
 
         /// <summary>
         /// DateTimeOffset.UtcNow.ToUnixTimeMilliseconds
         /// </summary>
         public long StartTimestamp { get; set; }
 
-        public DetectionBatchResult(string imagePath, List<DetectionResult> results, long timestamp)
+        public ClsBatchResult(string imagePath, List<ClsResult> results, long timestamp)
         {
             this.ImagePath = imagePath;
             this.Results = results;
@@ -26,10 +28,5 @@ namespace YoloSharpOnnx.DataResult
         {
             return $"Image:{Path.GetFileName(ImagePath)} Result:{Results.Summary()}";
         }
-
-
     }
-
-
-
 }

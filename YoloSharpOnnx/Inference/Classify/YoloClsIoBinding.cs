@@ -7,24 +7,59 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsIoBinding : YoloClsBase, IYoloClassify
+    public class YoloClsIoBinding : YoloClsBase, IYoloClassify, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>
     {
         private bool disposedValue;
         private OrtIoBinding _binding;
         protected OrtValue _outputOrtValue;
-        public YoloClsIoBinding(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess) 
+        public YoloClsIoBinding(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config, postprocess, preprocess)
         {
             _binding = _session.CreateIoBinding();
 
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
           _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+            InitBatchProcess(this);
             Warmup();
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                DisposeCore();
+                _binding.Dispose();
+                _outputOrtValue.Dispose();
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~YoloClsIoBinding()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
         private void Warmup()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
@@ -37,7 +72,7 @@ namespace YoloSharpOnnx.Inference.Classify
         public List<ClsResult> Run(Mat inputImage)
         {
             // 预处理图像
-             _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
 
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
@@ -86,36 +121,47 @@ namespace YoloSharpOnnx.Inference.Classify
             return new YoloResult<ClsResult>(res, speed);
         }
 
-        protected virtual void Dispose(bool disposing)
+        public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                DisposeCore();
-                _binding.Dispose();
-                _outputOrtValue.Dispose();
-                disposedValue = true;
-            }
+            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
+            return new PreClsResultBatch(imagePath, imageBatchData);
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~YoloClsIoBinding()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
+        public ClsBatchResult BuildBatchResult(PreClsResultBatch batchPreResult, List<ClsResult> results, long timestamp)
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            return new ClsBatchResult(batchPreResult.ImagePath, results, timestamp);
+        }
+
+        public List<ClsResult> RunBatch(PreClsResultBatch preResult)
+        {
+            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            _binding.SynchronizeBoundInputs();
+
+            // 执行推理
+            using var results = _session.RunWithBoundResults(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+            using var output = results[0];
+            _matPool.Return(preResult.Data);
+            // 后处理
+            var result = _postprocess.PostProcess(output);
+
+            return result;
+        }
+
+        public ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            return BatchDetectBase(listImg, processCallback, receiveAction);
+        }
+
+        public async Task<ClsBatchResult[]> BatchClsAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
+        }
+
+        public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg)
+        {
+            return BatchDetectBaseForeachAsync(listImg);
         }
     }
 }

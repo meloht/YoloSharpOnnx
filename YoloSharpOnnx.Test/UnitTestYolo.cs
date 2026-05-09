@@ -25,11 +25,11 @@ namespace YoloSharpOnnx.Test
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.Summary();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.Summary();
             Assert.Equal(boxs, ans2);
         }
 
@@ -59,11 +59,11 @@ namespace YoloSharpOnnx.Test
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.Summary();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.Summary();
             Assert.Equal(boxs, ans2);
         }
 
@@ -77,11 +77,11 @@ namespace YoloSharpOnnx.Test
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.Summary();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.Summary();
             Assert.Equal(boxs, ans2);
         }
 
@@ -96,13 +96,13 @@ namespace YoloSharpOnnx.Test
             foreach (var item in _dict)
             {
                 var res = await yoloAsync.RunDetectAsync(item.Key);
-                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+                Assert.Equal(item.Value, res.Summary());
             }
             foreach (var item in _dict)
             {
                 using var img = Cv2.ImRead(item.Key);
                 var res = await yoloAsync.RunDetectAsync(img);
-                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+                Assert.Equal(item.Value, res.Summary());
             }
         }
 
@@ -121,7 +121,7 @@ namespace YoloSharpOnnx.Test
             {
                 Interlocked.Increment(ref idx);
                 Assert.True(_dict.ContainsKey(item.ImagePath));
-                Assert.Equal(_dict[item.ImagePath], YoloUtils.GetResult(item.Results));
+                Assert.Equal(_dict[item.ImagePath], item.Results.Summary());
             }
 
             Assert.Equal(imgs.Count, idx);
@@ -143,7 +143,7 @@ namespace YoloSharpOnnx.Test
             foreach (var item in list)
             {
                 Assert.True(_dict.ContainsKey(item.ImagePath));
-                Assert.Equal(_dict[item.ImagePath], YoloUtils.GetResult(item.Results));
+                Assert.Equal(_dict[item.ImagePath], item.Results.Summary());
             }
 
         }
@@ -152,11 +152,11 @@ namespace YoloSharpOnnx.Test
         private void ReceiveProcess(DetectionBatchResult e)
         {
             Assert.True(_dict.ContainsKey(e.ImagePath));
-            string res = YoloUtils.GetResult(e.Results);
+            string res = e.Results.Summary();
             Assert.Equal(_dict[e.ImagePath], res);
         }
 
-        internal class ProcessCallback : IBatchProcessCallback
+        internal class ProcessCallback : IBatchProcessCallback<DetectionBatchResult>
         {
             private Dictionary<string, string> _dict;
             public ProcessCallback(Dictionary<string, string> dict)
@@ -166,7 +166,7 @@ namespace YoloSharpOnnx.Test
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
                 Assert.True(_dict.ContainsKey(e.ImagePath));
-                string res = YoloUtils.GetResult(e.Results);
+                string res = e.Results.Summary();
                 Assert.Equal(_dict[e.ImagePath], res);
             }
 

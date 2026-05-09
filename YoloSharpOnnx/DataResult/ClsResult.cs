@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public struct ClsResult: IYoloPrediction<ClsResult>
+    public struct ClsResult: IYoloResult, IYoloSummary<ClsResult>
     {
         public string ClassName { get; set; }
         public int ClassId { get; set; }
@@ -19,7 +19,7 @@ namespace YoloSharpOnnx.DataResult
             Confidence = confidence;
         }
 
-        static string IYoloPrediction<ClsResult>.Describe(List<ClsResult> predictResults)
+        static string IYoloSummary<ClsResult>.Describe(List<ClsResult> predictResults)
         {
             return predictResults.Summary();
         }

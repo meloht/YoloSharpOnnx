@@ -15,5 +15,11 @@ namespace YoloSharpOnnx.Inference.Classify
         YoloResult<ClsResult> RunWithTime(Mat inputImage);
 
         void DrawClassification(Mat img, List<ClsResult> results);
+
+        ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+
+        Task<ClsBatchResult[]> BatchClsAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+
+        IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg);
     }
 }

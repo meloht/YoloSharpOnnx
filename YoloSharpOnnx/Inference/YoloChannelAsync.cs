@@ -11,27 +11,30 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
-using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference
 {
     public class YoloChannelAsync : IYoloAsync
     {
         // Producer/consumer
-        private readonly Channel<PreChannelModel> _channel;
+        private readonly Channel<PreDetectChannelData> _channel;
         private readonly IYoloDetectAsync _yoloDetectAsync;
+        private readonly IRunBatch<DetectionResult, PreDetectResultBatch> _runBatch;
+
         private readonly YoloConfig _yoloConfig;
 
         private ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>> _concurrentDict;
 
-        public YoloChannelAsync(YoloConfig yoloConfig, IYoloDetectAsync yoloDetectAsync)
+        public YoloChannelAsync(YoloConfig yoloConfig, IYoloDetectAsync yoloDetectAsync, IRunBatch<DetectionResult, PreDetectResultBatch> runBatch)
         {
             _yoloDetectAsync = yoloDetectAsync;
+            _runBatch = runBatch;
             _yoloConfig = yoloConfig;
             _yoloDetectAsync.InitBufferPool(yoloConfig.BatchPoolSize);
             _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<DetectionResult>>>();
             var ChannelOptions = GetChannelOptions(yoloConfig.BatchPoolSize);
-            _channel = Channel.CreateBounded<PreChannelModel>(ChannelOptions);
+            _channel = Channel.CreateBounded<PreDetectChannelData>(ChannelOptions);
 
 
             _ = Task.Run(async () => ExecuteInferAsync());
@@ -73,14 +76,14 @@ namespace YoloSharpOnnx.Inference
 
         private async ValueTask WritePreprocessAsync(string inputImage, Guid guid)
         {
-            var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage, _yoloConfig.ResizeAlgorithm);
-            await _channel.Writer.WriteAsync(new PreChannelModel(preResult, guid));
+            var preResult = _yoloDetectAsync.PreprocessImageChannel(inputImage);
+            await _channel.Writer.WriteAsync(new PreDetectChannelData(preResult, guid));
         }
 
         private async ValueTask WritePreprocessAsync(Mat img, Guid guid)
         {
-            var preResult = _yoloDetectAsync.PreprocessImageChannel(img, null, _yoloConfig.ResizeAlgorithm);
-            await _channel.Writer.WriteAsync(new PreChannelModel(preResult, guid));
+            var preResult = _yoloDetectAsync.PreprocessImageChannel(img, null);
+            await _channel.Writer.WriteAsync(new PreDetectChannelData(preResult, guid));
         }
 
         private Task<List<DetectionResult>> CreateTaskCompletionSource(Guid guid)
@@ -96,9 +99,9 @@ namespace YoloSharpOnnx.Inference
 
         private async ValueTask ExecuteInferAsync()
         {
-            await foreach (PreChannelModel item in _channel.Reader.ReadAllAsync())
+            await foreach (PreDetectChannelData item in _channel.Reader.ReadAllAsync())
             {
-                var result = _yoloDetectAsync.RunBatchDetect(item.PreResult);
+                var result = _runBatch.RunBatch(item.PreResult);
 
                 TaskCompletionSource<List<DetectionResult>> tempTCS= _concurrentDict[item.Guid];
                 tempTCS.TrySetResult(result);

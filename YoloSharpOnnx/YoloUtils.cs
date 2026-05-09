@@ -8,16 +8,14 @@ namespace YoloSharpOnnx
 {
     public class YoloUtils
     {
-        public static string GetResult(List<DetectionResult> list)
+        public static string GetDetectResult(List<DetectionResult> list)
         {
-            if (list == null || list.Count == 0)
-                return string.Empty;
-            list.Sort((x, y) => x.ClassName.CompareTo(y.ClassName));
-            var dict = list.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
-            string confs = string.Join(", ", list.Select(p => Math.Round(p.Confidence, 2)));
-            return $"{string.Join(", ", dict)} [{confs}]";
+            return list.Summary();
         }
-
+        public static string GetClsResult(List<ClsResult> list)
+        {
+            return list.Summary();
+        }
 
 
         public static List<string> GetFilesFromDirectory(string path, string[] exts)

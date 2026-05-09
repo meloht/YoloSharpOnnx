@@ -35,7 +35,7 @@ namespace YoloSharpOnnx.ConsoleGPU
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = YoloUtils.GetResult(res);
+                        string ans = res.Summary();
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }
@@ -73,7 +73,7 @@ namespace YoloSharpOnnx.ConsoleGPU
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
-            string ans = YoloUtils.GetResult(e.Results);
+            string ans = e.Results.Summary();
             Console.WriteLine($"{ans} time:{cost}ms");
 
         }

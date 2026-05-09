@@ -10,140 +10,23 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectBase : OnnxInferenceCore
+    public class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>
     {
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
-
 
         public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
         {
             _postprocess = postprocess;
             _preprocess = preprocess;
-
-        }
-
-
-        protected async Task PreprocessBatch(List<string> listImg, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
-        {
-            var arr = GetPreprocessWorkersSize(listImg);
-            Task[] tasks = new Task[arr.Count()];
-            int idx = 0;
-            foreach (string[] subList in arr)
-            {
-                tasks[idx++] = RunPreprocessSplitAsync(subList, interpolationFlags, writer);
-            }
-            await Task.WhenAll(tasks).ContinueWith(t =>
-            {
-                writer.Complete();
-            });
-
-
-        }
-        private async Task RunPreprocessSplitAsync(IEnumerable<string> list, InterpolationFlags interpolationFlags, ChannelWriter<PreResultBatch> writer)
-        {
-            await Task.Run(async () =>
-            {
-                foreach (string imgPath in list)
-                {
-                    var res = PreprocessImageChannel(imgPath, interpolationFlags);
-                    await writer.WriteAsync(res);
-                }
-
-            });
-        }
-        public PreResultBatch PreprocessImageChannel(string imagePath, InterpolationFlags interpolationFlags)
-        {
-            using Mat img = Cv2.ImRead(imagePath);
-            return PreprocessImageChannel(img, imagePath, interpolationFlags);
-        }
-
-        public PreResultBatch PreprocessImageChannel(Mat img, string imagePath, InterpolationFlags interpolationFlags)
-        {
-            var data = _matPool.Rent();
-            var res = _preprocess.PreprocessImage(img, data.ResizedImg, data.FixedBuffer, interpolationFlags);
-            return new PreResultBatch(res, imagePath, data);
-        }
-
-        private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
-        {
-            var channelOptions = new BoundedChannelOptions(batchPoolSize)
-            {
-                SingleWriter = false,
-                SingleReader = true,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.Wait
-            };
-
-            return channelOptions;
-        }
-        protected async Task<DetectionBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction, IBatchDetect batchDetect)
-        {
-            InitBufferPool(_config.BatchPoolSize);
-            int idx = 0;
-            DetectionBatchResult[] batchResults = new DetectionBatchResult[listImg.Count];
-            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
-            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
-
-            var producer = PreprocessBatch(listImg, _config.ResizeAlgorithm, channel.Writer);
-
-            var consumer = Task.Run(async () =>
-            {
-                await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
-                {
-                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    var result = batchDetect.RunBatchDetect(item);
-                    var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
-                    batchResults[idx++] = modelResult;
-                    //Interlocked.Increment(ref idx);
-                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
-                }
-            });
-            await Task.WhenAll(producer, consumer);
-            return batchResults;
-        }
-
-        protected async IAsyncEnumerable<DetectionBatchResult> BatchDetectBaseForeachAsync(List<string> listImg, IBatchDetect batchDetect)
-        {
-            InitBufferPool(_config.BatchPoolSize);
-
-            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
-            Channel<PreResultBatch> channel = Channel.CreateBounded<PreResultBatch>(ChannelOptions);
-
-            _ = PreprocessBatch(listImg, _config.ResizeAlgorithm, channel.Writer);
-            await foreach (PreResultBatch item in channel.Reader.ReadAllAsync())
-            {
-                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var result = batchDetect.RunBatchDetect(item);
-                var modelResult = new DetectionBatchResult(item.ImagePath, result, startTime);
-                yield return modelResult;
-            }
-
-        }
-
-        private async Task InferCompleteAsync(DetectionBatchResult result, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
-        {
-          
-            if (processCallback != null)
-            {
-                await Task.Run(() =>
-                 {
-                     processCallback.ReceiveProcessResult(result);
-                 });
-            }
-            if (receiveAction != null)
-            {
-                await Task.Run(() =>
-                {
-                    receiveAction(result);
-                });
-            }
+           
         }
 
 
@@ -189,5 +72,7 @@ namespace YoloSharpOnnx.Inference.Detect
             // 标签文本
             Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
+
+       
     }
 }

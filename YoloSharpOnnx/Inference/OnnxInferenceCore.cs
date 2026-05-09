@@ -6,13 +6,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class OnnxInferenceCore
+    public class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult>
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;
@@ -30,7 +32,7 @@ namespace YoloSharpOnnx.Inference
         protected Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
-
+        protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
             _config = config;
@@ -46,8 +48,13 @@ namespace YoloSharpOnnx.Inference
 
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
+
         }
 
+        protected void InitBatchProcess(IBatchProcess<TResult, TBatchPreResult, TBatchResult> batchProcess)
+        {
+            _batchProcess = batchProcess;
+        }
         public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
@@ -113,6 +120,136 @@ namespace YoloSharpOnnx.Inference
             }
             return listImg.Chunk(size);
         }
+
+
+        protected async Task PreprocessBatch(List<string> listImg, ChannelWriter<TBatchPreResult> writer)
+        {
+            var arr = GetPreprocessWorkersSize(listImg);
+            Task[] tasks = new Task[arr.Count()];
+            int idx = 0;
+            foreach (string[] subList in arr)
+            {
+                tasks[idx++] = RunPreprocessSplitAsync(subList, writer);
+            }
+            await Task.WhenAll(tasks).ContinueWith(t =>
+            {
+                writer.Complete();
+            });
+
+
+        }
+        private async Task RunPreprocessSplitAsync(IEnumerable<string> list, ChannelWriter<TBatchPreResult> writer)
+        {
+            await Task.Run(async () =>
+            {
+                foreach (string imgPath in list)
+                {
+                    var res = PreprocessImageChannel(imgPath);
+                    await writer.WriteAsync(res);
+                }
+
+            });
+        }
+        public TBatchPreResult PreprocessImageChannel(string imagePath)
+        {
+            using Mat img = Cv2.ImRead(imagePath);
+            return PreprocessImageChannel(img, imagePath);
+        }
+
+        public TBatchPreResult PreprocessImageChannel(Mat img, string imagePath)
+        {
+            var data = _matPool.Rent();
+            return _batchProcess.GetPreprocessImageBatchData(img, data, imagePath);
+        }
+
+        private BoundedChannelOptions GetChannelOptions(int batchPoolSize)
+        {
+            var channelOptions = new BoundedChannelOptions(batchPoolSize)
+            {
+                SingleWriter = false,
+                SingleReader = true,
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
+            };
+
+            return channelOptions;
+        }
+        protected async Task<TBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchDetectBaseFunc(listImg, processCallback, receiveAction);
+            await Task.WhenAll(producer, consumer);
+            return results;
+        }
+        protected TBatchResult[] BatchDetectBase(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchDetectBaseFunc(listImg, processCallback, receiveAction);
+            Task.WaitAll(producer, consumer);
+            return results;
+        }
+        private (Task producer, Task consumer, TBatchResult[] results) BatchDetectBaseFunc(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            TBatchResult[] batchResults = new TBatchResult[listImg.Count];
+            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+
+            var producer = PreprocessBatch(listImg, channel.Writer);
+
+            var consumer = Task.Run(async () =>
+            {
+                int idx = 0;
+                await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+                {
+                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    var result = _batchProcess.RunBatch(item);
+                    var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                    batchResults[idx++] = modelResult;
+
+                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
+                }
+            });
+            return (producer, consumer, batchResults);
+        }
+
+        protected async IAsyncEnumerable<TBatchResult> BatchDetectBaseForeachAsync(List<string> listImg)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+
+            _ = PreprocessBatch(listImg, channel.Writer);
+            await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+            {
+                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                var result = _batchProcess.RunBatch(item);
+                var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                yield return modelResult;
+            }
+
+        }
+
+        private async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+
+            if (processCallback != null)
+            {
+                await Task.Run(() =>
+                {
+                    processCallback.ReceiveProcessResult(result);
+                });
+            }
+            if (receiveAction != null)
+            {
+                await Task.Run(() =>
+                {
+                    receiveAction(result);
+                });
+            }
+        }
+
+
 
         public void DisposeCore()
         {

@@ -78,7 +78,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = YoloUtils.GetResult(res);
+                        string ans = res.Summary();
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }
@@ -133,7 +133,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 {
 
                     var res = await yoloAsync.RunDetectAsync(files[i]);
-                    Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+                    Console.WriteLine($"{i + 1} {YoloUtils.GetDetectResult(res)}");
                 }
 
             }
@@ -179,7 +179,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
                 await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
                 {
-                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetDetectResult(item.Results)}");
                 }
 
             }
@@ -189,28 +189,22 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
 
 
-        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
-        {
-            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
-            string ans = YoloUtils.GetResult(e.Results);
-            Console.WriteLine($"{ans} time:{cost}ms");
-        }
 
         private static void ReceiveProcess(DetectionBatchResult e)
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
-            string ans = YoloUtils.GetResult(e.Results);
+            string ans = e.Results.Summary();
             Console.WriteLine($"{ans} time:{cost}ms");
 
         }
-        internal class ProcessCallback : IBatchProcessCallback
+        internal class ProcessCallback : IBatchProcessCallback<DetectionBatchResult>
         {
 
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
 
-                string res = YoloUtils.GetResult(e.Results);
+                string res = e.Results.Summary();
 
             }
 

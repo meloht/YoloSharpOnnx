@@ -7,19 +7,49 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>
     {
         private bool disposedValue;
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
            : base(session, options, postprocess, preprocess, onnxModel, config)
         {
+            InitBatchProcess(this);
             Warmup();
         }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
 
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                DisposeCore();
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~YoloDetectOrtVal()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
         private void Warmup()
         {
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
@@ -71,7 +101,7 @@ namespace YoloSharpOnnx.Inference.Detect
             return new YoloResult<DetectionResult>(res, speed);
         }
 
-        public List<DetectionResult> RunBatchDetect(PreResultBatch preRes)
+        public List<DetectionResult> RunBatch(PreDetectResultBatch preRes)
         {
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [preRes.Data.InputOrtValue], _session.OutputNames);
@@ -83,15 +113,14 @@ namespace YoloSharpOnnx.Inference.Detect
             return result;
         }
 
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
+        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
         {
-            var task = BatchDetectBaseAsync(listImg, processCallback, receiveAction, this);
-            return task.GetAwaiter().GetResult();
+            return BatchDetectBase(listImg, processCallback, receiveAction);
         }
 
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback processCallback, Action<DetectionBatchResult> receiveAction)
+        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
         {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction, this);
+            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
         }
 
 
@@ -102,38 +131,27 @@ namespace YoloSharpOnnx.Inference.Detect
 
         public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg)
         {
-            return BatchDetectBaseForeachAsync(listImg, this);
+            return BatchDetectBaseForeachAsync(listImg);
         }
 
 
-        protected virtual void Dispose(bool disposing)
+        public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                DisposeCore();
-                disposedValue = true;
-            }
+            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
+            return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~YoloDetectOrtVal()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
+        public DetectionBatchResult BuildBatchResult(PreDetectResultBatch batchPreResult, List<DetectionResult> results, long timestamp)
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            return new DetectionBatchResult(batchPreResult.ImagePath, results, timestamp);
         }
+        public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
+        {
+            return this;
+        }
+
+       
+
+
     }
 }
