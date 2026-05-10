@@ -21,6 +21,7 @@ namespace YoloSharpOnnx.Providers
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
+        public ModelType CurrentModelType { get; private set; }
 
         protected abstract SessionOptions BuildSessionOptions();
 
@@ -44,7 +45,13 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
-
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.ObjectDetection)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
             var postprocess = GetPostprocessor(onnxModel);
             var preprocess = GetPreprocess(onnxModel);
 
@@ -56,6 +63,14 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
+
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.Classification)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
 
             var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
             var preprocess = new ClsPreprocess(onnxModel);

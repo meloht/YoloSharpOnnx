@@ -60,5 +60,21 @@ namespace YoloSharpOnnx
             }
 
         }
+
+        public static void ValidationDetectModelType(ModelType currentModelType)
+        {
+            if (currentModelType != ModelType.ObjectDetection)
+            {
+                throw new ArgumentException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run detect task");
+            }
+        }
+
+        public static void ValidationClsModelType(ModelType currentModelType)
+        {
+            if (currentModelType != ModelType.Classification)
+            {
+                throw new ArgumentException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run classify task");
+            }
+        }
     }
 }

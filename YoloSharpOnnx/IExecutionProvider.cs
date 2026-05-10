@@ -10,6 +10,8 @@ namespace YoloSharpOnnx
     {
         IYoloDetect CreateYoloDetect();
         IYoloClassify CreateYoloClassify();
+
+        ModelType CurrentModelType { get; }
         void SetYoloConfiguration(YoloConfig yoloConfig);
     }
 }

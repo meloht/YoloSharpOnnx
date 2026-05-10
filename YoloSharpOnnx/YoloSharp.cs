@@ -16,6 +16,7 @@ namespace YoloSharpOnnx
     {
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
+        private ModelType _currentModelType;
 
         private bool disposedValue;
 
@@ -35,6 +36,7 @@ namespace YoloSharpOnnx
             executionProvider.SetYoloConfiguration(yoloConfig);
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloClassify = executionProvider.CreateYoloClassify();
+            _currentModelType = executionProvider.CurrentModelType;
 
         }
 
@@ -54,9 +56,10 @@ namespace YoloSharpOnnx
 
         #endregion
 
-        #region Synchronous
+        #region Synchronous detect
         public List<DetectionResult> RunDetect(string imagePath)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
             using (Mat img = Cv2.ImRead(imagePath))
             {
@@ -66,11 +69,13 @@ namespace YoloSharpOnnx
 
         public List<DetectionResult> RunDetect(Mat img)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             return _yoloDetect.Run(img);
         }
 
         public YoloResult<DetectionResult> RunDetectWithTime(string imagePath)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
             using (Mat img = Cv2.ImRead(imagePath))
             {
@@ -79,12 +84,19 @@ namespace YoloSharpOnnx
         }
         public YoloResult<DetectionResult> RunDetectWithTime(Mat img)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             return _yoloDetect.RunWithTime(img);
         }
+
+        #endregion
+
+
+        #region Synchronous classify
 
 
         public List<ClsResult> RunClassify(string imagePath)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
             using (Mat img = Cv2.ImRead(imagePath))
             {
@@ -93,11 +105,13 @@ namespace YoloSharpOnnx
         }
         public List<ClsResult> RunClassify(Mat img)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             return _yoloClassify.Run(img);
         }
 
         public YoloResult<ClsResult> RunClassifyWithTime(string imagePath)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
             using (Mat img = Cv2.ImRead(imagePath))
             {
@@ -106,6 +120,7 @@ namespace YoloSharpOnnx
         }
         public YoloResult<ClsResult> RunClassifyWithTime(Mat img)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             return _yoloClassify.RunWithTime(img);
         }
 
@@ -116,7 +131,7 @@ namespace YoloSharpOnnx
 
         public IYoloAsync CreateAsyncChannel()
         {
-            return new YoloAsync(_yoloDetect, _yoloClassify, YoloConfiguration);
+            return new YoloAsync(_yoloDetect, _yoloClassify, YoloConfiguration, _currentModelType);
         }
         #endregion
 
@@ -125,12 +140,14 @@ namespace YoloSharpOnnx
 
         public DetectionBatchResult[] RunBatchDetect(string imgDir, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
 
             return _yoloDetect.BatchRun(files, processCallback, receiveAction);
         }
         public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return _yoloDetect.BatchRun(files, processCallback, receiveAction);
@@ -139,6 +156,7 @@ namespace YoloSharpOnnx
 
         public async Task<DetectionBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
 
             return await _yoloDetect.BatchRunAsync(files, processCallback, receiveAction);
@@ -147,12 +165,14 @@ namespace YoloSharpOnnx
 
         public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return await _yoloDetect.BatchRunAsync(files, processCallback, receiveAction);
         }
         public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> images)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return _yoloDetect.BatchRunForeachAsync(files);
@@ -167,19 +187,22 @@ namespace YoloSharpOnnx
 
         public ClsBatchResult[] RunBatchCls(string imgDir, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloClassify.BatchRun(files, processCallback, receiveAction);
         }
-        public ClsBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
+        public ClsBatchResult[] RunBatchCls(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return _yoloClassify.BatchRun(files, processCallback, receiveAction);
         }
 
 
-        public async Task<ClsBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
+        public async Task<ClsBatchResult[]> RunBatchClsAsync(string imgDir, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return await _yoloClassify.BatchRunAsync(files, processCallback, receiveAction);
         }
@@ -187,12 +210,14 @@ namespace YoloSharpOnnx
 
         public async Task<ClsBatchResult[]> RunBatchClsAsync(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return await _yoloClassify.BatchRunAsync(files, processCallback, receiveAction);
         }
         public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> images)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
             return _yoloClassify.BatchRunForeachAsync(files);
@@ -261,10 +286,6 @@ namespace YoloSharpOnnx
 
 
 
-        #region Validation
-
-
-        #endregion
 
 
         protected virtual void Dispose(bool disposing)
