@@ -18,14 +18,24 @@ namespace YoloSharpOnnx.Inference
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
         private YoloConfig _yoloConfig;
-        public YoloAsync(IYoloDetect yoloDetect, IYoloClassify yoloClassify,YoloConfig yoloConfig)
+        private ModelType _currentModelType;
+
+        public YoloAsync(IYoloDetect yoloDetect, IYoloClassify yoloClassify, YoloConfig yoloConfig, ModelType modelType)
         {
+            _currentModelType = modelType;
             _yoloDetect = yoloDetect;
             _yoloClassify = yoloClassify;
             _yoloConfig = yoloConfig;
 
-            _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult>>(() => new YoloChannelDetectAsync(_yoloConfig, _yoloDetect.GetYoloProcessAsync(), _yoloDetect.GetRunBatch()));
-            _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult>>(() => new YoloChannelClsAsync(_yoloConfig, _yoloClassify.GetYoloProcessAsync(), _yoloClassify.GetRunBatch()));
+            if (_yoloDetect != null)
+            {
+                _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult>>(() => new YoloChannelDetectAsync(_yoloConfig, _yoloDetect.GetYoloProcessAsync(), _yoloDetect.GetRunBatch()));
+            }
+            if (_yoloClassify != null)
+            {
+                _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult>>(() => new YoloChannelClsAsync(_yoloConfig, _yoloClassify.GetYoloProcessAsync(), _yoloClassify.GetRunBatch()));
+            }
+           
         }
         public void Dispose()
         {
@@ -37,21 +47,25 @@ namespace YoloSharpOnnx.Inference
 
         public async Task<List<DetectionResult>> RunDetectAsync(string inputImage)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             return await _yoloDetectAsync.Value.RunAsync(inputImage);
         }
 
         public async Task<List<DetectionResult>> RunDetectAsync(Mat img)
         {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
             return await _yoloDetectAsync.Value.RunAsync(img);
         }
 
         public async Task<List<ClsResult>> RunClassifyAsync(string inputImage)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             return await _yoloClsAsync.Value.RunAsync(inputImage);
         }
 
         public async Task<List<ClsResult>> RunClassifyAsync(Mat img)
         {
+            YoloValidation.ValidationClsModelType(_currentModelType);
             return await _yoloClsAsync.Value.RunAsync(img);
         }
 
