@@ -27,14 +27,11 @@
 ## Example Images:
 <div align="center">
  
-| Object Detection  | Object Detection |
+| Object Detection  |   Image Classification   |
 |---------------|---------------|
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" width="500"  > | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/zidane_detect.jpg?raw=true" width="500" > |
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" height="600"> <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/det_000000270579.jpg?raw=true" width="500" >|  <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000000009.jpg?raw=true" width="500"   > <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000063409.jpg?raw=true"  height="650"  >|
 
 
-|  Image Classification   | Image Classification   |
-|---------------|---------------|
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000000009.jpg?raw=true" width="500"   > | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000063409.jpg?raw=true" width="500"   >|
 
 
 
