@@ -14,16 +14,18 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine("Hello, World!");
             //TestInfer();
             //TestBatchInfer();
-            TestInferCls();
+            //TestInferCls();
             //TestInferPerf();
-            //using Mat image = Cv2.ImRead(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\bus.jpg");
-            //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
+            string img = @"D:\code\model\COCO2017\train2017\train2017\000000544449.jpg";
+            using Mat image = Cv2.ImRead(img);
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
 
-            //List<DetectionResult> res = yolo.RunDetect(image);
-            //yolo.DrawDetections(image, res);
-            //Cv2.ImWrite("bus_detect.jpg", image);
-            //string printString = YoloUtils.GetResult(res);
-            //Console.WriteLine(printString);
+            List<DetectionResult> res = yolo.RunDetect(image);
+            yolo.DrawDetections(image, res);
+          
+            Cv2.ImWrite($"det_{Path.GetFileName(img)}", image);
+            string printString = res.Summary();
+            Console.WriteLine(printString);
         }
 
         private static void TestInfer()
