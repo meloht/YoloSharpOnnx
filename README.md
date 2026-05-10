@@ -17,10 +17,10 @@
 ## Example Images:
 <div align="center">
  
-| Object Detection Result  |
-|---------------|
-| <img src="./ExampleImages/bus_detect.jpg" width="500" > |
-| <img src="./ExampleImages/zidane_detect.jpg" width="500"> |
+| Object Detection | Image Classification|
+| :------: | :------: |
+| <img src="./ExampleImages/bus_detect.jpg" width="500" > | <img src="./ExampleImages/cls_000000000009.jpg" width="500" > |
+| <img src="./ExampleImages/zidane_detect.jpg" width="500"> | <img src="./ExampleImages/cls_000000063409.jpg" width="500" > |
 
 </div>
 
