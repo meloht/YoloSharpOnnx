@@ -14,18 +14,18 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine("Hello, World!");
             //TestInfer();
             //TestBatchInfer();
-            //TestInferCls();
+            TestInferCls();
             //TestInferPerf();
-            string img = @"D:\code\model\COCO2017\train2017\train2017\000000544449.jpg";
-            using Mat image = Cv2.ImRead(img);
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
+            //string img = @"D:\code\model\COCO2017\train2017\train2017\000000202178.jpg";
+            //using Mat image = Cv2.ImRead(img);
+            //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
 
-            List<DetectionResult> res = yolo.RunDetect(image);
-            yolo.DrawDetections(image, res);
+            //List<DetectionResult> res = yolo.RunDetect(image);
+            //yolo.DrawDetections(image, res);
           
-            Cv2.ImWrite($"det_{Path.GetFileName(img)}", image);
-            string printString = res.Summary();
-            Console.WriteLine(printString);
+            //Cv2.ImWrite($"det_{Path.GetFileName(img)}", image);
+            //string printString = res.Summary();
+            //Console.WriteLine(printString);
         }
 
         private static void TestInfer()
@@ -62,7 +62,7 @@ namespace YoloSharpOnnx.ConsoleCPU
         private static void TestInferCls()
         {
             string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
-            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\Classify\000000000009.jpg";
+            string img = @"D:\code\model\COCO2017\train2017\train2017\000000202178.jpg";
             using Mat image = Cv2.ImRead(img);
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
             var res = yolo.RunClassifyWithTime(image);
