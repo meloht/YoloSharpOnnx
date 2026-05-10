@@ -59,8 +59,8 @@ namespace YoloSharpOnnx.ConsoleCPU
 
         private static void TestInferCls()
         {
-            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolov8n-cls.onnx";
-            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\Classify\000000063409.jpg";
+            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\Classify\000000000009.jpg";
             using Mat image = Cv2.ImRead(img);
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
             var res = yolo.RunClassifyWithTime(image);
