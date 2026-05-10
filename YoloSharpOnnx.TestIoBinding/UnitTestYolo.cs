@@ -8,10 +8,12 @@ namespace YoloSharpOnnx.TestIoBinding
     public class UnitTestYolo
     {
         private Dictionary<string, string> _dict;
-        private int _deviceId = 1;
+        private Dictionary<string, string> _dictCls;
+        private int _deviceId = 0;
         public UnitTestYolo()
         {
             _dict = TestDataUtils.GetYolo11Dict();
+            _dictCls = TestDataUtils.GetYolo11ClsDict();
         }
 
         [Theory]
@@ -19,16 +21,34 @@ namespace YoloSharpOnnx.TestIoBinding
         [InlineData(TestDataUtils.Zidane, Yolo11.Zidane)]
         public void TestDetectYolo11(string path, string boxs)
         {
-            string imgPath = TestDataUtils.GetImagePath(path);
+            string imgPath = TestDataUtils.GetImagePathDetect(path);
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.SummaryOrder();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.SummaryOrder();
+            Assert.Equal(boxs, ans2);
+        }
+
+        [Theory]
+        [InlineData(TestDataUtils.Cls01, Yolo11.Cls01)]
+        [InlineData(TestDataUtils.Cls02, Yolo11.Cls02)]
+        public void TestClsYolo11(string path, string boxs)
+        {
+            string imgPath = TestDataUtils.GetImagePathCls(path);
+            string model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+
+            var res = yolo.RunClassify(imgPath);
+            string ans = res.Summary();
+            Assert.Equal(boxs, ans);
+
+            var res2 = yolo.RunClassifyWithTime(imgPath);
+            string ans2 = res2.Items.Summary();
             Assert.Equal(boxs, ans2);
         }
 
@@ -37,36 +57,74 @@ namespace YoloSharpOnnx.TestIoBinding
         [InlineData(TestDataUtils.Zidane, Yolo8.Zidane)]
         public void TestDetectYolo8(string path, string boxs)
         {
-            string imgPath = TestDataUtils.GetImagePath(path);
+            string imgPath = TestDataUtils.GetImagePathDetect(path);
             string model = TestDataUtils.GetModelPath("yolov8n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.SummaryOrder();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.SummaryOrder();
             Assert.Equal(boxs, ans2);
         }
+
+        [Theory]
+        [InlineData(TestDataUtils.Cls01, Yolo8.Cls01)]
+        [InlineData(TestDataUtils.Cls02, Yolo8.Cls02)]
+        public void TestClsYolo8(string path, string boxs)
+        {
+            string imgPath = TestDataUtils.GetImagePathCls(path);
+            string model = TestDataUtils.GetModelPath("yolov8n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+
+            var res = yolo.RunClassify(imgPath);
+            string ans = res.Summary();
+            Assert.Equal(boxs, ans);
+
+            var res2 = yolo.RunClassifyWithTime(imgPath);
+            string ans2 = res2.Items.Summary();
+            Assert.Equal(boxs, ans2);
+        }
+
 
         [Theory]
         [InlineData(TestDataUtils.Bus, Yolo26.Bus)]
         [InlineData(TestDataUtils.Zidane, Yolo26.Zidane)]
         public void TestDetectYolo26(string path, string boxs)
         {
-            string imgPath = TestDataUtils.GetImagePath(path);
+            string imgPath = TestDataUtils.GetImagePathDetect(path);
             string model = TestDataUtils.GetModelPath("yolo26n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
 
             var res = yolo.RunDetect(imgPath);
-            string ans = YoloUtils.GetResult(res);
+            string ans = res.SummaryOrder();
             Assert.Equal(boxs, ans);
 
             var res2 = yolo.RunDetectWithTime(imgPath);
-            string ans2 = YoloUtils.GetResult(res2.Items);
+            string ans2 = res2.Items.SummaryOrder();
             Assert.Equal(boxs, ans2);
         }
+
+        [Theory]
+        [InlineData(TestDataUtils.Cls01, Yolo26.Cls01)]
+        [InlineData(TestDataUtils.Cls02, Yolo26.Cls02)]
+        public void TestClsYolo26(string path, string boxs)
+        {
+            string imgPath = TestDataUtils.GetImagePathCls(path);
+            string model = TestDataUtils.GetModelPath("yolo26n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+
+            var res = yolo.RunClassify(imgPath);
+            string ans = res.Summary();
+            Assert.Equal(boxs, ans);
+
+            var res2 = yolo.RunClassifyWithTime(imgPath);
+            string ans2 = res2.Items.Summary();
+            Assert.Equal(boxs, ans2);
+        }
+
 
         [Fact]
         public async Task TestDetectAsyncYolo11()
@@ -79,19 +137,42 @@ namespace YoloSharpOnnx.TestIoBinding
             foreach (var item in _dict)
             {
                 var res = await yoloAsync.RunDetectAsync(item.Key);
-                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+                Assert.Equal(item.Value, res.SummaryOrder());
             }
             foreach (var item in _dict)
             {
                 using var img = Cv2.ImRead(item.Key);
                 var res = await yoloAsync.RunDetectAsync(img);
-                Assert.Equal(item.Value, YoloUtils.GetResult(res));
+                Assert.Equal(item.Value, res.SummaryOrder());
             }
         }
+
+
+        [Fact]
+        public async Task TestClsAsyncYolo11()
+        {
+
+            string model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            using var yoloAsync = yolo.CreateAsyncChannel();
+
+            foreach (var item in _dictCls)
+            {
+                var res = await yoloAsync.RunClassifyAsync(item.Key);
+                Assert.Equal(item.Value, res.Summary());
+            }
+            foreach (var item in _dictCls)
+            {
+                using var img = Cv2.ImRead(item.Key);
+                var res = await yoloAsync.RunClassifyAsync(img);
+                Assert.Equal(item.Value, res.Summary());
+            }
+        }
+
         [Fact]
         public async Task TestDetectBatchForeachAsync()
         {
-            string dir = TestDataUtils.GetImageDir();
+            string dir = TestDataUtils.GetImageDirDetect();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             yolo.YoloConfiguration.BatchPoolSize = 4;
@@ -103,21 +184,44 @@ namespace YoloSharpOnnx.TestIoBinding
             {
                 Interlocked.Increment(ref idx);
                 Assert.True(_dict.ContainsKey(item.ImagePath));
-                Assert.Equal(_dict[item.ImagePath], YoloUtils.GetResult(item.Results));
+                Assert.Equal(_dict[item.ImagePath], item.Results.SummaryOrder());
             }
 
             Assert.Equal(imgs.Count, idx);
         }
 
+
+
+        [Fact]
+        public async Task TestClsBatchForeachAsync()
+        {
+            string dir = TestDataUtils.GetImageDirDetect();
+            string model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+
+
+            List<string> imgs = TestDataUtils.GetImgClsPaths();
+            int idx = 0;
+            await foreach (var item in yolo.BatchClsForeachAsync(imgs))
+            {
+                idx++;
+                Assert.True(_dictCls.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictCls[item.ImagePath], item.Results.Summary());
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
+
+
         [Fact]
         public void TestDetectBatch()
         {
-            string dir = TestDataUtils.GetImageDir();
+            string dir = TestDataUtils.GetImageDirDetect();
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             yolo.YoloConfiguration.BatchPoolSize = 4;
 
-            yolo.BatchDetectItemCompleted += Yolo_BatchDetectItemCompleted;
 
             var processCallback = new ProcessCallback(_dict);
             var list = yolo.RunBatchDetect(dir, processCallback, ReceiveProcess);
@@ -128,27 +232,44 @@ namespace YoloSharpOnnx.TestIoBinding
             foreach (var item in list)
             {
                 Assert.True(_dict.ContainsKey(item.ImagePath));
-                Assert.Equal(_dict[item.ImagePath], YoloUtils.GetResult(item.Results));
+                Assert.Equal(_dict[item.ImagePath], item.Results.SummaryOrder());
             }
 
         }
-
-
-        private void Yolo_BatchDetectItemCompleted(object? sender, DataResult.DetectionBatchResult e)
+        [Fact]
+        public void TestClsBatch()
         {
-            Assert.True(_dict.ContainsKey(e.ImagePath));
-            string res = YoloUtils.GetResult(e.Results);
-            Assert.Equal(_dict[e.ImagePath], res);
+            string dir = TestDataUtils.GetImageDirCls();
+            string model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+            var processCallback = new ProcessCallbackCls(_dictCls);
+            var list = yolo.RunBatchCls(dir, processCallback, ReceiveProcess);
+
+
+            Assert.Equal(2, list.Length);
+
+            foreach (var item in list)
+            {
+                Assert.True(_dictCls.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictCls[item.ImagePath], item.Results.Summary());
+            }
+
         }
 
         private void ReceiveProcess(DetectionBatchResult e)
         {
             Assert.True(_dict.ContainsKey(e.ImagePath));
-            string res = YoloUtils.GetResult(e.Results);
+            string res = e.Results.SummaryOrder();
             Assert.Equal(_dict[e.ImagePath], res);
         }
-
-        internal class ProcessCallback : IBatchProcessCallback
+        private void ReceiveProcess(ClsBatchResult e)
+        {
+            Assert.True(_dict.ContainsKey(e.ImagePath));
+            string res = e.Results.Summary();
+            Assert.Equal(_dict[e.ImagePath], res);
+        }
+        internal class ProcessCallback : IBatchProcessCallback<DetectionBatchResult>
         {
             private Dictionary<string, string> _dict;
             public ProcessCallback(Dictionary<string, string> dict)
@@ -158,7 +279,23 @@ namespace YoloSharpOnnx.TestIoBinding
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
                 Assert.True(_dict.ContainsKey(e.ImagePath));
-                string res = YoloUtils.GetResult(e.Results);
+                string res = e.Results.SummaryOrder();
+                Assert.Equal(_dict[e.ImagePath], res);
+            }
+
+        }
+
+        internal class ProcessCallbackCls : IBatchProcessCallback<ClsBatchResult>
+        {
+            private Dictionary<string, string> _dict;
+            public ProcessCallbackCls(Dictionary<string, string> dict)
+            {
+                _dict = dict;
+            }
+            public void ReceiveProcessResult(ClsBatchResult e)
+            {
+                Assert.True(_dict.ContainsKey(e.ImagePath));
+                string res = e.Results.Summary();
                 Assert.Equal(_dict[e.ImagePath], res);
             }
 

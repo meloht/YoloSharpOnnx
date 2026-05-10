@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Classify;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -23,15 +24,6 @@ namespace YoloSharpOnnx.Providers
             _intelDeviceType = intelDeviceType;
         }
 
-        public IYoloDetect CreateYoloDetect()
-        {
-            SessionOptions options = new SessionOptions();
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
-            return BuildInferenceSession(options);
-        }
-
         protected override DeviceType GetDeviceType()
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
@@ -45,15 +37,15 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.GPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel)
+        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel);
+                return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
             else
             {
-                return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel);
+                return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
 
@@ -74,6 +66,27 @@ namespace YoloSharpOnnx.Providers
                 default:
                     return CPU;
             }
+        }
+
+        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            }
+            else
+            {
+                return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            }
+        }
+
+        protected override SessionOptions BuildSessionOptions()
+        {
+            SessionOptions options = new SessionOptions();
+            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            options.EnableCpuMemArena = true;
+            options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
+            return options;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public interface IYoloPrediction<T>
+    public interface IYoloSummary<T>
     {
         internal abstract static string Describe(List<T> predictResults);
     }

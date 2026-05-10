@@ -10,7 +10,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 1;
+        static int _deviceId = 0;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -18,10 +18,11 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
-           
-            TestBatchInfer();
-          // _ = TestBatchForeachInfer();
-            // TestInferPerf();
+
+             //TestBatchInfer();
+            // _ = TestBatchForeachInfer();
+            //TestInferPerf();
+            //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
@@ -37,7 +38,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             OnnxModel model = new OnnxModel();
             model.InputSizeInBytes = 1280 * 1280 * 3 * sizeof(float);
             model.InputShape = [1, 3, 1280, 1280];
-            
+
             MatBufferPool bufferPool = new MatBufferPool(10, model);
             ImageBatchData[] arr = new ImageBatchData[20];
             for (int i = 0; i < 20; i++)
@@ -49,7 +50,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 bufferPool.Return(arr[i]);
             }
         }
-
+        private static void TestInferCls()
+        {
+            string model = @"D:\DemoCode\WinFormsAppYoloCls\WinFormsAppYoloCls\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\000000000009.jpg";
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            var res = yolo.RunClassifyWithTime(img);
+            Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+        }
         private static void TestInfer()
         {
             DirectoryInfo directory = new DirectoryInfo(dir);
@@ -70,7 +78,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = YoloUtils.GetResult(res);
+                        string ans = res.Summary();
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }
@@ -100,7 +108,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                         count++;
                         var res = yolo.RunDetectWithTime(item.FullName);
                         totalInfer += res.SpeedResult.Inference;
-                        Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+                        Console.WriteLine($"{item.Name} {res.ToString()}, {res.SpeedResult.ToString()}");
                     }
                 }
             }
@@ -125,7 +133,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 {
 
                     var res = await yoloAsync.RunDetectAsync(files[i]);
-                    Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+                    Console.WriteLine($"{i + 1} {YoloUtils.GetDetectResult(res)}");
                 }
 
             }
@@ -145,16 +153,16 @@ namespace YoloSharpOnnx.ConsoleDirectML
             int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
-               
-             
-                yolo.YoloConfiguration.BatchPoolSize = 80;
+
+
+                yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
-                var list = yolo.RunBatchDetect(dir, ReceiveProcess);
+                var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
                 _stopwatch.Stop();
-               
+
             }
-          
+
 
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
@@ -171,7 +179,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
                 await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
                 {
-                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+                    Console.WriteLine($"{item.ImagePath} {YoloUtils.GetDetectResult(item.Results)}");
                 }
 
             }
@@ -181,28 +189,22 @@ namespace YoloSharpOnnx.ConsoleDirectML
         }
 
 
-        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
-        {
-            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
-            string ans = YoloUtils.GetResult(e.Results);
-            Console.WriteLine($"{ans} time:{cost}ms");
-        }
 
         private static void ReceiveProcess(DetectionBatchResult e)
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
-            string ans = YoloUtils.GetResult(e.Results);
+            string ans = e.Results.Summary();
             Console.WriteLine($"{ans} time:{cost}ms");
 
         }
-        internal class ProcessCallback : IBatchProcessCallback
+        internal class ProcessCallback : IBatchProcessCallback<DetectionBatchResult>
         {
 
             public void ReceiveProcessResult(DetectionBatchResult e)
             {
 
-                string res = YoloUtils.GetResult(e.Results);
+                string res = e.Results.Summary();
 
             }
 

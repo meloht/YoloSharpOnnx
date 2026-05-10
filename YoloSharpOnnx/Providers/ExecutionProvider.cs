@@ -3,32 +3,46 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.Inference;
+using YoloSharpOnnx.Inference.Classify;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public abstract class ExecutionProvider
+    public abstract class ExecutionProvider : IExecutionProvider
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
+        private const string ModelTask = "task";
 
         public string ModelPath { get; set; }
+        protected YoloConfig YoloConfiguration { get; private set; }
 
-        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IPostprocess postprocess, IPreprocess preprocess, OnnxModel onnxModel);
+        protected abstract SessionOptions BuildSessionOptions();
+
+        protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
         protected abstract DeviceType GetDeviceType();
-
+        private readonly Random _rand;
         public ExecutionProvider(string modelPath)
         {
             ModelPath = modelPath;
+            _rand = new Random(0);
         }
 
-        protected IYoloDetect BuildInferenceSession(SessionOptions options)
+        public void SetYoloConfiguration(YoloConfig yoloConfig)
         {
-            InferenceSession session = new InferenceSession(ModelPath, options);
+            YoloConfiguration = yoloConfig;
+        }
 
+        public IYoloDetect CreateYoloDetect()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
 
             var postprocess = GetPostprocessor(onnxModel);
@@ -37,18 +51,31 @@ namespace YoloSharpOnnx.Providers
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
         }
 
-        private IPostprocess GetPostprocessor(OnnxModel onnxModel)
+        public IYoloClassify CreateYoloClassify()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+
+            var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
+            var preprocess = new ClsPreprocess(onnxModel);
+
+            return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
+        }
+
+
+        private IDetPostprocess GetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new PostprocessEndToEnd(onnxModel.Labels);
+                return new DetPostprocessEndToEnd(onnxModel.Labels);
             }
-            return new PostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
         }
 
-        protected IPreprocess GetPreprocess(OnnxModel onnxModel)
+        protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
         {
-            return new PreprocessComm(onnxModel);
+            return new DetPreprocessComm(onnxModel);
         }
 
         protected OnnxModel ParseOnnxModel(InferenceSession session)
@@ -74,8 +101,7 @@ namespace YoloSharpOnnx.Providers
             model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
 
             model.Labels = GetModelLabels(session);
-            model.ColorPalette = GenerateColorPalette(model.Labels.Length);
-
+           
             var metaData = session.ModelMetadata.CustomMetadataMap;
 
             bool isEndToEnd = false;
@@ -83,11 +109,47 @@ namespace YoloSharpOnnx.Providers
             {
                 isEndToEnd = bool.Parse(metaData[End2End]);
             }
+            if (metaData.ContainsKey(ModelTask))
+            {
+                model.ModelType = GetModelType(metaData[ModelTask].Trim());
+            }
             model.IsEndToEnd = isEndToEnd;
 
-            model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
-
+            if (model.ModelType == ModelType.ObjectDetection)
+            {
+                model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+                model.ColorPalette = GenerateColorPalette(model.Labels.Length);
+            }
+           
             return model;
+        }
+
+        private ModelType GetModelType(string task)
+        {
+            if (ModelType.ObjectDetection.GetDescription() == task)
+            {
+                return ModelType.ObjectDetection;
+            }
+            else if (ModelType.Classification.GetDescription() == task)
+            {
+                return ModelType.Classification;
+            }
+            else if (ModelType.ObbDetection.GetDescription() == task)
+            {
+                return ModelType.ObbDetection;
+            }
+            else if (ModelType.Segmentation.GetDescription() == task)
+            {
+                return ModelType.Segmentation;
+            }
+            else if (ModelType.PoseEstimation.GetDescription() == task)
+            {
+                return ModelType.PoseEstimation;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"model task: {task} is not support");
+            }
         }
 
         protected LabelModel[] GetModelLabels(InferenceSession session)
@@ -111,14 +173,31 @@ namespace YoloSharpOnnx.Providers
 
         protected Scalar[] GenerateColorPalette(int count)
         {
-            var rng = new Random();
             var palette = new Scalar[count];
             var colors = ColorTemplate.Get();
             for (int i = 0; i < count; i++)
             {
-                palette[i] = ColorTemplate.HexToRgbaScalar(colors[i % count]);
+                int idx = i % count;
+                if (idx < colors.Length)
+                {
+                    palette[i] = ColorTemplate.HexToRgbaScalar(colors[idx]);
+                }
+                else
+                {
+                    palette[i] = GetRandomColor();
+                }
             }
             return palette;
         }
+
+        private Scalar GetRandomColor()
+        {
+            return new Scalar(
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256),
+                (byte)_rand.Next(0, 256)
+            );
+        }
+
     }
 }

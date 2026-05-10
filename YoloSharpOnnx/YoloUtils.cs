@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using static OpenCvSharp.FileStorage;
 using static System.Net.WebRequestMethods;
 
 namespace YoloSharpOnnx
 {
     public class YoloUtils
     {
-        public static string GetResult(List<DetectionResult> list)
+        public static string GetDetectResult(List<DetectionResult> list)
         {
-            if (list == null || list.Count == 0)
-                return string.Empty;
-            list.Sort((x, y) => x.ClassName.CompareTo(y.ClassName));
-            var dict = list.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
-            string confs = string.Join(", ", list.Select(p => Math.Round(p.Confidence, 2)));
-            return $"{string.Join(", ", dict)} [{confs}]";
+            return list.Summary();
+        }
+        public static string GetClsResult(List<ClsResult> list)
+        {
+            return list.Summary();
         }
 
 
@@ -28,6 +29,21 @@ namespace YoloSharpOnnx
             return list;
 
         }
+
+        public static BoundedChannelOptions GetChannelOptions(int batchPoolSize)
+        {
+            var channelOptions = new BoundedChannelOptions(batchPoolSize)
+            {
+                SingleWriter = false,
+                SingleReader = true,
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.Wait
+            };
+
+            return channelOptions;
+        }
+
+       
 
         public static List<string> GetFilesFromListPaths(List<string> images, string[] exts)
         {

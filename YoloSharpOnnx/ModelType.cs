@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -22,4 +24,6 @@ namespace YoloSharpOnnx
         [EnumMember(Value = "pose")]
         PoseEstimation
     }
+
+
 }

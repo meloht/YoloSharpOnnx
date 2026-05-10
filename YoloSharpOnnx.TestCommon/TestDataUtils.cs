@@ -5,32 +5,61 @@
         public const string Bus = "bus.jpg";
         public const string Zidane = "zidane.jpg";
 
+        public const string Cls01 = "000000000009.jpg";
+        public const string Cls02 = "000000063409.jpg";
 
-        public static string GetImagePath(string path)
+
+        public static string GetImagePathDetect(string path)
         {
-            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", path);
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images","Detect", path);
         }
+
+        public static string GetImagePathCls(string path)
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Classify", path);
+        }
+
         public static string GetModelPath(string path)
         {
             return Path.Combine(AppContext.BaseDirectory, "TestData", "Models", path);
         }
-        public static string GetImageDir()
+        public static string GetImageDirDetect()
         {
-            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images");
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Detect");
+        }
+
+        public static string GetImageDirCls()
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Classify");
         }
 
         public static Dictionary<string, string> GetYolo11Dict()
         {
             Dictionary<string, string> dict = new Dictionary<string, string>();
-            dict.Add(GetImagePath(Bus), Yolo11.Bus);
-            dict.Add(GetImagePath(Zidane), Yolo11.Zidane);
+            dict.Add(GetImagePathDetect(Bus), Yolo11.Bus);
+            dict.Add(GetImagePathDetect(Zidane), Yolo11.Zidane);
+
+            return dict;
+        }
+
+        public static Dictionary<string, string> GetYolo11ClsDict()
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add(GetImagePathCls(Cls01), Yolo11.Cls01);
+            dict.Add(GetImagePathCls(Cls02), Yolo11.Cls02);
 
             return dict;
         }
 
         public static List<string> GetImgPaths()
         {
-            List<string> list = [GetImagePath(Bus),GetImagePath(Zidane)];
+            List<string> list = [GetImagePathDetect(Bus),GetImagePathDetect(Zidane)];
+            return list;
+        }
+
+        public static List<string> GetImgClsPaths()
+        {
+            List<string> list = [GetImagePathCls(Cls01), GetImagePathCls(Cls02)];
             return list;
         }
     }

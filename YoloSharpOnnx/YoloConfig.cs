@@ -11,6 +11,20 @@ namespace YoloSharpOnnx
         private float _confidence = 0.3f;
         private float _iou = 0.4f;
         private int _asyncChannelTimeout = 5000;
+        private int _clsTopK = 5;
+
+        public int ClassifyTopK 
+        {
+            get { return _clsTopK; }
+            set 
+            {
+                if (value < 0 && value > 5)
+                {
+                    throw new ArgumentException("The ClassifyTopK must be between 1 and 5");
+                }
+                _clsTopK = value;
+            }
+        }
         public float Confidence
         {
             get { return _confidence; }

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YoloSharpOnnx.Models
+namespace YoloSharpOnnx.Inference
 {
-
-
-    public record PreChannelModel(PreResultBatch PreResult, Guid Guid);
+    public interface IGuidValue
+    {
+        public Guid Guid { get; init; }
+    }
 }

@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
-    public class PostprocessNMS : IPostprocess
+    public class DetPostprocessNMS : IDetPostprocess
     {
         private readonly int _boxNums;
         private readonly int _boxNums2;
@@ -23,7 +24,7 @@ namespace YoloSharpOnnx.Inference
         private List<float> _scores = new List<float>();
         private List<int> _classIds = new List<int>();
 
-        public PostprocessNMS(int boxNum, LabelModel[] labels)
+        public DetPostprocessNMS(int boxNum, LabelModel[] labels)
         {
             _labels = labels;
             _boxNums = boxNum;
@@ -32,7 +33,7 @@ namespace YoloSharpOnnx.Inference
             _boxNums4 = _boxNums * 4;
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
         {
             _boxes.Clear();
             _scores.Clear();

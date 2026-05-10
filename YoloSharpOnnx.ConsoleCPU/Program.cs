@@ -14,15 +14,16 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine("Hello, World!");
             //TestInfer();
             //TestBatchInfer();
+            TestInferCls();
             //TestInferPerf();
-            using Mat image = Cv2.ImRead(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\bus.jpg");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
+            //using Mat image = Cv2.ImRead(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\bus.jpg");
+            //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));
 
-            List<DetectionResult> res = yolo.RunDetect(image);
-            yolo.DrawDetections(image, res);
-            Cv2.ImWrite("bus_detect.jpg", image);
-            string printString = YoloUtils.GetResult(res);
-            Console.WriteLine(printString);
+            //List<DetectionResult> res = yolo.RunDetect(image);
+            //yolo.DrawDetections(image, res);
+            //Cv2.ImWrite("bus_detect.jpg", image);
+            //string printString = YoloUtils.GetResult(res);
+            //Console.WriteLine(printString);
         }
 
         private static void TestInfer()
@@ -45,7 +46,7 @@ namespace YoloSharpOnnx.ConsoleCPU
                         _stopwatch.Restart();
                         var res = yolo.RunDetect(item.FullName);
                         _stopwatch.Stop();
-                        string ans = YoloUtils.GetResult(res);
+                        string ans = res.Summary();
                         Console.WriteLine($"{ans}, time:{_stopwatch.ElapsedMilliseconds}");
                     }
                 }
@@ -54,6 +55,18 @@ namespace YoloSharpOnnx.ConsoleCPU
 
             Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
 
+        }
+
+        private static void TestInferCls()
+        {
+            string model = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo26n-cls.onnx";
+            string img = @"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Images\Classify\000000000009.jpg";
+            using Mat image = Cv2.ImRead(img);
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            var res = yolo.RunClassifyWithTime(image);
+            Console.WriteLine($"{res.ToString()}, {res.SpeedResult.ToString()}");
+            yolo.DrawClassification(image, res.Items);
+            Cv2.ImWrite($"cls_{Path.GetFileName(img)}", image);
         }
 
         private static void TestInferPerf()
@@ -93,8 +106,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(modelPath)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
-                yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
-
+               
                 yolo.RunBatchDetect(dir);
 
             }
@@ -103,10 +115,6 @@ namespace YoloSharpOnnx.ConsoleCPU
             Console.WriteLine($"time:{_stopwatch.Elapsed}");
         }
 
-        private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
-        {
-            string ans = YoloUtils.GetResult(e.Results);
-            Console.WriteLine(ans);
-        }
+
     }
 }

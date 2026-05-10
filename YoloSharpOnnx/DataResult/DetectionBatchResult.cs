@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public class DetectionBatchResult
+    public class DetectionBatchResult 
     {
         public string ImagePath { get; set; }
 
@@ -24,7 +24,7 @@ namespace YoloSharpOnnx.DataResult
 
         public override string ToString()
         {
-            return $"Image:{Path.GetFileName(ImagePath)} Result:{YoloUtils.GetResult(Results)}";
+            return $"Image:{Path.GetFileName(ImagePath)} Result:{Results.Summary()}";
         }
 
 

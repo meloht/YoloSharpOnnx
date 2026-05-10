@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IPreprocess
+    public interface IYoloTaskAsync<TResult> : IDisposable
     {
-        PreResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags);
+        Task<List<TResult>> RunAsync(string inputImage);
+
+        Task<List<TResult>> RunAsync(Mat img);
     }
 }

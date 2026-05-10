@@ -4,18 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Inference.Detect
 {
-    public class PostprocessEndToEnd : IPostprocess
+    public class DetPostprocessEndToEnd : IDetPostprocess
     {
         private readonly LabelModel[] _labels;
-        public PostprocessEndToEnd(LabelModel[] labels)
+        public DetPostprocessEndToEnd(LabelModel[] labels)
         {
             _labels = labels;
         }
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreResult preResult, YoloConfig yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
         {
             var detections = new List<DetectionResult>();
 
