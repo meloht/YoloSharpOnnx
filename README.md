@@ -12,10 +12,10 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx) 
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/meloht/YoloSharpOnnx?logo=github)](https://github.com/meloht/YoloSharpOnnx)
 
-🚀a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library for object detection  base on OpenCV and ONNX Runtime.
+🚀a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.
 
 # Features
- - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect) 
+ - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect)  [Image Classification](https://docs.ultralytics.com/tasks/classify)
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
@@ -27,15 +27,19 @@
 ## Example Images:
 <div align="center">
  
-| Object Detection Result  |
-|---------------|
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" width="500" > |
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/zidane_detect.jpg?raw=true" width="500"> |
+| Object Detection  | Object Detection |
+|---------------|---------------|
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" width="500"  > | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/zidane_detect.jpg?raw=true" width="500" > |
+
+
+|  Image Classification   | Image Classification   |
+|---------------|---------------|
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000000009.jpg?raw=true" width="500"   > | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000063409.jpg?raw=true" width="500"   >|
+
+
 
 </div>
 
-# Build Package 
-Release x64
 
 # Usage
 
@@ -195,17 +199,12 @@ private static void TestBatchInfer()
     int num=files.Length;
     using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
     {
-        yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted
         var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30)
     }
     _stopwatch.Stop()
     Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
 
-private static void Yolo_BatchDetectCompleted(object? sender, DetectionBatchResult e)
-{
-    string ans = YoloUtils.GetResult(e.Results);
-    Console.WriteLine(ans);
-
+}
 private static void ReceiveProcess(DetectionBatchResult e)
 {
    
@@ -334,7 +333,6 @@ private static async Task TestBatchForeachInfer()
 
 | Time  | Feature |
 | ------------- | ------------- |
-| 2026-10  | Yolo task Image Classification  |
 | 2026-11  | Yolo task Instance Segmentation  |
 | 2026-11  | Yolo task Pose Estimation  |
 | 2026-12  | Yolo task OBB  |
