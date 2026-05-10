@@ -7,16 +7,17 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>
+    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>, IYoloClassify
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
-
-
+        protected bool disposedValue;
+        protected abstract void DisposedBase();
         public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config)
         {
@@ -26,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Classify
         }
 
 
-        protected List<ClsResult> RunCore(Mat inputImage)
+        public List<ClsResult> Run(Mat inputImage)
         {
             // 预处理图像
             _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
@@ -41,7 +42,7 @@ namespace YoloSharpOnnx.Inference.Classify
             return result;
         }
 
-        protected YoloResult<ClsResult> RunWithTimeCore(Mat inputImage)
+        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
             SpeedResult speed = new SpeedResult();
 
@@ -87,8 +88,15 @@ namespace YoloSharpOnnx.Inference.Classify
         {
             return RunBatchInfer(preResult);
         }
-       
 
+        public IRunBatch<ClsResult, PreClsResultBatch> GetRunBatch()
+        {
+            return this;
+        }
+        public IYoloProcessAsync<PreClsResultBatch> GetYoloProcessAsync()
+        {
+            return this;
+        }
 
         public void DrawClassification(Mat img, List<ClsResult> results)
         {
@@ -157,5 +165,14 @@ namespace YoloSharpOnnx.Inference.Classify
 
             Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
         }
+
+
+       
+        public void Dispose()
+        {
+            DisposedBase();
+        }
+
+      
     }
 }

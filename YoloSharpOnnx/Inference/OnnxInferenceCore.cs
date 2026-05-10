@@ -166,20 +166,20 @@ namespace YoloSharpOnnx.Inference
             return _batchProcess.GetPreprocessImageBatchData(img, data, imagePath);
         }
 
- 
-        protected async Task<TBatchResult[]> BatchDetectBaseAsync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+
+        public async Task<TBatchResult[]> BatchRunAsync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
-            var (producer, consumer, results) = BatchDetectBaseFunc(listImg, processCallback, receiveAction);
+            var (producer, consumer, results) = BatchRunBaseFunc(listImg, processCallback, receiveAction);
             await Task.WhenAll(producer, consumer);
             return results;
         }
-        protected TBatchResult[] BatchDetectBase(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        public TBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
-            var (producer, consumer, results) = BatchDetectBaseFunc(listImg, processCallback, receiveAction);
+            var (producer, consumer, results) = BatchRunBaseFunc(listImg, processCallback, receiveAction);
             Task.WaitAll(producer, consumer);
             return results;
         }
-        private (Task producer, Task consumer, TBatchResult[] results) BatchDetectBaseFunc(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        private (Task producer, Task consumer, TBatchResult[] results) BatchRunBaseFunc(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
             InitBufferPool(_config.BatchPoolSize);
 
@@ -205,11 +205,11 @@ namespace YoloSharpOnnx.Inference
             return (producer, consumer, batchResults);
         }
 
-        protected async IAsyncEnumerable<TBatchResult> BatchDetectBaseForeachAsync(List<string> listImg)
+        public async IAsyncEnumerable<TBatchResult> BatchRunForeachAsync(List<string> listImg)
         {
             InitBufferPool(_config.BatchPoolSize);
 
-            var ChannelOptions = GetChannelOptions(_config.BatchPoolSize);
+            var ChannelOptions =YoloUtils.GetChannelOptions(_config.BatchPoolSize);
             Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
 
             _ = PreprocessBatch(listImg, channel.Writer);

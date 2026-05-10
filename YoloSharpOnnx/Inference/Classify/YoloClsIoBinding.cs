@@ -12,9 +12,9 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsIoBinding : YoloClsBase, IYoloClassify
+    public class YoloClsIoBinding : YoloClsBase
     {
-        private bool disposedValue;
+
         private OrtIoBinding _binding;
         protected OrtValue _outputOrtValue;
         public YoloClsIoBinding(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
@@ -53,7 +53,7 @@ namespace YoloSharpOnnx.Inference.Classify
         //     Dispose(disposing: false);
         // }
 
-        public void Dispose()
+        protected override void DisposedBase()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
@@ -69,31 +69,7 @@ namespace YoloSharpOnnx.Inference.Classify
             _session.RunWithBinding(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
         }
-        public List<ClsResult> Run(Mat inputImage)
-        {
-            return RunCore(inputImage);
-        }
-
-        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
-        {
-            return RunWithTimeCore(inputImage);
-        }
-
-
-        public ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
-        {
-            return BatchDetectBase(listImg, processCallback, receiveAction);
-        }
-
-        public async Task<ClsBatchResult[]> BatchClsAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
-        {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
-        }
-
-        public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg)
-        {
-            return BatchDetectBaseForeachAsync(listImg);
-        }
+       
 
         protected override OrtValue RunInference()
         {

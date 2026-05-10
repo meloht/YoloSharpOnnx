@@ -13,11 +13,11 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect
+    public class YoloDetectIoBinding : YoloDetectBase
     {
         private OrtIoBinding _binding;
         protected OrtValue _outputOrtValue;
-        private bool disposedValue;
+       
 
         public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
           : base(session, options, postprocess, preprocess, onnxModel, config)
@@ -57,7 +57,7 @@ namespace YoloSharpOnnx.Inference.Detect
         //     Dispose(disposing: false);
         // }
 
-        public void Dispose()
+        protected override void DisposedBase()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
@@ -73,32 +73,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _session.RunWithBinding(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
         }
-        public List<DetectionResult> Run(Mat inputImage)
-        {
-            return RunCore(inputImage);
-        }
-
-        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
-        {
-            return RunWithTimeCore(inputImage);
-        }
-
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
-        {
-            return BatchDetectBase(listImg, processCallback, receiveAction); 
-        }
-
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
-        {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
-        }
-
-
-
-        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg)
-        {
-            return BatchDetectBaseForeachAsync(listImg);
-        }
+      
 
        
 
@@ -144,5 +119,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
             return result;
         }
+
+
     }
 }

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
@@ -16,10 +18,14 @@ namespace YoloSharpOnnx.Inference.Classify
 
         void DrawClassification(Mat img, List<ClsResult> results);
 
-        ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+        ClsBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
 
-        Task<ClsBatchResult[]> BatchClsAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+        Task<ClsBatchResult[]> BatchRunAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
 
-        IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg);
+        IAsyncEnumerable<ClsBatchResult> BatchRunForeachAsync(List<string> listImg);
+
+        IYoloProcessAsync<PreClsResultBatch> GetYoloProcessAsync();
+
+        IRunBatch<ClsResult, PreClsResultBatch> GetRunBatch();
     }
 }

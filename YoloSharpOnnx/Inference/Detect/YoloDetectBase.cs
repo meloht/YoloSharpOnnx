@@ -16,11 +16,12 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>
+    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch>, IYoloDetect
     {
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
-
+        protected bool disposedValue;
+        protected abstract void DisposedBase();
         public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
         {
@@ -30,7 +31,7 @@ namespace YoloSharpOnnx.Inference.Detect
         }
 
 
-        public List<DetectionResult> RunCore(Mat inputImage)
+        public List<DetectionResult> Run(Mat inputImage)
         {
             // 预处理图像
             var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
@@ -45,7 +46,7 @@ namespace YoloSharpOnnx.Inference.Detect
             return result;
         }
 
-        public YoloResult<DetectionResult> RunWithTimeCore(Mat inputImage)
+        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
         {
 
             SpeedResult speed = new SpeedResult();
@@ -93,7 +94,11 @@ namespace YoloSharpOnnx.Inference.Detect
             return RunBatchInfer(preResult);
         }
 
-        public IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult> GetYoloDetectAsync()
+        public IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync()
+        {
+            return this;
+        }
+        public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
         {
             return this;
         }
@@ -142,5 +147,10 @@ namespace YoloSharpOnnx.Inference.Detect
         }
 
 
+
+        public void Dispose()
+        {
+            DisposedBase();
+        }
     }
 }

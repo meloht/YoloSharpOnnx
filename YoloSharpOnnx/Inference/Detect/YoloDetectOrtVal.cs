@@ -12,9 +12,8 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect, IYoloDetectAsync
+    public class YoloDetectOrtVal : YoloDetectBase
     {
-        private bool disposedValue;
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
            : base(session, options, postprocess, preprocess, onnxModel, config)
         {
@@ -44,7 +43,7 @@ namespace YoloSharpOnnx.Inference.Detect
         //     Dispose(disposing: false);
         // }
 
-        public void Dispose()
+        protected override void DisposedBase()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
@@ -55,45 +54,7 @@ namespace YoloSharpOnnx.Inference.Detect
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
         }
-        public List<DetectionResult> Run(Mat inputImage)
-        {
-            return RunCore(inputImage);
-        }
-
-        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
-        {
-            return RunWithTimeCore(inputImage);
-        }
-
-
-
-        public DetectionBatchResult[] BatchDetect(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
-        {
-            return BatchDetectBase(listImg, processCallback, receiveAction);
-        }
-
-        public async Task<DetectionBatchResult[]> BatchDetectAsync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
-        {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
-        }
-
-
-        public IYoloDetectAsync GetYoloDetectAsync()
-        {
-            return this;
-        }
-
-        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> listImg)
-        {
-            return BatchDetectBaseForeachAsync(listImg);
-        }
-
-
-        public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
-        {
-            return this;
-        }
-
+       
         protected override OrtValue RunInference()
         {
             var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);

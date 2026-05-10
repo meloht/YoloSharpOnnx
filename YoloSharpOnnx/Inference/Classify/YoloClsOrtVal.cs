@@ -11,9 +11,9 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsOrtVal : YoloClsBase, IYoloClassify
+    public class YoloClsOrtVal : YoloClsBase
     {
-        private bool disposedValue;
+       
 
         public YoloClsOrtVal(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config, postprocess, preprocess)
@@ -44,7 +44,7 @@ namespace YoloSharpOnnx.Inference.Classify
         //     Dispose(disposing: false);
         // }
 
-        public void Dispose()
+        protected override void DisposedBase()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
@@ -56,29 +56,7 @@ namespace YoloSharpOnnx.Inference.Classify
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
         }
-        public List<ClsResult> Run(Mat inputImage)
-        {
-            return RunCore(inputImage);
-        }
-
-        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
-        {
-            return RunWithTimeCore(inputImage);
-        }
-        public ClsBatchResult[] BatchCls(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
-        {
-            return BatchDetectBase(listImg, processCallback, receiveAction);
-        }
-
-        public async Task<ClsBatchResult[]> BatchClsAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
-        {
-            return await BatchDetectBaseAsync(listImg, processCallback, receiveAction);
-        }
-
-        public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> listImg)
-        {
-            return BatchDetectBaseForeachAsync(listImg);
-        }
+       
 
         protected override OrtValue RunInference()
         {

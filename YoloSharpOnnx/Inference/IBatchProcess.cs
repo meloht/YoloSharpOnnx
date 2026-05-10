@@ -16,11 +16,6 @@ namespace YoloSharpOnnx.Inference
 
         TBatchResult BuildBatchResult(TBatchPreResult batchPreResult, List<TResult> results, long timestamp);
 
-        TBatchPreResult PreprocessImageChannel(string imagePath);
-        TBatchPreResult PreprocessImageChannel(Mat img, string imagePath);
 
-        void InitBufferPool(int batchPoolSize);
-
-        int BufferPoolUsedCount { get; }
     }
 }

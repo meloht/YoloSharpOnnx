@@ -16,6 +16,7 @@ namespace YoloSharpOnnx
     {
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
+
         private bool disposedValue;
 
 
@@ -34,7 +35,7 @@ namespace YoloSharpOnnx
             executionProvider.SetYoloConfiguration(yoloConfig);
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloClassify = executionProvider.CreateYoloClassify();
-          
+
         }
 
         public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
@@ -112,12 +113,11 @@ namespace YoloSharpOnnx
 
         #region Asynchronous
 
+
         public IYoloAsync CreateAsyncChannel()
         {
-            return new YoloChannelAsync(YoloConfiguration, _yoloDetect.GetYoloDetectAsync(), _yoloDetect.GetRunBatch());
+            return new YoloAsync(_yoloDetect, _yoloClassify, YoloConfiguration);
         }
-
-
         #endregion
 
 
@@ -127,13 +127,13 @@ namespace YoloSharpOnnx
         {
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
 
-            return _yoloDetect.BatchDetect(files, processCallback, receiveAction);
+            return _yoloDetect.BatchRun(files, processCallback, receiveAction);
         }
         public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return _yoloDetect.BatchDetect(files, processCallback, receiveAction);
+            return _yoloDetect.BatchRun(files, processCallback, receiveAction);
         }
 
 
@@ -141,7 +141,7 @@ namespace YoloSharpOnnx
         {
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
 
-            return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction);
+            return await _yoloDetect.BatchRunAsync(files, processCallback, receiveAction);
         }
 
 
@@ -149,13 +149,13 @@ namespace YoloSharpOnnx
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return await _yoloDetect.BatchDetectAsync(files, processCallback, receiveAction);
+            return await _yoloDetect.BatchRunAsync(files, processCallback, receiveAction);
         }
         public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> images)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return _yoloDetect.BatchDetectForeachAsync(files);
+            return _yoloDetect.BatchRunForeachAsync(files);
         }
 
 
@@ -168,20 +168,20 @@ namespace YoloSharpOnnx
         public ClsBatchResult[] RunBatchCls(string imgDir, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
-            return _yoloClassify.BatchCls(files, processCallback, receiveAction);
+            return _yoloClassify.BatchRun(files, processCallback, receiveAction);
         }
         public ClsBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return _yoloClassify.BatchCls(files, processCallback, receiveAction);
+            return _yoloClassify.BatchRun(files, processCallback, receiveAction);
         }
 
 
         public async Task<ClsBatchResult[]> RunBatchDetectAsync(string imgDir, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
-            return await _yoloClassify.BatchClsAsync(files, processCallback, receiveAction);
+            return await _yoloClassify.BatchRunAsync(files, processCallback, receiveAction);
         }
 
 
@@ -189,13 +189,13 @@ namespace YoloSharpOnnx
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return await _yoloClassify.BatchClsAsync(files, processCallback, receiveAction);
+            return await _yoloClassify.BatchRunAsync(files, processCallback, receiveAction);
         }
         public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> images)
         {
             var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
             YoloValidation.ValidationImageListPath(files, YoloConfiguration);
-            return _yoloClassify.BatchClsForeachAsync(files);
+            return _yoloClassify.BatchRunForeachAsync(files);
         }
 
 
@@ -278,11 +278,14 @@ namespace YoloSharpOnnx
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
+
                 _yoloDetect?.Dispose();
                 _yoloClassify?.Dispose();
+
                 disposedValue = true;
             }
         }
+
 
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~YoloSharp()

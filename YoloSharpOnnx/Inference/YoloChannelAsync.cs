@@ -9,14 +9,10 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference.Classify.Models;
-using YoloSharpOnnx.Inference.Detect;
-using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public abstract class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloAsync<TResult> where TPreChannelData : IGuidValue
+    public abstract class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloTaskAsync<TResult> where TPreChannelData : IGuidValue
     {
         // Producer/consumer
         private readonly Channel<TPreChannelData> _channel;
