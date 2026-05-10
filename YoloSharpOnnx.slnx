@@ -4,34 +4,25 @@
     <Platform Name="x64" />
   </Configurations>
   <Project Path="YoloSharpOnnx.ConsoleCPU/YoloSharpOnnx.ConsoleCPU.csproj">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.ConsoleDirectML/YoloSharpOnnx.ConsoleDirectML.csproj" Id="55e36b8c-ce3c-420c-9396-0c1bee5358d0">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.ConsoleGPU/YoloSharpOnnx.ConsoleGPU.csproj" Id="abf6b715-508b-4ad8-9886-1b66e0abf4fb">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.ConsoleOpenVINO/YoloSharpOnnx.ConsoleOpenVINO.csproj" Id="fe14d266-253b-4511-9301-863bf155d71c">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.Test/YoloSharpOnnx.Test.csproj" Id="737fba87-3fee-4a37-a53f-c7275abb14e2">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.TestCommon/YoloSharpOnnx.TestCommon.csproj" Id="77a335dd-c4a1-4443-a296-d52974521eb5">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
-    <Build Solution="Release|Any CPU" Project="false" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.TestIoBinding/YoloSharpOnnx.TestIoBinding.csproj" Id="426b9872-8a8a-4e6a-a402-35f707db425f">
-    <Platform Solution="*|x64" Project="x64" />
-    <Platform Solution="Debug|Any CPU" Project="x64" />
-    <Build Solution="Release|Any CPU" Project="false" />
+    <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj">
     <Platform Solution="*|x64" Project="x64" />

@@ -35,15 +35,7 @@ namespace YoloSharpOnnx.DataResult
             return DetectionToString(boxes);
         }
 
-        public static string SummaryOrder(this List<ClsResult> clsList)
-        {
-            if (clsList == null || clsList.Count == 0)
-                return string.Empty;
 
-            OrderList(clsList);
-            return ClsToString(clsList);
-
-        }
 
         private static void OrderList<T>(List<T> list) where T : IYoloResult
         {
