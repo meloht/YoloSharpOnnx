@@ -57,6 +57,7 @@ namespace YoloSharpOnnx
         #endregion
 
         #region Synchronous detect
+
         public List<DetectionResult> RunDetect(string imagePath)
         {
             YoloValidation.ValidationDetectModelType(_currentModelType);
@@ -92,7 +93,6 @@ namespace YoloSharpOnnx
 
 
         #region Synchronous classify
-
 
         public List<ClsResult> RunClassify(string imagePath)
         {

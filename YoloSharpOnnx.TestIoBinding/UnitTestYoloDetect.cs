@@ -3,12 +3,13 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
-
-namespace YoloSharpOnnx.Test
+namespace YoloSharpOnnx.TestIoBinding
 {
     public class UnitTestYoloDetect : IDisposable
     {
         private Dictionary<string, string> _dict;
+        private int _deviceId;
+
         private YoloSharp yolo11n;
         private YoloSharp yolo8n;
         private YoloSharp yolo26n;
@@ -16,9 +17,11 @@ namespace YoloSharpOnnx.Test
         public UnitTestYoloDetect()
         {
             _dict = TestDataUtils.GetYolo11Dict();
-            yolo11n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolo11n.onnx")));
-            yolo8n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolov8n.onnx")));
-            yolo26n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolo26n.onnx")));
+            _deviceId = Utils.GetMainGPU();
+
+            yolo11n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolo11n.onnx"), _deviceId));
+            yolo8n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolov8n.onnx"), _deviceId));
+            yolo26n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolo26n.onnx"), _deviceId));
         }
 
         [Theory]
@@ -56,7 +59,6 @@ namespace YoloSharpOnnx.Test
         }
 
 
-
         [Theory]
         [InlineData(TestDataUtils.Bus, Yolo26.Bus)]
         [InlineData(TestDataUtils.Zidane, Yolo26.Zidane)]
@@ -73,12 +75,14 @@ namespace YoloSharpOnnx.Test
             Assert.Equal(boxs, ans2);
         }
 
+
+
         [Fact]
         public async Task TestDetectAsyncYolo11()
         {
 
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
             using var yoloAsync = yolo.CreateAsyncChannel();
 
             foreach (var item in _dict)
@@ -98,14 +102,14 @@ namespace YoloSharpOnnx.Test
         public async Task TestDetectBatchForeachAsync()
         {
             string dir = TestDataUtils.GetImageDirDetect();
-
+           
             yolo11n.YoloConfiguration.BatchPoolSize = 4;
 
             List<string> imgs = TestDataUtils.GetImgPaths();
             int idx = 0;
             await foreach (var item in yolo11n.BatchDetectForeachAsync(imgs))
             {
-                idx++;
+                Interlocked.Increment(ref idx);
                 Assert.True(_dict.ContainsKey(item.ImagePath));
                 Assert.Equal(_dict[item.ImagePath], item.Results.SummaryOrder());
             }
@@ -119,6 +123,7 @@ namespace YoloSharpOnnx.Test
             string dir = TestDataUtils.GetImageDirDetect();
 
             yolo11n.YoloConfiguration.BatchPoolSize = 4;
+
             var processCallback = new ProcessCallback(_dict);
             var list = yolo11n.RunBatchDetect(dir, processCallback, ReceiveProcess);
 
@@ -132,13 +137,13 @@ namespace YoloSharpOnnx.Test
 
         }
 
-
         private void ReceiveProcess(DetectionBatchResult e)
         {
             Assert.True(_dict.ContainsKey(e.ImagePath));
             string res = e.Results.SummaryOrder();
             Assert.Equal(_dict[e.ImagePath], res);
         }
+
 
         public void Dispose()
         {

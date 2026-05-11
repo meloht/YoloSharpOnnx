@@ -32,7 +32,7 @@ namespace YoloSharpOnnx.DataResult
                 return string.Empty;
 
             var arr = OrderList(boxes);
-            return DetectionToString([.. arr]);
+            return DetectionToString(arr);
         }
 
 
@@ -44,7 +44,7 @@ namespace YoloSharpOnnx.DataResult
 
             return arr;
         }
-        private static string DetectionToString(List<DetectionResult> boxes)
+        private static string DetectionToString(IEnumerable<DetectionResult> boxes)
         {
             var dict = boxes.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
             string confs = string.Join(", ", boxes.Select(p => Math.Round(p.Confidence, 2)));

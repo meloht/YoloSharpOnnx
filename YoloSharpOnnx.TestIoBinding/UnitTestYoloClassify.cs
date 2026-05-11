@@ -6,23 +6,23 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
-namespace YoloSharpOnnx.Test
+namespace YoloSharpOnnx.TestIoBinding
 {
-
     public class UnitTestYoloClassify : IDisposable
     {
         private Dictionary<string, string> _dictCls;
-
+        private int _deviceId;
         private YoloSharp yolo11n;
         private YoloSharp yolo8n;
         private YoloSharp yolo26n;
-
         public UnitTestYoloClassify()
         {
             _dictCls = TestDataUtils.GetYolo11ClsDict();
-            yolo11n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolo11n-cls.onnx")));
-            yolo8n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolov8n-cls.onnx")));
-            yolo26n = new YoloSharp(new ExecutionProviderCPU(TestDataUtils.GetModelPath("yolo26n-cls.onnx")));
+            _deviceId = Utils.GetMainGPU();
+
+            yolo11n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolo11n-cls.onnx"), _deviceId));
+            yolo8n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolov8n-cls.onnx"), _deviceId));
+            yolo26n = new YoloSharp(new ExecutionProviderDirectML(TestDataUtils.GetModelPath("yolo26n-cls.onnx"), _deviceId));
         }
 
         [Theory]
@@ -47,7 +47,7 @@ namespace YoloSharpOnnx.Test
         public void TestClsYolo8(string path, string boxs)
         {
             string imgPath = TestDataUtils.GetImagePathCls(path);
-           
+
             var res = yolo8n.RunClassify(imgPath);
             string ans = res.Summary();
             Assert.Equal(boxs, ans);
@@ -63,7 +63,7 @@ namespace YoloSharpOnnx.Test
         public void TestClsYolo26(string path, string boxs)
         {
             string imgPath = TestDataUtils.GetImagePathCls(path);
-           
+
             var res = yolo26n.RunClassify(imgPath);
             string ans = res.Summary();
             Assert.Equal(boxs, ans);
@@ -76,10 +76,7 @@ namespace YoloSharpOnnx.Test
         [Fact]
         public async Task TestClsAsyncYolo11()
         {
-
-            string model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
-            using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(model));
-            using var yoloAsync = yolo.CreateAsyncChannel();
+            using var yoloAsync = yolo11n.CreateAsyncChannel();
 
             foreach (var item in _dictCls)
             {
@@ -100,7 +97,6 @@ namespace YoloSharpOnnx.Test
             string dir = TestDataUtils.GetImageDirDetect();
 
             yolo11n.YoloConfiguration.BatchPoolSize = 4;
-
             List<string> imgs = TestDataUtils.GetImgClsPaths();
             int idx = 0;
             await foreach (var item in yolo11n.BatchClsForeachAsync(imgs))
