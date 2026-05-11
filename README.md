@@ -128,7 +128,7 @@ yolo.DrawDetections(image,res);
 Cv2.ImWrite("bus_res.jpg", image);
 
 string printString = res.Summary();
-Console.WriteLine(printString)
+Console.WriteLine(printString);
 
 ```
 
