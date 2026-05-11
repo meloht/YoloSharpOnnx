@@ -9,7 +9,7 @@ namespace YoloSharpOnnx.TestIoBinding
     {
         private Dictionary<string, string> _dict;
         private Dictionary<string, string> _dictCls;
-        private int _deviceId = 0;
+        private int _deviceId = 1;
         public UnitTestYolo()
         {
             _dict = TestDataUtils.GetYolo11Dict();
