@@ -127,7 +127,7 @@ List<DetectionResult> res = yolo.RunDetect(image);
 yolo.DrawDetections(image,res);
 Cv2.ImWrite("bus_res.jpg", image);
 
-string printString = YoloUtils.GetResult(res);
+string printString = res.Summary();
 Console.WriteLine(printString)
 
 ```
@@ -172,7 +172,7 @@ private static async Task TestInferAsync()
         for (int i = 0; i < files.Length; i++)
         {
             var res = await yoloAsync.RunDetectAsync(files[i]);
-            Console.WriteLine($"{i + 1} {YoloUtils.GetResult(res)}");
+            Console.WriteLine($"{i + 1} {res.Summary()}");
         }
     }
     _stopwatchTotal.Stop();
@@ -204,8 +204,7 @@ private static void TestBatchInfer()
 }
 private static void ReceiveProcess(DetectionBatchResult e)
 {
-   
-    string res = YoloUtils.GetResult(e.Results)
+    string res = e.Results.Summary();
 }
 internal class ProcessCallback : IBatchProcessCallback
 {
@@ -213,7 +212,7 @@ internal class ProcessCallback : IBatchProcessCallback
     public void ReceiveProcessResult(DetectionBatchResult e)
     {
        
-        string res = YoloUtils.GetResult(e.Results);
+        string res = e.Results.Summary();
       
     }
 }
@@ -234,7 +233,7 @@ private static async Task TestBatchForeachInfer()
         yolo.YoloConfiguration.BatchPoolSize = 30;
         await foreach (var item in yolo.BatchDetectForeachAsync(files.ToList()))
         {
-            Console.WriteLine($"{item.ImagePath} {YoloUtils.GetResult(item.Results)}");
+            Console.WriteLine($"{item.ImagePath} {item.Results.Summary()}");
         }
     }
     _stopwatch.Stop();
