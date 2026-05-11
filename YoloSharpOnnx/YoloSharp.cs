@@ -22,6 +22,7 @@ namespace YoloSharpOnnx
 
 
         public YoloConfig YoloConfiguration { get; set; }
+        public ModelType CurrentModelType { get { return _currentModelType; } }
 
         #region Constructor
 
