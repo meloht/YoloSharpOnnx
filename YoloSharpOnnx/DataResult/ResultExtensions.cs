@@ -31,22 +31,25 @@ namespace YoloSharpOnnx.DataResult
             if (boxes == null || boxes.Count == 0)
                 return string.Empty;
 
-            OrderList(boxes);
-            return DetectionToString(boxes);
+            var arr = OrderList(boxes);
+            return DetectionToString(arr);
         }
 
 
 
-        private static void OrderList<T>(List<T> list) where T : IYoloResult
+        private static T[] OrderList<T>(List<T> list) where T : IYoloResult
         {
-            list.Sort((a, b) => a.ClassName.CompareTo(b.ClassName));
+            var arr = list.ToArray();
+            Array.Sort(arr, (a, b) => a.ClassName.CompareTo(b.ClassName));
+
+            return arr;
         }
-        private static string DetectionToString(List<DetectionResult> boxes)
+        private static string DetectionToString(IEnumerable<DetectionResult> boxes)
         {
             var dict = boxes.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
             string confs = string.Join(", ", boxes.Select(p => Math.Round(p.Confidence, 2)));
             return $"{string.Join(", ", dict)} [{confs}]";
-            
+
         }
         private static string ClsToString(List<ClsResult> clsList)
         {

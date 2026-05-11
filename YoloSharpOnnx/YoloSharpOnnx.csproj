@@ -13,10 +13,10 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library for object detection base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
-		<Version>2.0.1</Version>
+		<Version>2.0.2</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 2.0.1 model task validation</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 2.0.2 EnumExtensions bug fixed</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 

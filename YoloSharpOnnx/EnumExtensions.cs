@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +11,7 @@ namespace YoloSharpOnnx
 {
     public static class EnumExtensions
     {
-        private static readonly Dictionary<ModelType, string> _cache = new();
+        private static readonly ConcurrentDictionary<ModelType, string> _cache = new();
         public static string GetDescription(this ModelType value)
         {
             if(_cache.ContainsKey(value))
@@ -37,7 +38,7 @@ namespace YoloSharpOnnx
                 return;
             if (!_cache.ContainsKey(enumType))
             {
-                _cache.Add(enumType, val);
+                _cache.TryAdd(enumType, val);
             }
         }
     }
