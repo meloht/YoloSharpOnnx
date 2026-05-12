@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public struct SpeedResult
+    public class SpeedResult
     {
         public long Preprocess { get; set; }
 
@@ -14,13 +14,7 @@ namespace YoloSharpOnnx.DataResult
 
         public long TotalTime { get; set; }
 
-        public SpeedResult(long preprocess, long inference, long postprocess)
-        {
-            Preprocess = preprocess;
-            Inference = inference;
-            Postprocess = postprocess;
-            TotalTime = preprocess + inference + postprocess;
-        }
+      
 
         public void SumTotal()
         {

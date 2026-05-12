@@ -23,17 +23,19 @@ namespace YoloSharpOnnx.Inference.Detect
         private List<Rect> _boxes = new List<Rect>();
         private List<float> _scores = new List<float>();
         private List<int> _classIds = new List<int>();
+        private readonly YoloConfig _yoloConfig;
 
-        public DetPostprocessNMS(int boxNum, LabelModel[] labels)
+        public DetPostprocessNMS(int boxNum, LabelModel[] labels, YoloConfig yoloConfig)
         {
             _labels = labels;
             _boxNums = boxNum;
             _boxNums2 = _boxNums * 2;
             _boxNums3 = _boxNums * 3;
             _boxNums4 = _boxNums * 4;
+            _yoloConfig = yoloConfig;
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
             _boxes.Clear();
             _scores.Clear();
@@ -61,7 +63,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 }
 
                 // Stop early if confidence is low
-                if (bestConfidence < yoloConfig.Confidence)
+                if (bestConfidence < _yoloConfig.Confidence)
                     continue;
 
                 float x = ortSpan[i] - preResult.PadX;
@@ -94,7 +96,7 @@ namespace YoloSharpOnnx.Inference.Detect
             int[] indices = [];
             if (_boxes.Count > 0)
             {
-                CvDnn.NMSBoxes(_boxes, _scores, yoloConfig.Confidence, yoloConfig.IoU, out indices);
+                CvDnn.NMSBoxes(_boxes, _scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
             }
             List<DetectionResult> results = new List<DetectionResult>();
             // 绘制检测结果

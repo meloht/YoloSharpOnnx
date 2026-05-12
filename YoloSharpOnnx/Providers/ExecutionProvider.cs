@@ -73,7 +73,7 @@ namespace YoloSharpOnnx.Providers
             }
 
             var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
-            var preprocess = new ClsPreprocess(onnxModel);
+            var preprocess = new ClsPreprocess(onnxModel, YoloConfiguration);
 
             return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
         }
@@ -83,14 +83,14 @@ namespace YoloSharpOnnx.Providers
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new DetPostprocessEndToEnd(onnxModel.Labels);
+                return new DetPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
             }
-            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
         {
-            return new DetPreprocessComm(onnxModel);
+            return new DetPreprocessComm(onnxModel, YoloConfiguration);
         }
 
         protected OnnxModel ParseOnnxModel(InferenceSession session)
@@ -107,11 +107,11 @@ namespace YoloSharpOnnx.Providers
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
-            model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
-            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
-
             model.InputHeight = (int)model.InputShape[2];
             model.InputWidth = (int)model.InputShape[3];
+
+            model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
+            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
             model.OutputShapeSize = ShapeUtils.GetSizeForShape(model.OutputShape);
@@ -120,7 +120,7 @@ namespace YoloSharpOnnx.Providers
             model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
 
             model.Labels = GetModelLabels(session);
-           
+
             var metaData = session.ModelMetadata.CustomMetadataMap;
 
             bool isEndToEnd = false;
@@ -139,7 +139,7 @@ namespace YoloSharpOnnx.Providers
                 model.BoxNum = outputMeta[model.OutputName0].Dimensions[2];
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
-           
+
             return model;
         }
 

@@ -15,13 +15,15 @@ namespace YoloSharpOnnx.Inference.Detect
     {
         protected readonly Scalar _paddingColor;
         private readonly OnnxModel _onnxModel;
+        private readonly YoloConfig _yoloConfig;
 
-        public DetPreprocessComm(OnnxModel onnxModel)
+        public DetPreprocessComm(OnnxModel onnxModel, YoloConfig yoloConfig)
         {
             _onnxModel = onnxModel;
             _paddingColor = new Scalar(114, 114, 114);
+            _yoloConfig = yoloConfig;
         }
-        public PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
+        public PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer)
         {
 
             // 1. 获取原始图像尺寸
@@ -42,7 +44,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
             // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
 
-            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
+            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: _yoloConfig.ResizeAlgorithm);
 
 
             int top = (int)Math.Round(padH - 0.1);

@@ -32,9 +32,7 @@ namespace YoloSharpOnnx.Inference
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
-
-        protected abstract OrtValue RunInference();
-        protected abstract void AfterInference(OrtValue ortValue);
+       
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
@@ -209,7 +207,7 @@ namespace YoloSharpOnnx.Inference
         {
             InitBufferPool(_config.BatchPoolSize);
 
-            var ChannelOptions =YoloUtils.GetChannelOptions(_config.BatchPoolSize);
+            var ChannelOptions = YoloUtils.GetChannelOptions(_config.BatchPoolSize);
             Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
 
             _ = PreprocessBatch(listImg, channel.Writer);

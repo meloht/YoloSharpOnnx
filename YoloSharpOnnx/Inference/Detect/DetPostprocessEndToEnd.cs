@@ -12,11 +12,13 @@ namespace YoloSharpOnnx.Inference.Detect
     public class DetPostprocessEndToEnd : IDetPostprocess
     {
         private readonly LabelModel[] _labels;
-        public DetPostprocessEndToEnd(LabelModel[] labels)
+        private readonly YoloConfig _yoloConfig;
+        public DetPostprocessEndToEnd(LabelModel[] labels, YoloConfig yoloConfig)
         {
             _labels = labels;
+            _yoloConfig = yoloConfig;
         }
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
+        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
             var detections = new List<DetectionResult>();
 
@@ -37,7 +39,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 float confidence = data[offset + 4];
 
                 // 过滤低置信度结果
-                if (confidence < yoloConfig.Confidence) continue;
+                if (confidence < _yoloConfig.Confidence) continue;
 
                 // 3. 提取坐标并还原到原始图像尺寸
                 // 注意：YOLOv26 默认输出通常是 [x1, y1, x2, y2]

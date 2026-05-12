@@ -12,11 +12,10 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsIoBinding : YoloClsBase
+    public class YoloClsIoBinding : YoloClsBase, IYoloClassify
     {
-
         private OrtIoBinding _binding;
-        protected OrtValue _outputOrtValue;
+        private OrtValue _outputOrtValue;
         public YoloClsIoBinding(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config, postprocess, preprocess)
         {
@@ -45,9 +44,8 @@ namespace YoloSharpOnnx.Inference.Classify
         }
        
 
-        protected override OrtValue RunInference()
+        private  void RunInference()
         {
-
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
             _binding.SynchronizeBoundInputs();
@@ -56,13 +54,33 @@ namespace YoloSharpOnnx.Inference.Classify
             _session.RunWithBinding(_runOptions, _binding);
             _binding.SynchronizeBoundOutputs();
 
-            return _outputOrtValue;
-
+        }
+        public List<ClsResult> Run(Mat inputImage)
+        {
+            // 预处理图像
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            // 执行推理
+            RunInference();
+            // 后处理
+            return _postprocess.PostProcess(_outputOrtValue);
         }
 
-        protected override void AfterInference(OrtValue ortValue)
+        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
         {
+            SpeedResult speed = new SpeedResult();
 
+            // 预处理图像
+            PreprocessTime(inputImage, speed);
+
+            _stopwatch.Restart();
+            // 执行推理
+            RunInference();
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+
+            // 后处理
+            var res = PostProcessTime(_outputOrtValue, speed);
+            return new YoloResult<ClsResult>(res, speed);
         }
 
         protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)

@@ -12,7 +12,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectOrtVal : YoloDetectBase
+    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect
     {
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
            : base(session, options, postprocess, preprocess, onnxModel, config)
@@ -20,26 +20,15 @@ namespace YoloSharpOnnx.Inference.Detect
 
             Warmup();
         }
-       
+
         protected override void DisposedSub()
         {
         }
+
         private void Warmup()
         {
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var output0 = outputs[0];
-        }
-       
-        protected override OrtValue RunInference()
-        {
-            var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            return outputs[0];
-        }
-
-        protected override void AfterInference(OrtValue ortValue)
-        {
-            ortValue.Dispose();
-            ortValue = null;
         }
 
         protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
@@ -49,9 +38,40 @@ namespace YoloSharpOnnx.Inference.Detect
             using var output0 = outputs[0];
             _matPool.Return(preResult.Data);
             // 后处理
-            var result = _postprocess.PostProcess(output0, preResult.PreResult, _config);
+            var result = _postprocess.PostProcess(output0, preResult.PreResult);
 
             return result;
+        }
+
+        public List<DetectionResult> Run(Mat inputImage)
+        {
+            // 预处理图像
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            using var outputs0 = outputs[0];
+
+            // 后处理
+            return _postprocess.PostProcess(outputs0, preRes);
+        }
+
+        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
+        {
+            SpeedResult speed = new SpeedResult();
+            // 预处理图像
+            var preRes = PreprocessTime(inputImage, speed);
+
+            _stopwatch.Restart();
+            // 执行推理
+            using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
+            using var outputs0 = outputs[0];
+            _stopwatch.Stop();
+            speed.Inference = _stopwatch.ElapsedMilliseconds;
+
+            // 后处理
+            var res = PostProcessTime(outputs0, preRes, speed);
+            return new YoloResult<DetectionResult>(res, speed);
         }
     }
 }

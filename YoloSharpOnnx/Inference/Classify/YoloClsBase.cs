@@ -7,16 +7,19 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>, IYoloClassify
+    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, 
+        IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
         private bool disposedValue;
 
+       
         protected abstract void DisposedSub();
         public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config)
@@ -25,57 +28,35 @@ namespace YoloSharpOnnx.Inference.Classify
             _preprocess = preprocess;
             InitBatchProcess(this);
         }
-
-
-        public List<ClsResult> Run(Mat inputImage)
+        protected void PreprocessTime(Mat inputImage, SpeedResult speed)
         {
-            // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-            // 执行推理
-            var ortValue = RunInference();
-
-            // 后处理
-            var result = _postprocess.PostProcess(ortValue);
-
-            AfterInference(ortValue);
-
-            return result;
-        }
-
-        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
-        {
-            SpeedResult speed = new SpeedResult();
-
             _stopwatch.Restart();
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+
+        }
+
+
+        protected List<ClsResult> PostProcessTime(OrtValue output0,  SpeedResult speed)
+        {
             _stopwatch.Restart();
-
-            // 执行推理
-            var ortValue = RunInference();
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
             // 后处理
-            var res = _postprocess.PostProcess(ortValue);
-            AfterInference(ortValue);
+            var result = _postprocess.PostProcess(output0);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
             speed.SumTotal();
 
-            return new YoloResult<ClsResult>(res, speed);
+            return result;
         }
 
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
+            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer);
             return new PreClsResultBatch(imagePath, imageBatchData);
         }
 
