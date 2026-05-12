@@ -15,36 +15,43 @@ namespace YoloSharpOnnx.Inference.Segment
 {
     public class YoloSegIoBinding : YoloSegBase, IYoloSegment
     {
-        private OrtIoBinding _binding;
-        private OrtValue _outputOrtValue0;
-        private OrtValue _outputOrtValue1;
+        private readonly OrtIoBinding _binding;
+        private readonly OrtValue _outputOrtValue0;
+        private readonly OrtValue _outputOrtValue1;
+        private readonly FixedBuffer _outputFixedBuffer0;
+        private readonly FixedBuffer _outputFixedBuffer1;
+
         public YoloSegIoBinding(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, postprocess, preprocess, onnxModel, config)
         {
             _binding = _session.CreateIoBinding();
 
+            _outputFixedBuffer0 = new FixedBuffer(_onnxModel.OutputShapeSize0);
+            _outputFixedBuffer1 = new FixedBuffer(_onnxModel.OutputShapeSize1);
+
             _outputOrtValue0 = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-            _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+            _onnxModel.OutputShape0, _outputFixedBuffer0.Address, _onnxModel.OutputSizeInBytes0);
 
             _outputOrtValue1 = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-          _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+            _onnxModel.OutputShape1, _outputFixedBuffer1.Address, _onnxModel.OutputSizeInBytes1);
 
-            Warmup();
+            RunInference();
         }
-        private void Warmup()
+
+        protected override void DisposedSub()
+        {
+            _binding.Dispose();
+            _outputOrtValue0.Dispose();
+            _outputOrtValue1.Dispose();
+            _outputFixedBuffer0.Dispose();
+            _outputFixedBuffer1.Dispose();
+        }
+
+        private void RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue0);
-            _binding.SynchronizeBoundInputs();
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-        }
-
-        private void RunInference(PreDetectResult preDetect)
-        {
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue0);
+            _binding.BindOutput(_onnxModel.OutputName1, _outputOrtValue1);
             _binding.SynchronizeBoundInputs();
 
             //_binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
@@ -67,7 +74,7 @@ namespace YoloSharpOnnx.Inference.Segment
             var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             // 执行推理
-            RunInference(preRes);
+            RunInference();
 
             // 后处理
             return _postprocess.PostProcess(_outputOrtValue0, _outputOrtValue1, preRes);
@@ -81,7 +88,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
             _stopwatch.Restart();
             // 执行推理
-            RunInference(preRes);
+            RunInference();
             _stopwatch.Stop();
             speed.Inference = _stopwatch.ElapsedMilliseconds;
 
@@ -90,29 +97,35 @@ namespace YoloSharpOnnx.Inference.Segment
             return new YoloResult<SegResult>(res, speed);
         }
 
-        protected override void DisposedSub()
-        {
-            _binding.Dispose();
-            _outputOrtValue0.Dispose();
-            _outputOrtValue1.Dispose();
-        }
-
         protected override List<SegResult> RunBatchInfer(PreDetectResultBatch preResult)
         {
-            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
+            bool isReturn = false;
+            try
+            {
+                _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+                _binding.SynchronizeBoundInputs();
 
-            // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            using var output0 = results[0];
-            using var output1 = results[1];
-            _matPool.Return(preResult.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
+                // 执行推理
+                using var results = _session.RunWithBoundResults(_runOptions, _binding);
+                _binding.SynchronizeBoundOutputs();
+                using var output0 = results[0];
+                using var output1 = results[1];
+                _matPool.Return(preResult.Data);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
 
-            return result;
+                return result;
+            }
+            finally 
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+           
         }
     }
 }

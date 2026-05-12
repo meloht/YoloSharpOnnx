@@ -111,13 +111,28 @@ namespace YoloSharpOnnx.Providers
             model.InputWidth = (int)model.InputShape[3];
 
             model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
-            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
+            model.OutputShape0 = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputShape1 = Array.ConvertAll<int, long>(outputMeta[model.OutputName1].Dimensions, Convert.ToInt64);
+            }
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
-            model.OutputShapeSize = ShapeUtils.GetSizeForShape(model.OutputShape);
+            model.OutputShapeSize0 = ShapeUtils.GetSizeForShape(model.OutputShape0);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputShapeSize1 = ShapeUtils.GetSizeForShape(model.OutputShape1);
+            }
 
             model.InputSizeInBytes = model.InputShapeSize * sizeof(float);
-            model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
+            model.OutputSizeInBytes0 = model.OutputShapeSize0 * sizeof(float);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputSizeInBytes1 = model.OutputShapeSize1 * sizeof(float);
+            }
 
             model.Labels = GetModelLabels(session);
 

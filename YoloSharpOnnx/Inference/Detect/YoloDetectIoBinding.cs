@@ -15,52 +15,31 @@ namespace YoloSharpOnnx.Inference.Detect
 {
     public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect
     {
-        private OrtIoBinding _binding;
-        private OrtValue _outputOrtValue;
-
+        private readonly OrtIoBinding _binding;
+        private readonly OrtValue _outputOrtValue;
+        private readonly FixedBuffer _outputFixedBuffer;
 
         public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
           : base(session, options, postprocess, preprocess, onnxModel, config)
         {
 
             _binding = _session.CreateIoBinding();
-
+            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize0);
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
-            _onnxModel.OutputShape, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes);
+            _onnxModel.OutputShape0, _outputFixedBuffer.Address, _onnxModel.OutputSizeInBytes0);
 
-            Warmup();
+            RunInference();
         }
 
         protected override void DisposedSub()
         {
             _binding.Dispose();
             _outputOrtValue.Dispose();
-        }
-
-        private void Warmup()
-        {
-            _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
-            _binding.SynchronizeBoundInputs();
-
-            _session.RunWithBinding(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-        }
-
-        public List<DetectionResult> Run(Mat inputImage)
-        {
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
-
-            // 执行推理
-            RunInference(preRes);
-
-            // 后处理
-            return _postprocess.PostProcess(_outputOrtValue, preRes); 
+            _outputFixedBuffer.Dispose();
         }
 
 
-        private void RunInference(PreDetectResult preDetect)
+        private void RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
@@ -79,7 +58,17 @@ namespace YoloSharpOnnx.Inference.Detect
             //using var output = results[0];
 
         }
+        public List<DetectionResult> Run(Mat inputImage)
+        {
+            // 预处理图像
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
+            // 执行推理
+            RunInference();
+
+            // 后处理
+            return _postprocess.PostProcess(_outputOrtValue, preRes); 
+        }
 
         public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
         {
@@ -89,7 +78,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
             _stopwatch.Restart();
             // 执行推理
-            RunInference(preRes);
+            RunInference();
             _stopwatch.Stop();
             speed.Inference = _stopwatch.ElapsedMilliseconds;
 
@@ -102,19 +91,32 @@ namespace YoloSharpOnnx.Inference.Detect
 
         protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
         {
-            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
-            _binding.SynchronizeBoundInputs();
+            bool isReturn = false;
+            try
+            {
+                _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+                _binding.SynchronizeBoundInputs();
 
-            // 执行推理
-            using var results = _session.RunWithBoundResults(_runOptions, _binding);
-            _binding.SynchronizeBoundOutputs();
-            using var output = results[0];
-            _matPool.Return(preResult.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output, preResult.PreResult);
+                // 执行推理
+                using var results = _session.RunWithBoundResults(_runOptions, _binding);
+                _binding.SynchronizeBoundOutputs();
+                using var output = results[0];
+                _matPool.Return(preResult.Data);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output, preResult.PreResult);
 
-            return result;
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+          
         }
 
 

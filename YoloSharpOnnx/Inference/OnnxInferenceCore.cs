@@ -19,7 +19,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly RunOptions _runOptions;
 
         protected readonly FixedBuffer _inputFixedBuffer;
-        protected readonly FixedBuffer _outputFixedBuffer;
 
         protected readonly OnnxModel _onnxModel;
         protected OrtValue _inputOrtValue;
@@ -32,7 +31,6 @@ namespace YoloSharpOnnx.Inference
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
-       
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
@@ -46,7 +44,6 @@ namespace YoloSharpOnnx.Inference
             _runOptions = new RunOptions();
 
             _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
-            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize);
 
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
@@ -248,7 +245,7 @@ namespace YoloSharpOnnx.Inference
             _matPool?.Dispose();
 
             _inputFixedBuffer.Dispose();
-            _outputFixedBuffer.Dispose();
+            
             _runOptions.Dispose();
             _session.Dispose();
             _options.Dispose();

@@ -17,9 +17,11 @@ namespace YoloSharpOnnx.Models
         public int InputHeight { get; set; }
 
         public long[] InputShape { get; set; }
-        public long[] OutputShape { get; set; }
+        public long[] OutputShape0 { get; set; }
+        public long[] OutputShape1 { get; set; }
         public long InputShapeSize { get; set; }
-        public long OutputShapeSize { get; set; }
+        public long OutputShapeSize0 { get; set; }
+        public long OutputShapeSize1 { get; set; }
         public LabelModel[] Labels { get; set; }
 
         public bool IsEndToEnd { get; set; }
@@ -28,7 +30,8 @@ namespace YoloSharpOnnx.Models
         public Scalar[] ColorPalette { get; set; }
 
         public long InputSizeInBytes { get; set; }
-        public long OutputSizeInBytes { get; set; }
+        public long OutputSizeInBytes0 { get; set; }
+        public long OutputSizeInBytes1 { get; set; }
 
         public DeviceType DeviceType { get; set; }
 

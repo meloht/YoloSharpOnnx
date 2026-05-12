@@ -28,19 +28,30 @@ namespace YoloSharpOnnx.Inference.Detect
         private void Warmup()
         {
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
         }
 
         protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
         {
-            // 执行推理
-            using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
-            using var output0 = outputs[0];
-            _matPool.Return(preResult.Data);
-            // 后处理
-            var result = _postprocess.PostProcess(output0, preResult.PreResult);
-
-            return result;
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+                using var output0 = outputs[0];
+                _matPool.Return(preResult.Data);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output0, preResult.PreResult);
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+           
         }
 
         public List<DetectionResult> Run(Mat inputImage)
