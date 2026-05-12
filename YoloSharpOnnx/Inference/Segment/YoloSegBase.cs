@@ -113,12 +113,12 @@ namespace YoloSharpOnnx.Inference.Segment
 
         public IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync()
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public IRunBatch<SegResult, PreDetectResultBatch> GetRunBatch()
         {
-            throw new NotImplementedException();
+            return this;
         }
     }
 }

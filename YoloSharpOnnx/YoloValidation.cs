@@ -65,7 +65,7 @@ namespace YoloSharpOnnx
         {
             if (currentModelType != ModelType.ObjectDetection)
             {
-                throw new ArgumentException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run detect task");
+                throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run detect task");
             }
         }
 
@@ -73,7 +73,15 @@ namespace YoloSharpOnnx
         {
             if (currentModelType != ModelType.Classification)
             {
-                throw new ArgumentException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run classify task");
+                throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run classify task");
+            }
+        }
+
+        public static void ValidationSegModelType(ModelType currentModelType)
+        {
+            if (currentModelType != ModelType.Segmentation)
+            {
+                throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run segment task");
             }
         }
     }

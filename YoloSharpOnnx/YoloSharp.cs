@@ -7,6 +7,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 
@@ -16,6 +17,7 @@ namespace YoloSharpOnnx
     {
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
+        private IYoloSegment _yoloSegment;
         private ModelType _currentModelType;
 
         private bool disposedValue;
@@ -37,6 +39,7 @@ namespace YoloSharpOnnx
             executionProvider.SetYoloConfiguration(yoloConfig);
             _yoloDetect = executionProvider.CreateYoloDetect();
             _yoloClassify = executionProvider.CreateYoloClassify();
+            _yoloSegment = executionProvider.CreateYoloSegment();
             _currentModelType = executionProvider.CurrentModelType;
 
         }
@@ -127,12 +130,27 @@ namespace YoloSharpOnnx
 
         #endregion
 
+        #region Synchronous segment
+
+        public YoloResult<SegResult> RunSegmentWithTime(string imagePath)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloSegment.RunWithTime(img);
+            }
+        }
+
+        #endregion
+
+
         #region Asynchronous
 
 
         public IYoloAsync CreateAsyncChannel()
         {
-            return new YoloAsync(_yoloDetect, _yoloClassify, YoloConfiguration, _currentModelType);
+            return new YoloAsync(_yoloDetect, _yoloClassify, _yoloSegment, YoloConfiguration, _currentModelType);
         }
         #endregion
 

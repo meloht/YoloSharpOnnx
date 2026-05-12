@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -36,6 +37,11 @@ namespace YoloSharpOnnx.Providers
             sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             sessionOptions.EnableCpuMemArena = true;
             return sessionOptions;
+        }
+
+        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloSegOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }

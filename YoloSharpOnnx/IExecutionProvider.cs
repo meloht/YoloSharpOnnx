@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 
 namespace YoloSharpOnnx
 {
@@ -10,6 +11,8 @@ namespace YoloSharpOnnx
     {
         IYoloDetect CreateYoloDetect();
         IYoloClassify CreateYoloClassify();
+
+        IYoloSegment CreateYoloSegment();
 
         ModelType CurrentModelType { get; }
         void SetYoloConfiguration(YoloConfig yoloConfig);

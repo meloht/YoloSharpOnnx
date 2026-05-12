@@ -9,6 +9,7 @@ using System.Text;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -27,6 +28,10 @@ namespace YoloSharpOnnx.Providers
 
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
+
+        protected abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+
+
         protected abstract DeviceType GetDeviceType();
         private readonly Random _rand;
         public ExecutionProvider(string modelPath)
@@ -52,7 +57,7 @@ namespace YoloSharpOnnx.Providers
                 options.Dispose();
                 return null;
             }
-            var postprocess = GetPostprocessor(onnxModel);
+            var postprocess = GetDetPostprocessor(onnxModel);
             var preprocess = GetPreprocess(onnxModel);
 
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
@@ -77,15 +82,40 @@ namespace YoloSharpOnnx.Providers
 
             return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
         }
+        public IYoloSegment CreateYoloSegment()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.Segmentation)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
+            var postprocess = GetSegPostprocessor(onnxModel);
+            var preprocess = GetPreprocess(onnxModel);
 
+            return GetYoloSegment(session, options, postprocess, preprocess, onnxModel);
+        }
 
-        private IDetPostprocess GetPostprocessor(OnnxModel onnxModel)
+        private IDetPostprocess GetDetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {
                 return new DetPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
             }
             return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels, YoloConfiguration);
+        }
+
+        private ISegPostprocess GetSegPostprocessor(OnnxModel onnxModel)
+        {
+            if (onnxModel.IsEndToEnd)
+            {
+                return new SegPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
+            }
+            return new SegPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)

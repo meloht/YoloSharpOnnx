@@ -25,7 +25,8 @@
     <Platform Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx.WinFormsDemo/YoloSharpOnnx.WinFormsDemo.csproj" Id="cf58e583-a360-4cf7-9930-1e10a013449f">
-    <Platform Solution="Debug|*" Project="x64" />
+    <Platform Solution="*|Any CPU" Project="x64" />
+    <Platform Solution="Debug|x64" Project="x64" />
   </Project>
   <Project Path="YoloSharpOnnx/YoloSharpOnnx.csproj">
     <Platform Solution="*|x64" Project="x64" />

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -18,10 +19,7 @@ namespace YoloSharpOnnx.Providers
         public ExecutionProviderDirectML(string modelPath, int deviceId) : base(modelPath)
         {
             this._deviceId = deviceId;
-
-
         }
-
 
         protected override DeviceType GetDeviceType()
         {
@@ -47,6 +45,11 @@ namespace YoloSharpOnnx.Providers
             sessionOptions.EnableCpuMemArena = true;
 
             return sessionOptions;
+        }
+
+        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }
