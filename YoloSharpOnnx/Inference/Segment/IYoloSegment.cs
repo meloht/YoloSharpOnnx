@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
         YoloResult<SegResult> RunWithTime(Mat inputImage);
 
-        void DrawDetections(Mat inputImage, List<SegResult> list);
+        void DrawSegments(Mat inputImage, List<SegResult> list);
 
         SegBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction);
 

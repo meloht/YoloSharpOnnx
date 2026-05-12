@@ -47,6 +47,14 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawClassification(image, result.Items);
                 ShowImageForm(_image, image.ToBytes());
             }
+            else if (yolo.CurrentModelType == ModelType.Segmentation)
+            {
+                var result = yolo.RunSegmentWithTime(_image);
+                res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
+
+                yolo.DrawSegment(image, result.Items);
+                ShowImageForm(_image, image.ToBytes());
+            }
 
 
             this.txtReuslt.Text = res;

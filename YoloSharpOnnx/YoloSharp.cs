@@ -301,6 +301,31 @@ namespace YoloSharpOnnx
             Cv2.ImWrite(saveFileName, img);
         }
 
+
+        public void DrawSegment(Mat inputImage, List<SegResult> list)
+        {
+            _yoloSegment.DrawSegments(inputImage, list);
+        }
+        public void DrawSegment(Mat inputImage, List<SegResult> list, string saveFileName)
+        {
+            _yoloSegment.DrawSegments(inputImage, list);
+            Cv2.ImWrite(saveFileName, inputImage);
+        }
+
+        public void DrawSegment(string inputImage, List<SegResult> list)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloSegment.DrawSegments(img, list);
+        }
+        public void DrawSegmentAndSave(string inputImage, List<SegResult> list, string saveFileName)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloSegment.DrawSegments(img, list);
+            Cv2.ImWrite(saveFileName, img);
+        }
+
         #endregion
 
 

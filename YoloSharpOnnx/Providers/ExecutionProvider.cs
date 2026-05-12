@@ -137,8 +137,7 @@ namespace YoloSharpOnnx.Providers
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
-            model.InputHeight = (int)model.InputShape[2];
-            model.InputWidth = (int)model.InputShape[3];
+         
 
             model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
             model.OutputShape0 = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
@@ -147,6 +146,8 @@ namespace YoloSharpOnnx.Providers
             {
                 model.OutputShape1 = Array.ConvertAll<int, long>(outputMeta[model.OutputName1].Dimensions, Convert.ToInt64);
             }
+            model.InputHeight = (int)model.InputShape[2];
+            model.InputWidth = (int)model.InputShape[3];
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
             model.OutputShapeSize0 = ShapeUtils.GetSizeForShape(model.OutputShape0);
@@ -182,6 +183,10 @@ namespace YoloSharpOnnx.Providers
             if (model.ModelType == ModelType.ObjectDetection)
             {
                 model.BoxNum = outputMeta[model.OutputName0].Dimensions[2];
+                model.ColorPalette = GenerateColorPalette(model.Labels.Length);
+            }
+            else if (model.ModelType == ModelType.Segmentation)
+            {
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
 

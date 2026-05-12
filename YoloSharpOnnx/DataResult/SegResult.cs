@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,16 +9,13 @@ namespace YoloSharpOnnx.DataResult
 {
     public class SegResult : IYoloResult, IYoloSummary<SegResult>
     {
+        public Rect Box { get; set; }
         public string ClassName { get; set; }
         public int ClassId { get; set; }
         public float Confidence { get; set; }
 
-        public SegResult(string className, int classId, float confidence)
-        {
-            ClassName = className;
-            ClassId = classId;
-            Confidence = confidence;
-        }
+        public Mat Mask { get; set; }
+
 
         static string IYoloSummary<SegResult>.Describe(List<SegResult> predictResults)
         {

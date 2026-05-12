@@ -106,9 +106,28 @@ namespace YoloSharpOnnx.Inference.Segment
         }
 
 
-        public void DrawDetections(Mat inputImage, List<SegResult> list)
+        public void DrawSegments(Mat inputImage, List<SegResult> list)
         {
-            throw new NotImplementedException();
+            foreach (var res in list)
+            {
+                // 随机颜色
+                var color = _onnxModel.ColorPalette[res.ClassId];
+
+                // 画框
+                Cv2.Rectangle(inputImage, res.Box, color, 2);
+
+                // 掩码叠加（半透明）
+                using Mat maskColor = new Mat();
+                Cv2.CvtColor(res.Mask, maskColor, ColorConversionCodes.GRAY2BGR);
+                maskColor.ConvertTo(maskColor, MatType.CV_8UC3, 255);
+                Cv2.AddWeighted(inputImage, 0.7, maskColor, 0.3, 0, inputImage);
+
+                // 文字
+                string label = $"cls:{res.ClassId} {res.Confidence:F2}";
+                Cv2.PutText(inputImage, label, new Point(res.Box.X, res.Box.Y - 5),
+                    HersheyFonts.HersheySimplex, 0.5, color, 1);
+
+            }
         }
 
         public IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync()
