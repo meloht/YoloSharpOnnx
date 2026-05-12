@@ -98,13 +98,17 @@ namespace YoloSharpOnnx.Providers
             OnnxModel model = new OnnxModel();
 
             model.InputName = session.InputNames[0];
-            model.OutputName = session.OutputNames[0];
+            model.OutputName0 = session.OutputNames[0];
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputName1 = session.OutputNames[1];
+            }
             model.DeviceType = GetDeviceType();
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
             model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
-            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName].Dimensions, Convert.ToInt64);
+            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
 
             model.InputHeight = (int)model.InputShape[2];
             model.InputWidth = (int)model.InputShape[3];
@@ -132,7 +136,7 @@ namespace YoloSharpOnnx.Providers
 
             if (model.ModelType == ModelType.ObjectDetection)
             {
-                model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
+                model.BoxNum = outputMeta[model.OutputName0].Dimensions[2];
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
            

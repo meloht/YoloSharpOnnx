@@ -14,7 +14,7 @@ namespace YoloSharpOnnx.DataResult
             if (boxes == null || boxes.Count == 0)
                 return string.Empty;
 
-            return DetectionToString(boxes);
+            return YoloResultToString(boxes);
 
         }
 
@@ -26,15 +26,30 @@ namespace YoloSharpOnnx.DataResult
 
         }
 
+        public static string Summary(this List<SegResult> list)
+        {
+            if (list == null || list.Count == 0)
+                return string.Empty;
+            return YoloResultToString(list);
+
+        }
+
         public static string SummaryOrder(this List<DetectionResult> boxes)
         {
             if (boxes == null || boxes.Count == 0)
                 return string.Empty;
 
             var arr = OrderList(boxes);
-            return DetectionToString(arr);
+            return YoloResultToString(arr);
         }
+        public static string SummaryOrder(this List<SegResult> list)
+        {
+            if (list == null || list.Count == 0)
+                return string.Empty;
+            var arr = OrderList(list);
+            return YoloResultToString(list);
 
+        }
 
 
         private static T[] OrderList<T>(List<T> list) where T : IYoloResult
@@ -44,7 +59,8 @@ namespace YoloSharpOnnx.DataResult
 
             return arr;
         }
-        private static string DetectionToString(IEnumerable<DetectionResult> boxes)
+
+        private static string YoloResultToString<T>(IEnumerable<T> boxes) where T : IYoloResult
         {
             var dict = boxes.GroupBy(p => p.ClassName).Select(p => $"{p.Count()} {p.Key}").ToList();
             string confs = string.Join(", ", boxes.Select(p => Math.Round(p.Confidence, 2)));

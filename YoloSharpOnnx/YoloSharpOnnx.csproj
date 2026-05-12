@@ -36,4 +36,8 @@
 		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260427" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Inference\Segment\Models\" />
+	</ItemGroup>
+
 </Project>

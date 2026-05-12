@@ -9,7 +9,9 @@ namespace YoloSharpOnnx.Models
     {
         public string InputName { get; set; }
 
-        public string OutputName { get; set; }
+        public string OutputName0 { get; set; }
+
+        public string OutputName1 { get; set; }
 
         public int InputWidth { get; set; }
         public int InputHeight { get; set; }

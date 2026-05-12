@@ -40,7 +40,7 @@ namespace YoloSharpOnnx.Inference.Detect
         private void Warmup()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
             _binding.SynchronizeBoundInputs();
 
             _session.RunWithBinding(_runOptions, _binding);
@@ -53,7 +53,7 @@ namespace YoloSharpOnnx.Inference.Detect
         protected override OrtValue RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
-            _binding.BindOutput(_onnxModel.OutputName, _outputOrtValue);
+            _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
             _binding.SynchronizeBoundInputs();
 
             //_binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
@@ -79,7 +79,7 @@ namespace YoloSharpOnnx.Inference.Detect
         protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
         {
             _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
-            _binding.BindOutputToDevice(_onnxModel.OutputName, OrtMemoryInfo.DefaultInstance);
+            _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
             _binding.SynchronizeBoundInputs();
 
             // 执行推理
