@@ -106,16 +106,16 @@ namespace YoloSharpOnnx.Providers
             {
                 return new DetPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
             }
-            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels, YoloConfiguration);
+            return new DetPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel.Labels, YoloConfiguration);
         }
 
         private ISegPostprocess GetSegPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new SegPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
+                return new SegPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
-            return new SegPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels, YoloConfiguration);
+            return new SegPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel.Labels, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
@@ -137,7 +137,7 @@ namespace YoloSharpOnnx.Providers
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
-         
+
 
             model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
             model.OutputShape0 = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
@@ -180,15 +180,11 @@ namespace YoloSharpOnnx.Providers
             }
             model.IsEndToEnd = isEndToEnd;
 
-            if (model.ModelType == ModelType.ObjectDetection)
-            {
-                model.BoxNum = outputMeta[model.OutputName0].Dimensions[2];
-                model.ColorPalette = GenerateColorPalette(model.Labels.Length);
-            }
-            else if (model.ModelType == ModelType.Segmentation)
+            if (model.ModelType == ModelType.ObjectDetection || model.ModelType == ModelType.Segmentation)
             {
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
+
 
             return model;
         }

@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -108,27 +110,39 @@ namespace YoloSharpOnnx.Inference.Segment
 
         public void DrawSegments(Mat inputImage, List<SegResult> list)
         {
-            foreach (var res in list)
+            foreach (var item in list)
             {
-                // 随机颜色
-                var color = _onnxModel.ColorPalette[res.ClassId];
-
-                // 画框
-                Cv2.Rectangle(inputImage, res.Box, color, 2);
-
-                // 掩码叠加（半透明）
-                using Mat maskColor = new Mat();
-                Cv2.CvtColor(res.Mask, maskColor, ColorConversionCodes.GRAY2BGR);
-                maskColor.ConvertTo(maskColor, MatType.CV_8UC3, 255);
-                Cv2.AddWeighted(inputImage, 0.7, maskColor, 0.3, 0, inputImage);
-
-                // 文字
-                string label = $"cls:{res.ClassId} {res.Confidence:F2}";
-                Cv2.PutText(inputImage, label, new Point(res.Box.X, res.Box.Y - 5),
-                    HersheyFonts.HersheySimplex, 0.5, color, 1);
-
+                YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
+                DrawTransparentMask(inputImage, item.Mask, item.Box, _onnxModel.ColorPalette[item.ClassId]);
             }
         }
+
+        /// <summary>
+        /// 在原图上绘制半透明实例分割区域（推荐）
+        /// </summary>
+        /// <param name="image">原图（BGR）</param>
+        /// <param name="binaryMask">二值mask（CV_8UC1，0/255）</param>
+        /// <param name="color">显示颜色（BGR）</param>
+        /// <param name="alpha">透明度：0~1，推荐 0.3~0.6</param>
+        public static void DrawTransparentMask(Mat image, Mat binaryMask, Rect box, Scalar color, double alpha = 0.4)
+        {
+            Rect validRect = new Rect(
+                Math.Max(0, box.X), 
+                Math.Max(0, box.Y),
+                Math.Min(box.Width, image.Width - box.X),
+                Math.Min(box.Height, image.Height - box.Y));
+
+            using Mat colorMat = new Mat(validRect.Size, MatType.CV_8UC3, color);
+
+            using Mat roi = new Mat(image, validRect);
+
+            using Mat blended = new Mat();
+            Cv2.AddWeighted(roi, alpha, colorMat, alpha, 0, blended);
+
+            blended.CopyTo(roi, binaryMask);
+
+        }
+
 
         public IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync()
         {

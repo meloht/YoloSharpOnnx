@@ -89,45 +89,9 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             foreach (var item in list)
             {
-                DrawDetections(inputImage, item.Box, item.Confidence, item.ClassId, item.ClassName);
+                YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
             }
         }
-        public void DrawDetections(Mat img, Rect box, float score, int classId, string className)
-        {
-            var color = _onnxModel.ColorPalette[classId];
-
-            double fontScale = 1.0;
-            // 绘制边界框
-            Cv2.Rectangle(img, box, color, 2);
-
-            int height = img.Height;
-            int width = img.Width;
-
-            // 绘制标签
-            string label = $"{className}: {score:F2}";
-            int fontThick = 2;
-            var textSize = Cv2.GetTextSize(label, HersheyFonts.HersheySimplex, fontScale, fontThick, out int baseline);
-
-            int x = box.X;
-            int y = box.Y - 10; ;
-            if (y < textSize.Height)
-                y = box.Y + 10;
-
-            if (x + textSize.Width > width)
-            {
-                x = x - (x + textSize.Width - width) - 4;
-            }
-
-            // 标签背景
-            Cv2.Rectangle(img,
-                new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
-                new OpenCvSharp.Point(x + textSize.Width, y + baseline),
-                color, -1);
-
-            // 标签文本
-            Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
-        }
-
 
         protected virtual void Dispose(bool disposing)
         {

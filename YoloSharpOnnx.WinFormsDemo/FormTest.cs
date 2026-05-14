@@ -16,6 +16,10 @@ namespace YoloSharpOnnx.WinFormsDemo
             string model = TestDataUtils.GetModelPath("yolo11n.onnx");
             int deviceId = Utils.GetMainGPU();
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(model, deviceId));
+
+            this.textBoxModel.Text = @"D:\code\model\yolo26n-seg.onnx";
+            this.textBoxImage.Text = @"D:\code\model\TestData\Images\zidane.jpg";
+            LoadImageView(this.textBoxImage.Text);
         }
 
         private void LoadImageView(string fileName)

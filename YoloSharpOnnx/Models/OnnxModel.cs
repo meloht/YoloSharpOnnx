@@ -25,7 +25,7 @@ namespace YoloSharpOnnx.Models
         public LabelModel[] Labels { get; set; }
 
         public bool IsEndToEnd { get; set; }
-        public int BoxNum { get; set; }
+      
 
         public Scalar[] ColorPalette { get; set; }
 
