@@ -65,18 +65,11 @@ namespace YoloSharpOnnx.Inference.Segment
                 // 置信度过滤
                 if (score < _yoloConfig.Confidence) continue;
 
-                float _x1 = (output0[offset + 0]);
-                float _y1 = (output0[offset + 1]);
-                float _x2 = (output0[offset + 2]);
-                float _y2 = (output0[offset + 3]);
-
-                Rect boxUnScale = new Rect((int)_x1, (int)_y1, (int)(_x2 - _x1), (int)(_y2 - _y1));
-
                 // 读取6个基础属性
-                float x1 = (_x1 - preResult.PadX) / preResult.Scale;
-                float y1 = (_y1 - preResult.PadY) / preResult.Scale;
-                float x2 = (_x2 - preResult.PadX) / preResult.Scale;
-                float y2 = (_y2 - preResult.PadY) / preResult.Scale;
+                float x1 = (output0[offset + 0] - preResult.PadX) / preResult.Scale;
+                float y1 = (output0[offset + 1] - preResult.PadY) / preResult.Scale;
+                float x2 = (output0[offset + 2] - preResult.PadX) / preResult.Scale;
+                float y2 = (output0[offset + 3] - preResult.PadY) / preResult.Scale;
                 int classId = (int)output0[offset + 5];
 
                 // 坐标裁剪到图像范围内
@@ -93,7 +86,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 DecodeMask(protoMask, maskCoeffs, output1);
 
                 // ====================== 4. 掩码缩放 + 二值化 ======================
-                var maskRes = ScaleMaskToOriginal(protoMask, preResult, boxUnScale, box);
+                var maskRes = ScaleMaskToOriginal(protoMask, preResult, box);
 
                 results.Add(new SegResult
                 {
@@ -128,7 +121,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 }
             }
         }
-        private Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect boxUnScale, Rect box)
+        private Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
         {
             // STEP2：resize 到模型输入尺寸
             using Mat upsampled = new Mat();
