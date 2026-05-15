@@ -40,7 +40,7 @@ namespace YoloSharpOnnx.Inference.Segment
         protected Mat GetMaskFromProto(ReadOnlySpan<float> output1)
         {
             using Mat protoMat = new Mat(_maskDim, _hw, MatType.CV_32FC1);
-            unsafe 
+            unsafe
             {
                 float* protoPtr = (float*)protoMat.DataPointer;
 
@@ -54,7 +54,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 }
             }
             return protoMat;
-           
+
         }
         protected Mat GetCoeffMat(ReadOnlySpan<float> maskCoeffs)
         {
@@ -75,7 +75,7 @@ namespace YoloSharpOnnx.Inference.Segment
         {
             int count = list.Count;
             using Mat coeffMat = new Mat(count, _maskDim, MatType.CV_32FC1);
-            unsafe 
+            unsafe
             {
                 float* ptr = (float*)coeffMat.DataPointer;
                 for (int i = 0; i < count; i++)
@@ -86,10 +86,10 @@ namespace YoloSharpOnnx.Inference.Segment
                     {
                         ptr[offset + c] = coeff[c];
                     }
-                   
+
                 }
             }
-          
+
 
             using Mat protoMat = new Mat(_maskDim, _hw, MatType.CV_32FC1);
             unsafe
@@ -120,9 +120,9 @@ namespace YoloSharpOnnx.Inference.Segment
 
         }
 
-        private unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
+        protected unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
         {
-
+            //using Mat protoMask = new Mat(_protoH, _protoW, MatType.CV_32FC1);
             using Mat coeffMat = new Mat(1, _maskDim, MatType.CV_32FC1);
 
             float* coeffPtr = (float*)coeffMat.DataPointer;
@@ -159,7 +159,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
         }
 
-        private unsafe void DecodeMaskOrginal(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
+        protected unsafe void DecodeMaskOrginal(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
         {
             float* ptr = (float*)protoMask.DataPointer;
 
@@ -179,7 +179,7 @@ namespace YoloSharpOnnx.Inference.Segment
             }
         }
 
-        private Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
+        protected Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
         {
             // STEP2：resize 到模型输入尺寸
             using Mat upsampled = new Mat();

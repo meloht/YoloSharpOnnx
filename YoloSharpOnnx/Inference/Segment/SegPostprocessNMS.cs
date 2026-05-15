@@ -69,6 +69,7 @@ namespace YoloSharpOnnx.Inference.Segment
                     Confidence = _scores[idx],
                     ClassId = _classIds[idx],
                     ClassName = _labels[_classIds[idx]].Name
+                   
                 };
                 results.Add(result);
             }
