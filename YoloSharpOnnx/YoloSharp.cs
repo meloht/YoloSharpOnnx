@@ -131,7 +131,20 @@ namespace YoloSharpOnnx
         #endregion
 
         #region Synchronous segment
-
+        public List<SegResult> RunSegment(string imagePath)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloSegment.Run(img);
+            }
+        }
+        public List<SegResult> RunSegment(Mat img)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            return _yoloSegment.Run(img);
+        }
         public YoloResult<SegResult> RunSegmentWithTime(string imagePath)
         {
             YoloValidation.ValidationSegModelType(_currentModelType);
@@ -140,6 +153,11 @@ namespace YoloSharpOnnx
             {
                 return _yoloSegment.RunWithTime(img);
             }
+        }
+        public YoloResult<SegResult> RunSegmentWithTime(Mat img)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            return _yoloSegment.RunWithTime(img);
         }
 
         #endregion
@@ -246,6 +264,50 @@ namespace YoloSharpOnnx
 
         #endregion
 
+        #region BatchSegment
+
+        public SegBatchResult[] RunBatchSegment(string imgDir, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
+
+            return _yoloSegment.BatchRun(files, processCallback, receiveAction);
+        }
+        public SegBatchResult[] RunBatchSegment(List<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return _yoloSegment.BatchRun(files, processCallback, receiveAction);
+        }
+
+
+        public async Task<SegBatchResult[]> RunBatchSegmentAsync(string imgDir, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
+
+            return await _yoloSegment.BatchRunAsync(files, processCallback, receiveAction);
+        }
+
+
+        public async Task<SegBatchResult[]> RunBatchSegmentAsync(List<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return await _yoloSegment.BatchRunAsync(files, processCallback, receiveAction);
+        }
+        public IAsyncEnumerable<SegBatchResult> BatchSegmentForeachAsync(List<string> images)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return _yoloSegment.BatchRunForeachAsync(files);
+        }
+
+        #endregion
+
 
         #region DrawDetections
 
@@ -312,6 +374,12 @@ namespace YoloSharpOnnx
             Cv2.ImWrite(saveFileName, inputImage);
         }
 
+        public void DrawSegmentAndSave(Mat inputImage, List<SegResult> list, string saveFileName)
+        {
+            _yoloSegment.DrawSegments(inputImage, list);
+            Cv2.ImWrite(saveFileName, inputImage);
+        }
+
         public void DrawSegment(string inputImage, List<SegResult> list)
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
@@ -346,7 +414,7 @@ namespace YoloSharpOnnx
 
                 _yoloDetect?.Dispose();
                 _yoloClassify?.Dispose();
-
+                _yoloSegment?.Dispose();
                 disposedValue = true;
             }
         }

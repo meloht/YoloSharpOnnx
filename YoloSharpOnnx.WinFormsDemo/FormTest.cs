@@ -13,7 +13,7 @@ namespace YoloSharpOnnx.WinFormsDemo
         public FormTest()
         {
             InitializeComponent();
-            string model = TestDataUtils.GetModelPath("yolo11n.onnx");
+            string model = TestDataUtils.GetModelPath("yolo26n-cls.onnx");
             int deviceId = Utils.GetMainGPU();
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(model, deviceId));
 
