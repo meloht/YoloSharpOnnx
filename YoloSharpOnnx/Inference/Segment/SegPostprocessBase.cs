@@ -18,6 +18,9 @@ namespace YoloSharpOnnx.Inference.Segment
         protected const float _threshold = 0.5f;
         protected int _inputSizeW;
         protected int _inputSizeH;
+        protected readonly int _protoH;
+        protected readonly int _protoW;
+        protected readonly int _maskDim;
 
         public SegPostprocessBase(OnnxModel onnx, YoloConfig yoloConfig)
         {
@@ -25,13 +28,15 @@ namespace YoloSharpOnnx.Inference.Segment
             _yoloConfig = yoloConfig;
             _inputSizeH = onnx.InputHeight;
             _inputSizeW = onnx.InputWidth;
+            _protoH = (int)onnx.OutputShape1[2];// [1,32,160,160] 160
+            _protoW = (int)onnx.OutputShape1[3];//[1,32,160,160] 160
+            _maskDim = (int)onnx.OutputShape1[1];//[1,32,160,160]  32 
         }
 
 
-        protected SegResult BuildResult(Rect box, int classId, float score,ReadOnlySpan<float> maskCoeffs,
-            int protoH,int protoW,ReadOnlySpan<float> output1, PreDetectResult preResult)
+        protected SegResult BuildResult(Rect box, int classId, float score, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1, PreDetectResult preResult)
         {
-            using Mat protoMask = new Mat(protoH, protoW, MatType.CV_32FC1);
+            using Mat protoMask = new Mat(_protoH, _protoW, MatType.CV_32FC1);
 
             // STEP1：mask = coeff @ proto
             // 矩阵乘法：maskCoeffs(32) · protos(32, 160*160) → 160*160

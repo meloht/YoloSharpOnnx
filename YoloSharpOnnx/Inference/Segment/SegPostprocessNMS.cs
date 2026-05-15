@@ -24,13 +24,17 @@ namespace YoloSharpOnnx.Inference.Segment
         private List<int> _classIds = new List<int>();
         private List<int> _ids = new List<int>();
 
+        private readonly int _classAtts;
 
-        public SegPostprocessNMS(int boxNum, OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
+
+        public SegPostprocessNMS(int numAnchors, OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
         {
-            _numAnchors = boxNum;
+            _numAnchors = numAnchors;
             _numAnchors2 = _numAnchors * 2;
             _numAnchors3 = _numAnchors * 3;
             _numAnchors4 = _numAnchors * 4;
+
+            _classAtts = (int)onnx.OutputShape0[1] - _maskDim;//[1,116,8400] 116-32=84
 
         }
         public List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
@@ -45,13 +49,6 @@ namespace YoloSharpOnnx.Inference.Segment
 
             var output0 = outputValue0.GetTensorDataAsSpan<float>();
             var output1 = outputValue1.GetTensorDataAsSpan<float>();
-
-            int maskDim = (int)shape1[1];//32
-
-            int classAtts = (int)shape0[1] - maskDim;//116-32=84
-
-            int protoH = (int)shape1[2];//160
-            int protoW = (int)shape1[3];//160
 
             for (int i = 0; i < _numAnchors; i++)
             {
@@ -109,12 +106,12 @@ namespace YoloSharpOnnx.Inference.Segment
             foreach (var idx in indices)
             {
                 float[] maskCoeffs = new float[32];
-                for (int m = 0; m < maskDim; m++)
+                for (int m = 0; m < _maskDim; m++)
                 {
-                    maskCoeffs[m] = output0[(classAtts + m) * _numAnchors + _ids[idx]];
+                    maskCoeffs[m] = output0[(_classAtts + m) * _numAnchors + _ids[idx]];
                 }
-              
-                SegResult result = BuildResult(_boxes[idx], _classIds[idx], _scores[idx], maskCoeffs, protoH, protoW, output1, preResult);
+
+                SegResult result = BuildResult(_boxes[idx], _classIds[idx], _scores[idx], maskCoeffs, output1, preResult);
 
                 results.Add(result);
             }

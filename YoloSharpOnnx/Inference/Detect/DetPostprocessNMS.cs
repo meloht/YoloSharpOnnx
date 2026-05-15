@@ -25,10 +25,10 @@ namespace YoloSharpOnnx.Inference.Detect
         private List<int> _classIds = new List<int>();
         private readonly YoloConfig _yoloConfig;
 
-        public DetPostprocessNMS(int boxNum, LabelModel[] labels, YoloConfig yoloConfig)
+        public DetPostprocessNMS(int numAnchors, LabelModel[] labels, YoloConfig yoloConfig)
         {
             _labels = labels;
-            _numAnchors = boxNum;
+            _numAnchors = numAnchors;
             _numAnchors2 = _numAnchors * 2;
             _numAnchors3 = _numAnchors * 3;
             _numAnchors4 = _numAnchors * 4;
@@ -41,11 +41,10 @@ namespace YoloSharpOnnx.Inference.Detect
             _scores.Clear();
             _classIds.Clear();
             var ortSpan = outputValue.GetTensorDataAsSpan<float>();//[1,84,8400]
-            int classOffset = 0;
             for (int i = 0; i < _numAnchors; i++)
             {
                 // Move forward to confidence value of first label
-                classOffset = i + _numAnchors4;
+                int classOffset = i + _numAnchors4;
 
                 float bestConfidence = 0f;
                 int bestLabelIndex = -1;
@@ -53,7 +52,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 // Get confidence and label for current bounding box
                 for (var l = 0; l < _labels.Length; l++, classOffset += _numAnchors)
                 {
-                    var boxConfidence = ortSpan[classOffset];
+                    var boxConfidence = ortSpan[0];
 
                     if (boxConfidence > bestConfidence)
                     {
