@@ -115,7 +115,7 @@ namespace YoloSharpOnnx.Providers
             {
                 return new SegPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
-            return new SegPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel.Labels, YoloConfiguration);
+            return new SegPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)

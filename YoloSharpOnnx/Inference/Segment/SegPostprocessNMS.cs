@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,32 +12,114 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class SegPostprocessNMS : ISegPostprocess
+    public class SegPostprocessNMS : SegPostprocessBase, ISegPostprocess
     {
-        private readonly int _boxNums;
-        private readonly int _boxNums2;
-        private readonly int _boxNums3;
-        private readonly int _boxNums4;
-        private readonly LabelModel[] _labels;
-
+        private readonly int _numAnchors;
+        private readonly int _numAnchors2;
+        private readonly int _numAnchors3;
+        private readonly int _numAnchors4;
 
         private List<Rect> _boxes = new List<Rect>();
         private List<float> _scores = new List<float>();
         private List<int> _classIds = new List<int>();
-        private readonly YoloConfig _yoloConfig;
+        private List<int> _ids = new List<int>();
 
-        public SegPostprocessNMS(int boxNum, LabelModel[] labels, YoloConfig yoloConfig)
+
+        public SegPostprocessNMS(int boxNum, OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
         {
-            _labels = labels;
-            _boxNums = boxNum;
-            _boxNums2 = _boxNums * 2;
-            _boxNums3 = _boxNums * 3;
-            _boxNums4 = _boxNums * 4;
-            _yoloConfig = yoloConfig;
+            _numAnchors = boxNum;
+            _numAnchors2 = _numAnchors * 2;
+            _numAnchors3 = _numAnchors * 3;
+            _numAnchors4 = _numAnchors * 4;
+
         }
         public List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
-            throw new NotImplementedException();
+            _boxes.Clear();
+            _scores.Clear();
+            _classIds.Clear();
+            _ids.Clear();
+
+            var shape0 = outputValue0.GetTensorTypeAndShape().Shape; //  [1,116,8400]
+            var shape1 = outputValue1.GetTensorTypeAndShape().Shape; //[1,32,160,160]
+
+            var output0 = outputValue0.GetTensorDataAsSpan<float>();
+            var output1 = outputValue1.GetTensorDataAsSpan<float>();
+
+            int maskDim = (int)shape1[1];//32
+
+            int classAtts = (int)shape0[1] - maskDim;//116-32=84
+
+            int protoH = (int)shape1[2];//160
+            int protoW = (int)shape1[3];//160
+
+            for (int i = 0; i < _numAnchors; i++)
+            {
+                int classOffset = i + _numAnchors4;
+                float maxScore = 0f;
+                int classId = -1;
+
+                for (var c = 0; c < _labels.Length; c++, classOffset += _numAnchors)
+                {
+                    float score = output0[classOffset];
+
+                    if (score > maxScore)
+                    {
+                        maxScore = score;
+                        classId = c;
+                    }
+                }
+                if (maxScore < _yoloConfig.Confidence) continue;
+
+                float cx = output0[i] - preResult.PadX;
+                float cy = output0[_numAnchors + i] - preResult.PadY;
+                float w = output0[_numAnchors2 + i];
+                float h = output0[_numAnchors3 + i];
+
+                int x = (int)((cx - w / 2f) / preResult.Scale);
+                int y = (int)((cy - h / 2f) / preResult.Scale);
+                int width = (int)(w / preResult.Scale);
+                int height = (int)(h / preResult.Scale);
+
+                // Ensure coordinates are within image bounds
+                x = Math.Max(0, x);
+                y = Math.Max(0, y);
+                width = Math.Min(width, preResult.ImageWidth - x);
+                height = Math.Min(height, preResult.ImageHeight - y);
+
+                // Add the class ID, score, and box coordinates to the respective lists
+                if (width > 0 && height > 0)
+                {
+                    _classIds.Add(classId);
+                    _scores.Add(maxScore);
+                    _boxes.Add(new Rect(x, y, width, height));
+                    _ids.Add(i);
+
+                }
+            }
+            // 非极大值抑制
+            int[] indices = [];
+            if (_boxes.Count > 0)
+            {
+                CvDnn.NMSBoxes(_boxes, _scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
+            }
+
+            List<SegResult> results = new List<SegResult>();
+
+            foreach (var idx in indices)
+            {
+                float[] maskCoeffs = new float[32];
+                for (int m = 0; m < maskDim; m++)
+                {
+                    maskCoeffs[m] = output0[(classAtts + m) * _numAnchors + _ids[idx]];
+                }
+              
+                SegResult result = BuildResult(_boxes[idx], _classIds[idx], _scores[idx], maskCoeffs, protoH, protoW, output1, preResult);
+
+                results.Add(result);
+            }
+
+            return results;
         }
     }
 }
