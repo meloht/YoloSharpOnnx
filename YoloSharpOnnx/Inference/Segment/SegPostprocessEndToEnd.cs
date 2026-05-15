@@ -19,11 +19,11 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly int _maxDet;
         private readonly int _classAtts;
         private readonly int _boxAttrs;
-      
+
         public SegPostprocessEndToEnd(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
         {
             _maxDet = (int)onnx.OutputShape0[1]; //[1,300,38]   300
-            _classAtts= (int)onnx.OutputShape0[2];//38
+            _classAtts = (int)onnx.OutputShape0[2];//38
             _boxAttrs = _classAtts - _maskDim;//38-32=6
         }
 
@@ -33,7 +33,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
             var output0 = outputValue0.GetTensorDataAsSpan<float>();
             var output1 = outputValue1.GetTensorDataAsSpan<float>();
-
+            using DisposableList<Mat> coeffMatList = new DisposableList<Mat>();
             // ====================== 1. 解析 output0 [1,300,38] ======================
             for (int i = 0; i < _maxDet; i++)
             {
@@ -50,11 +50,21 @@ namespace YoloSharpOnnx.Inference.Segment
                 Rect box = EndToEndDecode.Decode(output0, offset, preResult);
 
                 var maskCoeffs = output0.Slice(offset + _boxAttrs, _maskDim);//maskCoeffs(32)
-
-                SegResult result = BuildResult(box, classId, score, maskCoeffs, output1, preResult);
-
+             
+                coeffMatList.Add(GetCoeffMat(maskCoeffs));
+               
+                var result = new SegResult
+                {
+                    Box = box,
+                    Confidence = score,
+                    ClassId = classId,
+                    ClassName = _labels[classId].Name
+                };
                 results.Add(result);
             }
+
+            GEMM(results, coeffMatList, output1, preResult);
+            
 
             return results;
 

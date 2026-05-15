@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
@@ -21,6 +22,7 @@ namespace YoloSharpOnnx.Inference.Segment
         protected readonly int _protoH;
         protected readonly int _protoW;
         protected readonly int _maskDim;
+        private readonly int _hw;
 
         public SegPostprocessBase(OnnxModel onnx, YoloConfig yoloConfig)
         {
@@ -31,50 +33,152 @@ namespace YoloSharpOnnx.Inference.Segment
             _protoH = (int)onnx.OutputShape1[2];// [1,32,160,160] 160
             _protoW = (int)onnx.OutputShape1[3];//[1,32,160,160] 160
             _maskDim = (int)onnx.OutputShape1[1];//[1,32,160,160]  32 
+
+            _hw = _protoH * _protoW;
         }
 
-
-        protected SegResult BuildResult(Rect box, int classId, float score, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1, PreDetectResult preResult)
+        protected Mat GetMaskFromProto(ReadOnlySpan<float> output1)
         {
-            using Mat protoMask = new Mat(_protoH, _protoW, MatType.CV_32FC1);
-
-            // STEP1：mask = coeff @ proto
-            // 矩阵乘法：maskCoeffs(32) · protos(32, 160*160) → 160*160
-            DecodeMask(protoMask, maskCoeffs, output1);
-
-            // ====================== 4. 掩码缩放 + 二值化 ======================
-            var maskRes = ScaleMaskToOriginal(protoMask, preResult, box);
-
-            return new SegResult
+            using Mat protoMat = new Mat(_maskDim, _hw, MatType.CV_32FC1);
+            unsafe 
             {
-                Box = box,
-                Confidence = score,
-                ClassId = classId,
-                ClassName = _labels[classId].Name,
-                Mask = maskRes
-            };
+                float* protoPtr = (float*)protoMat.DataPointer;
+
+                for (int c = 0; c < _maskDim; c++)
+                {
+                    int srcOffset = c * _hw;
+                    for (int i = 0; i < _hw; i++)
+                    {
+                        protoPtr[srcOffset + i] = output1[srcOffset + i];
+                    }
+                }
+            }
+            return protoMat;
+           
+        }
+        protected Mat GetCoeffMat(ReadOnlySpan<float> maskCoeffs)
+        {
+            Mat coeffMat = new Mat(1, _maskDim, MatType.CV_32FC1);
+            unsafe
+            {
+                float* coeffPtr = (float*)coeffMat.DataPointer;
+                for (int i = 0; i < _maskDim; i++)
+                {
+                    coeffPtr[i] = maskCoeffs[i];
+                }
+            }
+            return coeffMat;
+
+        }
+
+        protected void GEMM(List<SegResult> list, List<Mat> coeffMatList, ReadOnlySpan<float> output1, PreDetectResult preResult)
+        {
+            int count = list.Count;
+            using Mat coeffMat = new Mat(count, _maskDim, MatType.CV_32FC1);
+            unsafe 
+            {
+                float* ptr = (float*)coeffMat.DataPointer;
+                for (int i = 0; i < count; i++)
+                {
+                    float* coeff = (float*)coeffMatList[i].DataPointer;
+                    int offset = i * _maskDim;
+                    for (int c = 0; c < _maskDim; c++)
+                    {
+                        ptr[offset + c] = coeff[c];
+                    }
+                   
+                }
+            }
+          
+
+            using Mat protoMat = new Mat(_maskDim, _hw, MatType.CV_32FC1);
+            unsafe
+            {
+                float* ptr = (float*)protoMat.DataPointer;
+
+                for (int i = 0; i < output1.Length; i++)
+                {
+                    ptr[i] = output1[i];
+                }
+            }
+
+            using Mat masks = new Mat();
+
+            Cv2.Gemm(coeffMat, protoMat, 1.0, InputArray.Create(new Mat()), 0.0, masks);
+
+            Cv2.Multiply(masks, -1.0, masks);
+            Cv2.Exp(masks, masks);
+            Cv2.Add(masks, 1.0, masks);
+            Cv2.Divide(1.0, masks, masks);
+
+            for (int i = 0; i < count; i++)
+            {
+                using Mat row = masks.Row(i);
+                using Mat mask = row.Reshape(1, _protoH);
+                list[i].Mask = ScaleMaskToOriginal(mask, preResult, list[i].Box);
+            }
+
         }
 
         private unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
         {
-            int protoH = protoMask.Height;
-            int protoW = protoMask.Width;
 
-            float* ptr = (float*)protoMask.DataPointer;
-            for (int y = 0; y < protoH; y++)
+            using Mat coeffMat = new Mat(1, _maskDim, MatType.CV_32FC1);
+
+            float* coeffPtr = (float*)coeffMat.DataPointer;
+            for (int i = 0; i < _maskDim; i++)
             {
-                for (int x = 0; x < protoW; x++)
+                coeffPtr[i] = maskCoeffs[i];
+            }
+            using Mat protoMat = new Mat(_maskDim, _hw, MatType.CV_32FC1);
+
+            float* protoPtr = (float*)protoMat.DataPointer;
+
+            for (int c = 0; c < _maskDim; c++)
+            {
+                int srcOffset = c * _hw;
+                for (int i = 0; i < _hw; i++)
                 {
-                    float sum = 0;
-                    for (int c = 0; c < maskCoeffs.Length; c++)
-                    {
-                        // output1 布局: [c, y, x]
-                        sum += maskCoeffs[c] * output1[c * protoH * protoW + y * protoW + x];
-                    }
-                    ptr[y * protoW + x] = Sigmoid(sum); // sigmoid激活
+                    protoPtr[srcOffset + i] = output1[srcOffset + i];
                 }
             }
+            using Mat result = new Mat();
+
+            Cv2.Gemm(coeffMat, protoMat, 1.0, InputArray.Create(new Mat()), 0.0, result);
+
+            using Mat reshaped = result.Reshape(1, _protoH);
+
+            float* src = (float*)reshaped.DataPointer;
+            float* dst = (float*)protoMask.DataPointer;
+
+            for (int i = 0; i < _hw; i++)
+            {
+                dst[i] = 1.0f / (1.0f + MathF.Exp(-src[i]));
+            }
+
+
         }
+
+        private unsafe void DecodeMaskOrginal(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
+        {
+            float* ptr = (float*)protoMask.DataPointer;
+
+            for (int c = 0; c < _maskDim; c++)
+            {
+                float coeff = maskCoeffs[c];
+                int offset = c * _hw;
+
+                for (int i = 0; i < _hw; i++)
+                {
+                    ptr[i] += coeff * output1[offset + i];
+                }
+            }
+            for (int i = 0; i < _hw; i++)
+            {
+                ptr[i] = Sigmoid(ptr[i]);
+            }
+        }
+
         private Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
         {
             // STEP2：resize 到模型输入尺寸
@@ -121,7 +225,7 @@ namespace YoloSharpOnnx.Inference.Segment
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static float Sigmoid(float x)
         {
-            return 1.0f / (1.0f + (float)Math.Exp(-x));
+            return 1.0f / (1.0f + MathF.Exp(-x));
         }
     }
 }

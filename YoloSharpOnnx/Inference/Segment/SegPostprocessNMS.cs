@@ -10,6 +10,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -47,6 +48,7 @@ namespace YoloSharpOnnx.Inference.Segment
             int[] indices = _nmsDecode.Decode(output0, preResult);
            
             List<SegResult> results = new List<SegResult>();
+            using DisposableList<Mat> coeffMatList = new DisposableList<Mat>();
 
             foreach (var idx in indices)
             {
@@ -55,12 +57,16 @@ namespace YoloSharpOnnx.Inference.Segment
                 {
                     maskCoeffs[m] = output0[(_classAtts + m) * _numAnchors + _ids[idx]];
                 }
-
-                SegResult result = BuildResult(_boxes[idx], _classIds[idx], _scores[idx], maskCoeffs, output1, preResult);
-
+                var result = new SegResult
+                {
+                    Box = _boxes[idx],
+                    Confidence = _scores[idx],
+                    ClassId = _classIds[idx],
+                    ClassName = _labels[_classIds[idx]].Name
+                };
                 results.Add(result);
             }
-
+            GEMM(results, coeffMatList, output1, preResult);
             return results;
         }
     }
