@@ -52,11 +52,17 @@ namespace YoloSharpOnnx.Inference.Segment
 
             foreach (var idx in indices)
             {
-                float[] maskCoeffs = new float[32];
-                for (int m = 0; m < _maskDim; m++)
+                Mat coeffMat = new Mat(1, _maskDim, MatType.CV_32FC1);
+                unsafe
                 {
-                    maskCoeffs[m] = output0[(_classAtts + m) * _numAnchors + _ids[idx]];
+                    float* coeffPtr = (float*)coeffMat.DataPointer;
+                    for (int m = 0; m < _maskDim; m++)
+                    {
+                        coeffPtr[m] = output0[(_classAtts + m) * _numAnchors + _ids[idx]];
+                    }
                 }
+
+                coeffMatList.Add(coeffMat);
                 var result = new SegResult
                 {
                     Box = _boxes[idx],
