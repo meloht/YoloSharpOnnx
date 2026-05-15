@@ -55,7 +55,7 @@ namespace YoloSharpOnnx.Inference.Segment
             };
         }
 
-        protected unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
+        private unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
         {
             int protoH = protoMask.Height;
             int protoW = protoMask.Width;
@@ -75,7 +75,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 }
             }
         }
-        protected Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
+        private Mat ScaleMaskToOriginal(Mat mask, PreDetectResult preResult, Rect box)
         {
             // STEP2：resize 到模型输入尺寸
             using Mat upsampled = new Mat();
