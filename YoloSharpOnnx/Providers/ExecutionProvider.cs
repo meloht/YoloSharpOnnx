@@ -104,9 +104,9 @@ namespace YoloSharpOnnx.Providers
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new DetPostprocessEndToEnd(onnxModel.Labels, YoloConfiguration);
+                return new DetPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
-            return new DetPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel.Labels, YoloConfiguration);
+            return new DetPostprocessNMS(onnxModel, YoloConfiguration);
         }
 
         private ISegPostprocess GetSegPostprocessor(OnnxModel onnxModel)
@@ -115,7 +115,7 @@ namespace YoloSharpOnnx.Providers
             {
                 return new SegPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
-            return new SegPostprocessNMS((int)onnxModel.OutputShape0[2], onnxModel, YoloConfiguration);
+            return new SegPostprocessNMS(onnxModel, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)

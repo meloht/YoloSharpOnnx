@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
@@ -44,18 +45,13 @@ namespace YoloSharpOnnx.Inference.Segment
                 // 置信度过滤
                 if (score < _yoloConfig.Confidence) continue;
 
-                // 读取6个基础属性
-                float x1 = (output0[offset + 0] - preResult.PadX) / preResult.Scale;
-                float y1 = (output0[offset + 1] - preResult.PadY) / preResult.Scale;
-                float x2 = (output0[offset + 2] - preResult.PadX) / preResult.Scale;
-                float y2 = (output0[offset + 3] - preResult.PadY) / preResult.Scale;
                 int classId = (int)output0[offset + 5];
-
-                Rect box = new Rect((int)x1, (int)y1, (int)(x2 - x1), (int)(y2 - y1));
+                // 读取6个基础属性
+                Rect box = EndToEndDecode.Decode(output0, offset, preResult);
 
                 var maskCoeffs = output0.Slice(offset + _boxAttrs, _maskDim);//maskCoeffs(32)
 
-                SegResult result = BuildResult(box, classId, score, maskCoeffs, protoH, protoW, output1, preResult);
+                SegResult result = BuildResult(box, classId, score, maskCoeffs, output1, preResult);
 
                 results.Add(result);
             }
