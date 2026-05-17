@@ -117,7 +117,7 @@ namespace YoloSharpOnnx.Inference.Segment
             for (int i = 0; i < count; i++)
             {
                 using Mat row = masks.Row(i);
-                channels[i] = row.Reshape(1, _protoH).Clone();
+                channels[i] = row.Reshape(1, _protoH);
                 //list[i].Mask = ScaleMaskToOriginal(mask, preResult, list[i].Box);
             }
             using Mat merged = new Mat();
@@ -166,6 +166,12 @@ namespace YoloSharpOnnx.Inference.Segment
                   Math.Min(box.Height, preResult.ImageHeight - Math.Abs(box.Y)));
 
                 list[i].Mask = new Mat(finalChannels[i], safeBox);
+            }
+
+            for (int i = 0; i < channels.Length; i++)
+            {
+                channels[i].Dispose();
+                finalChannels[i].Dispose();
             }
         }
 
