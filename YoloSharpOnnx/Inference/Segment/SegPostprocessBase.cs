@@ -146,10 +146,16 @@ namespace YoloSharpOnnx.Inference.Segment
             Cv2.Resize(noPad, restored,
                 new OpenCvSharp.Size(preResult.ImageWidth, preResult.ImageHeight), interpolation: InterpolationFlags.Linear);
 
-            Mat[] finalChannels = Cv2.Split(restored);
+            using Mat binary = new Mat();
+            Cv2.Threshold(restored, binary, _threshold, 255, ThresholdTypes.Binary);
+
+            using Mat mat8u = new Mat();
+            binary.ConvertTo(mat8u, MatType.CV_8UC1);
+
+            Mat[] finalChannels = Cv2.Split(mat8u);
             for (int i = 0; i < count; i++)
             {
-              
+
                 var box = list[i].Box;
                 Rect safeBox = new Rect(
                   Math.Max(box.X, 0),
@@ -157,12 +163,7 @@ namespace YoloSharpOnnx.Inference.Segment
                   Math.Min(box.Width, preResult.ImageWidth - box.X),
                   Math.Min(box.Height, preResult.ImageHeight - box.Y));
 
-
-                using Mat binary = new Mat();
-                Cv2.Threshold(finalChannels[i], binary, _threshold, 255, ThresholdTypes.Binary);
-                binary.ConvertTo(binary, MatType.CV_8UC1);
-
-                list[i].Mask = new Mat(binary, safeBox);
+                list[i].Mask = new Mat(finalChannels[i], safeBox);
             }
         }
 
