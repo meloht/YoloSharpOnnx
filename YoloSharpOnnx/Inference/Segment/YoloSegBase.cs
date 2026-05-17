@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 using static System.Formats.Asn1.AsnWriter;
 
@@ -22,6 +23,7 @@ namespace YoloSharpOnnx.Inference.Segment
         private bool disposedValue;
 
         protected abstract void DisposedSub();
+        protected abstract IDisposableReadOnlyCollection<OrtValue> RunInferenceBatch(PreDetectResultBatch preResult);
 
         protected YoloSegBase(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
@@ -119,6 +121,80 @@ namespace YoloSharpOnnx.Inference.Segment
                   _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
               });
 
+        }
+        protected override SegBatchResult PostprocessChannel(InferModel<PreDetectResultBatch> inferModel)
+        {
+            using (inferModel.Output0)
+            using (inferModel.Output1)
+            {
+                var res = _postprocess.PostProcess(inferModel.Output0, inferModel.Output1, inferModel.TBatchPreResult.PreResult);
+                return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
+            }
+        }
+
+        protected override InferModel<PreDetectResultBatch> RunInfer(PreDetectResultBatch preResult, long startTime)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var results = RunInferenceBatch(preResult);
+
+                isReturn = true;
+                return new InferModel<PreDetectResultBatch>(results[0], results[1], preResult, startTime);
+
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+        }
+        protected override List<SegResult> RunBatchInfer(PreDetectResultBatch preResult)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var results = RunInferenceBatch(preResult);
+                using var output0 = results[0];
+                using var output1 = results[1];
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
+
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+
+        }
+
+        protected override Task RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var results = RunInferenceBatch(item);
+                isReturn = true;
+                // 后处理
+                return BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
         }
 
         public void DrawSegments(Mat inputImage, List<SegResult> list)

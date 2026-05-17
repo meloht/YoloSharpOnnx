@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
@@ -21,6 +22,7 @@ namespace YoloSharpOnnx.Inference.Classify
 
 
         protected abstract void DisposedSub();
+        protected abstract OrtValue RunInferenceBatch(PreClsResultBatch preResult);
         public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config)
         {
@@ -66,6 +68,77 @@ namespace YoloSharpOnnx.Inference.Classify
 
               });
 
+        }
+        protected override ClsBatchResult PostprocessChannel(InferModel<PreClsResultBatch> inferModel)
+        {
+            using (inferModel.Output0)
+            {
+                var res = _postprocess.PostProcess(inferModel.Output0);
+                return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
+            }
+        }
+
+        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                using var output0 = RunInferenceBatch(preResult);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output0);
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+
+        }
+
+        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var ortValue = RunInferenceBatch(item);
+                isReturn = true;
+
+                // 后处理
+                return BatchPostProcess(batchResults, idx, ortValue, item, startTime, processCallback, receiveAction);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
+
+        protected override InferModel<PreClsResultBatch> RunInfer(PreClsResultBatch preResult, long startTime)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var ortValue = RunInferenceBatch(preResult);
+                isReturn = true;
+
+                return new InferModel<PreClsResultBatch>(ortValue, null, preResult, startTime);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
         }
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)

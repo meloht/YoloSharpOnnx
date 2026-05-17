@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
@@ -61,51 +62,13 @@ namespace YoloSharpOnnx.Inference.Classify
             return new YoloResult<ClsResult>(res, speed);
         }
 
-
-        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
+        protected override OrtValue RunInferenceBatch(PreClsResultBatch preResult)
         {
-            bool isReturn = false;
-            try
-            {
-                // 执行推理
-                using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
-                using var output0 = outputs[0];
-                _matPool.Return(preResult.Data);
-                isReturn = true;
-                // 后处理
-                var result = _postprocess.PostProcess(output0);
-                return result;
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(preResult.Data);
-                }
-            }
-
+            var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+            _matPool.Return(preResult.Data);
+            return outputs[0];
         }
 
-        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
-        {
-            bool isReturn = false;
-            try
-            {
-                // 执行推理
-                var outputs = _session.Run(_runOptions, _session.InputNames, [item.Data.InputOrtValue], _session.OutputNames);
-                _matPool.Return(item.Data);
-                isReturn = true;
 
-                // 后处理
-                return BatchPostProcess(batchResults, idx, outputs[0], item, startTime, processCallback, receiveAction);
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(item.Data);
-                }
-            }
-        }
     }
 }

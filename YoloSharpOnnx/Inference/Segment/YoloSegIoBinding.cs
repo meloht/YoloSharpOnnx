@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
@@ -97,63 +98,19 @@ namespace YoloSharpOnnx.Inference.Segment
             return new YoloResult<SegResult>(res, speed);
         }
 
-        protected override List<SegResult> RunBatchInfer(PreDetectResultBatch preResult)
+        protected override IDisposableReadOnlyCollection<OrtValue> RunInferenceBatch(PreDetectResultBatch preResult)
         {
-            bool isReturn = false;
-            try
-            {
-                _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
-                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
-                _binding.SynchronizeBoundInputs();
+            _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);
+            _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+            _binding.SynchronizeBoundInputs();
 
-                // 执行推理
-                using var results = _session.RunWithBoundResults(_runOptions, _binding);
-                _binding.SynchronizeBoundOutputs();
-                using var output0 = results[0];
-                using var output1 = results[1];
-                _matPool.Return(preResult.Data);
-                isReturn = true;
-                // 后处理
-                var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
-
-                return result;
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(preResult.Data);
-                }
-            }
-
+            // 执行推理
+            var results = _session.RunWithBoundResults(_runOptions, _binding);
+            _binding.SynchronizeBoundOutputs();
+            _matPool.Return(preResult.Data);
+            return results;
         }
-
-        protected override Task RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
-        {
-            bool isReturn = false;
-            try
-            {
-                _binding.BindInput(_onnxModel.InputName, item.Data.InputOrtValue);
-                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
-                _binding.SynchronizeBoundInputs();
-
-                // 执行推理
-                var results = _session.RunWithBoundResults(_runOptions, _binding);
-                _binding.SynchronizeBoundOutputs();
-
-                _matPool.Return(item.Data);
-                isReturn = true;
-                // 后处理
-                return BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(item.Data);
-                }
-            }
-        }
+       
 
 
     }

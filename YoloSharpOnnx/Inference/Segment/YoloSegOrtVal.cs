@@ -62,49 +62,11 @@ namespace YoloSharpOnnx.Inference.Segment
 
         }
 
-        protected override List<SegResult> RunBatchInfer(PreDetectResultBatch preResult)
-        {
-            bool isReturn = false;
-            try
-            {
-                // 执行推理
-                using var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
-                using var output0 = outputs[0];
-                using var output1 = outputs[1];
-                _matPool.Return(preResult.Data);
-                isReturn = true;
-                // 后处理
-                var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
-                return result;
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(preResult.Data);
-                }
-            }
-        }
 
-        protected override Task RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        protected override IDisposableReadOnlyCollection<OrtValue> RunInferenceBatch(PreDetectResultBatch preResult)
         {
-            bool isReturn = false;
-            try
-            {
-                var outputs = _session.Run(_runOptions, _session.InputNames, [item.Data.InputOrtValue], _session.OutputNames);
-                _matPool.Return(item.Data);
-                isReturn = true;
-
-                // 后处理
-                return BatchPostProcess(batchResults, idx, outputs[0], outputs[1], item, startTime, processCallback, receiveAction);
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(item.Data);
-                }
-            }
+            var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+            return outputs;
         }
     }
 }

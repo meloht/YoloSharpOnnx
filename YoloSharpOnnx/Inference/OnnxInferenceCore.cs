@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
@@ -33,6 +34,9 @@ namespace YoloSharpOnnx.Inference
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
+
+        protected abstract InferModel<TBatchPreResult> RunInfer(TBatchPreResult preResult, long startTime);
+        protected abstract TBatchResult PostprocessChannel(InferModel<TBatchPreResult> inferModel);
         protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
 
@@ -182,11 +186,10 @@ namespace YoloSharpOnnx.Inference
             InitBufferPool(_config.BatchPoolSize);
 
             TBatchResult[] batchResults = new TBatchResult[listImg.Count];
-            var ChannelOptions = YoloUtils.GetChannelOptions(_config.BatchPoolSize);
-            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
 
             var producer = PreprocessBatch(listImg, channel.Writer);
-           
+
             var consumer = Task.Run(async () =>
             {
                 ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
@@ -194,7 +197,7 @@ namespace YoloSharpOnnx.Inference
                 await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    tasks.Add(RunBatchInfer(batchResults, idx++,item, startTime, processCallback, receiveAction));
+                    tasks.Add(RunBatchInfer(batchResults, idx++, item, startTime, processCallback, receiveAction));
                 }
                 await Task.WhenAll(tasks);
             });
@@ -205,24 +208,35 @@ namespace YoloSharpOnnx.Inference
         {
             InitBufferPool(_config.BatchPoolSize);
 
-            var ChannelOptions = YoloUtils.GetChannelOptions(_config.BatchPoolSize);
-            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+            Channel<InferModel<TBatchPreResult>> postChannel = Channel.CreateBounded<InferModel<TBatchPreResult>>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
 
             _ = PreprocessBatch(listImg, channel.Writer);
+            _ = ReaderForeach(channel, postChannel).ContinueWith(t =>
+             {
+                 postChannel.Writer.Complete();
+             });
+
+            await foreach (InferModel<TBatchPreResult> item in postChannel.Reader.ReadAllAsync())
+            {
+                yield return PostprocessChannel(item); 
+            }
+
+        }
+
+        private async Task ReaderForeach(Channel<TBatchPreResult> channel, Channel<InferModel<TBatchPreResult>> postChannel)
+        {
             await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
             {
                 long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var result = _batchProcess.RunBatch(item);
-                var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
-                yield return modelResult;
+                var result = RunInfer(item, startTime);
+                await postChannel.Writer.WriteAsync(result);
             }
-
         }
 
 
         protected async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
-
             if (processCallback != null)
             {
                 await Task.Run(() =>
