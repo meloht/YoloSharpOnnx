@@ -18,7 +18,7 @@ namespace YoloSharpOnnx.WinFormsDemo
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(model, deviceId));
 
             this.textBoxModel.Text = @"D:\code\model\yolo26n-seg.onnx";
-            this.textBoxImage.Text = @"D:\code\model\TestData\Images\zidane.jpg";
+            this.textBoxImage.Text = @"D:\code\model\zidane.jpg";
             LoadImageView(this.textBoxImage.Text);
         }
 

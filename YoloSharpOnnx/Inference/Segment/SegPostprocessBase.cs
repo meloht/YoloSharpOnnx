@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,15 +111,61 @@ namespace YoloSharpOnnx.Inference.Segment
             Cv2.Exp(masks, masks);
             Cv2.Add(masks, 1.0, masks);
             Cv2.Divide(1.0, masks, masks);
-
+            Mat[] channels = new Mat[count];
             for (int i = 0; i < count; i++)
             {
                 using Mat row = masks.Row(i);
-                using Mat mask = row.Reshape(1, _protoH);
-                list[i].Mask = ScaleMaskToOriginal(mask, preResult, list[i].Box);
+                channels[i] = row.Reshape(1, _protoH).Clone();
+                //list[i].Mask = ScaleMaskToOriginal(mask, preResult, list[i].Box);
             }
+            using Mat merged = new Mat();
+            Cv2.Merge(channels, merged);
 
+            using Mat upsampled = new Mat();
+            Cv2.Resize(merged, upsampled, new OpenCvSharp.Size(_inputSizeW, _inputSizeH), interpolation: InterpolationFlags.Linear);
+
+            // 去除 letterbox padding
+            int left = (int)Math.Round(preResult.PadX - 0.1);
+            int top = (int)Math.Round(preResult.PadY - 0.1);
+
+            int validW = (int)Math.Round(preResult.ImageWidth * preResult.Scale);
+            int validH = (int)Math.Round(preResult.ImageHeight * preResult.Scale);
+
+            Rect roi = new Rect(
+                left,
+                top,
+                Math.Min(validW, upsampled.Width - left),
+                Math.Min(validH, upsampled.Height - top));
+
+            using Mat noPad = new Mat(upsampled, roi);
+
+            //-----------------------------------
+            //还原到原图尺寸
+            //-----------------------------------
+            using Mat restored = new Mat();
+            Cv2.Resize(noPad, restored,
+                new OpenCvSharp.Size(preResult.ImageWidth, preResult.ImageHeight), interpolation: InterpolationFlags.Linear);
+
+            Mat[] finalChannels = Cv2.Split(restored);
+            for (int i = 0; i < count; i++)
+            {
+              
+                var box = list[i].Box;
+                Rect safeBox = new Rect(
+                  Math.Max(box.X, 0),
+                  Math.Max(box.Y, 0),
+                  Math.Min(box.Width, preResult.ImageWidth - box.X),
+                  Math.Min(box.Height, preResult.ImageHeight - box.Y));
+
+
+                using Mat binary = new Mat();
+                Cv2.Threshold(finalChannels[i], binary, _threshold, 255, ThresholdTypes.Binary);
+                binary.ConvertTo(binary, MatType.CV_8UC1);
+
+                list[i].Mask = new Mat(binary, safeBox);
+            }
         }
+
 
         protected unsafe void DecodeMask(Mat protoMask, ReadOnlySpan<float> maskCoeffs, ReadOnlySpan<float> output1)
         {
