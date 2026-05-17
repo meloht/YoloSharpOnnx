@@ -32,6 +32,8 @@ namespace YoloSharpOnnx.Inference
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
+        protected abstract void RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
+
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
@@ -190,11 +192,13 @@ namespace YoloSharpOnnx.Inference
                 await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    var result = _batchProcess.RunBatch(item);
-                    var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
-                    batchResults[idx++] = modelResult;
+                    //var result = _batchProcess.RunBatch(item);
+                    //var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                    //batchResults[idx++] = modelResult;
 
-                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
+                    //_ = InferCompleteAsync(modelResult, processCallback, receiveAction);
+
+                    RunBatchInfer(batchResults, idx++,item, startTime, processCallback, receiveAction);
                 }
             });
             return (producer, consumer, batchResults);
@@ -218,7 +222,8 @@ namespace YoloSharpOnnx.Inference
 
         }
 
-        private async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+
+        protected async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
 
             if (processCallback != null)
@@ -245,7 +250,7 @@ namespace YoloSharpOnnx.Inference
             _matPool?.Dispose();
 
             _inputFixedBuffer.Dispose();
-            
+
             _runOptions.Dispose();
             _session.Dispose();
             _options.Dispose();

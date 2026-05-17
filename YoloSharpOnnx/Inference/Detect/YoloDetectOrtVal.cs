@@ -51,7 +51,7 @@ namespace YoloSharpOnnx.Inference.Detect
                     _matPool.Return(preResult.Data);
                 }
             }
-           
+
         }
 
         public List<DetectionResult> Run(Mat inputImage)
@@ -83,6 +83,31 @@ namespace YoloSharpOnnx.Inference.Detect
             // 后处理
             var res = PostProcessTime(outputs0, preRes, speed);
             return new YoloResult<DetectionResult>(res, speed);
+        }
+
+        protected override void RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var outputs = _session.Run(_runOptions, _session.InputNames, [item.Data.InputOrtValue], _session.OutputNames);
+
+                _matPool.Return(item.Data);
+                isReturn = true;
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, outputs[0], item, startTime, processCallback, receiveAction);
+                });
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
         }
     }
 }

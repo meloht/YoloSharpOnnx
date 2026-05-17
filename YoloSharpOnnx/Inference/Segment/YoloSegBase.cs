@@ -106,7 +106,16 @@ namespace YoloSharpOnnx.Inference.Segment
 
             return res;
         }
-
+        protected void BatchPostProcess(SegBatchResult[] batchResults, int idx, OrtValue output0,OrtValue output1, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        {
+            using (output0)
+            using (output1)
+            {
+                var result = _postprocess.PostProcess(output0, output1, item.PreResult);
+                batchResults[idx] = BuildBatchResult(item, result, startTime);
+            }
+            _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+        }
 
         public void DrawSegments(Mat inputImage, List<SegResult> list)
         {

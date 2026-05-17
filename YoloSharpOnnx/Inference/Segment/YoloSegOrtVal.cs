@@ -85,5 +85,29 @@ namespace YoloSharpOnnx.Inference.Segment
                 }
             }
         }
+
+        protected override void RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                var outputs = _session.Run(_runOptions, _session.InputNames, [item.Data.InputOrtValue], _session.OutputNames);
+                _matPool.Return(item.Data);
+                isReturn = true;
+
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, outputs[0], outputs[1], item, startTime, processCallback, receiveAction);
+                });
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
     }
 }

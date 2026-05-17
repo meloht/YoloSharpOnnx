@@ -52,7 +52,16 @@ namespace YoloSharpOnnx.Inference.Classify
 
             return result;
         }
+        protected void BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            using (output0)
+            {
+                var result = _postprocess.PostProcess(output0);
+                batchResults[idx] = BuildBatchResult(item, result, startTime);
+            }
 
+            _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+        }
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {

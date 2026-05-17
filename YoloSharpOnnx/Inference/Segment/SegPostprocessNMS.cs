@@ -18,10 +18,7 @@ namespace YoloSharpOnnx.Inference.Segment
     {
         private readonly int _numAnchors;
 
-        private readonly List<Rect> _boxes = new List<Rect>();
-        private readonly List<float> _scores = new List<float>();
-        private readonly List<int> _classIds = new List<int>();
-        private readonly List<int> _ids = new List<int>();
+
 
         private readonly int _classAtts;
 
@@ -32,20 +29,20 @@ namespace YoloSharpOnnx.Inference.Segment
         {
             _numAnchors = (int)onnx.OutputShape0[2];
             _classAtts = (int)onnx.OutputShape0[1] - _maskDim;//[1,116,8400] 116-32=84
-            _nmsDecode = new NmsDecode(onnx, yoloConfig, _boxes, _scores, _classIds, _ids);
+            _nmsDecode = new NmsDecode(onnx, yoloConfig);
 
         }
         public List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
-            _boxes.Clear();
-            _scores.Clear();
-            _classIds.Clear();
-            _ids.Clear();
+            List<Rect> boxes = new List<Rect>();
+            List<float> scores = new List<float>();
+            List<int> classIds = new List<int>();
+            List<int> ids = new List<int>();
 
             var output0 = outputValue0.GetTensorDataAsSpan<float>();
             var output1 = outputValue1.GetTensorDataAsSpan<float>();
 
-            int[] indices = _nmsDecode.Decode(output0, preResult);
+            int[] indices = _nmsDecode.Decode(output0, preResult, boxes, scores, classIds, ids);
            
             List<SegResult> results = new List<SegResult>();
             using DisposableList<Mat> coeffMatList = new DisposableList<Mat>();
@@ -58,17 +55,17 @@ namespace YoloSharpOnnx.Inference.Segment
                     float* coeffPtr = (float*)coeffMat.DataPointer;
                     for (int m = 0; m < _maskDim; m++)
                     {
-                        coeffPtr[m] = output0[(_classAtts + m) * _numAnchors + _ids[idx]];
+                        coeffPtr[m] = output0[(_classAtts + m) * _numAnchors + ids[idx]];
                     }
                 }
 
                 coeffMatList.Add(coeffMat);
                 var result = new SegResult
                 {
-                    Box = _boxes[idx],
-                    Confidence = _scores[idx],
-                    ClassId = _classIds[idx],
-                    ClassName = _labels[_classIds[idx]].Name
+                    Box = boxes[idx],
+                    Confidence = scores[idx],
+                    ClassId = classIds[idx],
+                    ClassName = _labels[classIds[idx]].Name
                    
                 };
                 results.Add(result);

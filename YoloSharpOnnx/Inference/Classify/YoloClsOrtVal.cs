@@ -83,7 +83,32 @@ namespace YoloSharpOnnx.Inference.Classify
                     _matPool.Return(preResult.Data);
                 }
             }
-           
+
+        }
+
+        protected override void RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var outputs = _session.Run(_runOptions, _session.InputNames, [item.Data.InputOrtValue], _session.OutputNames);
+                _matPool.Return(item.Data);
+                isReturn = true;
+
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, outputs[0], item, startTime, processCallback, receiveAction);
+                });
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
         }
     }
 }

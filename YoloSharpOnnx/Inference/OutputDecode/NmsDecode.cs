@@ -8,17 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.OutputDecode
 {
     internal class NmsDecode
     {
-        private readonly List<Rect> _boxes;
-        private readonly List<float> _scores;
-        private readonly List<int> _classIds;
-        private readonly List<int> _ids;
         private readonly int _numAnchors;
-
         private readonly int _numAnchors2;
         private readonly int _numAnchors3;
         private readonly int _numAnchors4;
@@ -26,13 +22,10 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
         private readonly YoloConfig _yoloConfig;
 
-        public NmsDecode(OnnxModel onnx, YoloConfig yoloConfig, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids = null)
+        public NmsDecode(OnnxModel onnx, YoloConfig yoloConfig)
         {
             _numAnchors = (int)onnx.OutputShape0[2]; 
-            _boxes = boxes;
-            _scores = scores;
-            _classIds = classIds;
-            _ids = ids;
+
             _numAnchors2 = _numAnchors * 2;
             _numAnchors3 = _numAnchors * 3;
             _numAnchors4 = _numAnchors * 4;
@@ -42,7 +35,8 @@ namespace YoloSharpOnnx.Inference.OutputDecode
         }
 
 
-        public int[] Decode(ReadOnlySpan<float> output0, PreDetectResult preResult)
+
+        public int[] Decode(ReadOnlySpan<float> output0, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids = null)
         {
             for (int i = 0; i < _numAnchors; i++)
             {
@@ -81,22 +75,21 @@ namespace YoloSharpOnnx.Inference.OutputDecode
                 // Add the class ID, score, and box coordinates to the respective lists
                 if (width > 0 && height > 0)
                 {
-                    _classIds.Add(classId);
-                    _scores.Add(maxScore);
-                    _boxes.Add(new Rect(x, y, width, height));
-                    
-                    _ids?.Add(i);
+                    classIds.Add(classId);
+                    scores.Add(maxScore);
+                    boxes.Add(new Rect(x, y, width, height));
+
+                    ids?.Add(i);
                 }
             }
 
             // 非极大值抑制
             int[] indices = [];
-            if (_boxes.Count > 0)
+            if (boxes.Count > 0)
             {
-                CvDnn.NMSBoxes(_boxes, _scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
+                CvDnn.NMSBoxes(boxes, scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
             }
             return indices;
         }
-
     }
 }

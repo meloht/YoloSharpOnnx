@@ -67,7 +67,7 @@ namespace YoloSharpOnnx.Inference.Detect
             RunInference();
 
             // 后处理
-            return _postprocess.PostProcess(_outputOrtValue, preRes); 
+            return _postprocess.PostProcess(_outputOrtValue, preRes);
         }
 
         public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
@@ -116,9 +116,38 @@ namespace YoloSharpOnnx.Inference.Detect
                     _matPool.Return(preResult.Data);
                 }
             }
-          
+
         }
 
+        protected override void RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                _binding.BindInput(_onnxModel.InputName, item.Data.InputOrtValue);
+                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+                _binding.SynchronizeBoundInputs();
 
+                // 执行推理
+                var results = _session.RunWithBoundResults(_runOptions, _binding);
+                _binding.SynchronizeBoundOutputs();
+
+                _matPool.Return(item.Data);
+                isReturn = true;
+
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
+                });
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
     }
 }

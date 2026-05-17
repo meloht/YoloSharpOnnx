@@ -104,5 +104,37 @@ namespace YoloSharpOnnx.Inference.Classify
 
            
         }
+
+        protected override void RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                _binding.BindInput(_onnxModel.InputName, item.Data.InputOrtValue);
+                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+                _binding.SynchronizeBoundInputs();
+
+                // 执行推理
+                var results = _session.RunWithBoundResults(_runOptions, _binding);
+                _binding.SynchronizeBoundOutputs();
+               
+                _matPool.Return(item.Data);
+                isReturn = true;
+
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
+                });
+
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
     }
 }

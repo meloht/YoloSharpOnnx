@@ -18,9 +18,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         private readonly LabelModel[] _labels;
 
-        private List<Rect> _boxes = new List<Rect>();
-        private List<float> _scores = new List<float>();
-        private List<int> _classIds = new List<int>();
+
         private readonly YoloConfig _yoloConfig;
 
         private readonly NmsDecode _nmsDecode;
@@ -30,25 +28,25 @@ namespace YoloSharpOnnx.Inference.Detect
             _labels = onnx.Labels;
             _numAnchors = (int)onnx.OutputShape0[2];
             _yoloConfig = yoloConfig;
-            _nmsDecode = new NmsDecode(onnx, yoloConfig, _boxes, _scores, _classIds);
+            _nmsDecode = new NmsDecode(onnx, yoloConfig);
         }
 
         public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
-            _boxes.Clear();
-            _scores.Clear();
-            _classIds.Clear();
+            List<Rect> boxes = new List<Rect>();
+            List<float> scores = new List<float>();
+            List<int> classIds = new List<int>();
             var ortSpan = outputValue.GetTensorDataAsSpan<float>();//[1,84,8400]
 
-            int[] indices = _nmsDecode.Decode(ortSpan, preResult);
+            int[] indices = _nmsDecode.Decode(ortSpan, preResult, boxes, scores, classIds);
 
             List<DetectionResult> results = new List<DetectionResult>();
             // 绘制检测结果
             foreach (var idx in indices)
             {
-                Rect box = _boxes[idx];
-                float score = _scores[idx];
-                int class_id = _classIds[idx];
+                Rect box = boxes[idx];
+                float score = scores[idx];
+                int class_id = classIds[idx];
                 string lable = _labels[class_id].Name;
 
                 DetectionResult detection = new DetectionResult();

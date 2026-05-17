@@ -118,14 +118,46 @@ namespace YoloSharpOnnx.Inference.Segment
 
                 return result;
             }
-            finally 
+            finally
             {
                 if (!isReturn)
                 {
                     _matPool.Return(preResult.Data);
                 }
             }
-           
+
         }
+
+        protected override void RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                _binding.BindInput(_onnxModel.InputName, item.Data.InputOrtValue);
+                _binding.BindOutputToDevice(_onnxModel.OutputName0, OrtMemoryInfo.DefaultInstance);
+                _binding.SynchronizeBoundInputs();
+
+                // 执行推理
+                var results = _session.RunWithBoundResults(_runOptions, _binding);
+                _binding.SynchronizeBoundOutputs();
+
+                _matPool.Return(item.Data);
+                isReturn = true;
+                // 后处理
+                Task.Run(() =>
+                {
+                    BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
+                });
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
+
+
     }
 }
