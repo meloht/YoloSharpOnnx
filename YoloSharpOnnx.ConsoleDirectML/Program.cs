@@ -19,7 +19,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-             TestBatchInfer();
+            //TestBatchInfer();
+            TestBatchInferSeg();
             // _ = TestBatchForeachInfer();
             //TestInferPerf();
             //TestInferCls();
@@ -167,6 +168,30 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
 
+        private static void TestBatchInferSeg()
+        {
+
+           
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = 0;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
+            {
+
+
+                yolo.YoloConfiguration.BatchPoolSize = 30;
+                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+                _stopwatch.Start();
+                var list = yolo.RunBatchSegment(@"D:\code\model\TestCOCO", receiveAction: ReceiveProcess);
+                num = list.Length;
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
         private static async Task TestBatchForeachInfer()
         {
             var files = Directory.GetFiles(dir);
@@ -191,6 +216,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
 
         private static void ReceiveProcess(DetectionBatchResult e)
+        {
+
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = e.Results.Summary();
+            Console.WriteLine($"{ans} time:{cost}ms");
+
+        }
+        private static void ReceiveProcess(SegBatchResult e)
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;

@@ -86,7 +86,7 @@ namespace YoloSharpOnnx.Inference.Segment
             }
         }
 
-        protected override void RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        protected override Task RunBatchInfer(SegBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -96,10 +96,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 isReturn = true;
 
                 // 后处理
-                Task.Run(() =>
-                {
-                    BatchPostProcess(batchResults, idx, outputs[0], outputs[1], item, startTime, processCallback, receiveAction);
-                });
+                return BatchPostProcess(batchResults, idx, outputs[0], outputs[1], item, startTime, processCallback, receiveAction);
             }
             finally
             {

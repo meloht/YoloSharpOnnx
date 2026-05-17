@@ -12,14 +12,14 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, 
+    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>,
         IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
         private bool disposedValue;
 
-       
+
         protected abstract void DisposedSub();
         public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config)
@@ -40,7 +40,7 @@ namespace YoloSharpOnnx.Inference.Classify
         }
 
 
-        protected List<ClsResult> PostProcessTime(OrtValue output0,  SpeedResult speed)
+        protected List<ClsResult> PostProcessTime(OrtValue output0, SpeedResult speed)
         {
             _stopwatch.Restart();
             // 后处理
@@ -52,15 +52,20 @@ namespace YoloSharpOnnx.Inference.Classify
 
             return result;
         }
-        protected void BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        protected Task BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
-            using (output0)
-            {
-                var result = _postprocess.PostProcess(output0);
-                batchResults[idx] = BuildBatchResult(item, result, startTime);
-            }
+            return Task.Run(() =>
+              {
+                  using (output0)
+                  {
+                      var result = _postprocess.PostProcess(output0);
+                      batchResults[idx] = BuildBatchResult(item, result, startTime);
+                  }
 
-            _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+                  _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+
+              });
+
         }
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)

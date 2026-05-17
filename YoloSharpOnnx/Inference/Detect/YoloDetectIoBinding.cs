@@ -119,7 +119,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         }
 
-        protected override void RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        protected override Task RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -136,10 +136,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 isReturn = true;
 
                 // 后处理
-                Task.Run(() =>
-                {
-                    BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
-                });
+                return BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
             }
             finally
             {

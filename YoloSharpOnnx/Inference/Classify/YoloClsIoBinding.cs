@@ -35,7 +35,7 @@ namespace YoloSharpOnnx.Inference.Classify
             _outputFixedBuffer.Dispose();
         }
 
-        private  void RunInference()
+        private void RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
             _binding.BindOutput(_onnxModel.OutputName0, _outputOrtValue);
@@ -102,10 +102,10 @@ namespace YoloSharpOnnx.Inference.Classify
                 }
             }
 
-           
+
         }
 
-        protected override void RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -117,15 +117,12 @@ namespace YoloSharpOnnx.Inference.Classify
                 // 执行推理
                 var results = _session.RunWithBoundResults(_runOptions, _binding);
                 _binding.SynchronizeBoundOutputs();
-               
+
                 _matPool.Return(item.Data);
                 isReturn = true;
 
                 // 后处理
-                Task.Run(() =>
-                {
-                    BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
-                });
+                return BatchPostProcess(batchResults, idx, results[0], item, startTime, processCallback, receiveAction);
 
             }
             finally

@@ -74,6 +74,8 @@ namespace YoloSharpOnnx.Inference.Segment
 
         protected void GEMM(List<SegResult> list, List<Mat> coeffMatList, ReadOnlySpan<float> output1, PreDetectResult preResult)
         {
+            if (list.Count == 0)
+                return;
             int count = list.Count;
             using Mat coeffMat = new Mat(count, _maskDim, MatType.CV_32FC1);
             unsafe
@@ -160,8 +162,8 @@ namespace YoloSharpOnnx.Inference.Segment
                 Rect safeBox = new Rect(
                   Math.Max(box.X, 0),
                   Math.Max(box.Y, 0),
-                  Math.Min(box.Width, preResult.ImageWidth - box.X),
-                  Math.Min(box.Height, preResult.ImageHeight - box.Y));
+                  Math.Min(box.Width, preResult.ImageWidth - Math.Abs(box.X)),
+                  Math.Min(box.Height, preResult.ImageHeight - Math.Abs(box.Y)));
 
                 list[i].Mask = new Mat(finalChannels[i], safeBox);
             }

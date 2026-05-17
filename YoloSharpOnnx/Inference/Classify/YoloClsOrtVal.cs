@@ -86,7 +86,7 @@ namespace YoloSharpOnnx.Inference.Classify
 
         }
 
-        protected override void RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -97,10 +97,7 @@ namespace YoloSharpOnnx.Inference.Classify
                 isReturn = true;
 
                 // 后处理
-                Task.Run(() =>
-                {
-                    BatchPostProcess(batchResults, idx, outputs[0], item, startTime, processCallback, receiveAction);
-                });
+                return BatchPostProcess(batchResults, idx, outputs[0], item, startTime, processCallback, receiveAction);
             }
             finally
             {

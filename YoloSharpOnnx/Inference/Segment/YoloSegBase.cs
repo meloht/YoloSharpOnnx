@@ -106,15 +106,19 @@ namespace YoloSharpOnnx.Inference.Segment
 
             return res;
         }
-        protected void BatchPostProcess(SegBatchResult[] batchResults, int idx, OrtValue output0,OrtValue output1, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
+        protected Task BatchPostProcess(SegBatchResult[] batchResults, int idx, OrtValue output0, OrtValue output1, PreDetectResultBatch item, long startTime, IBatchProcessCallback<SegBatchResult> processCallback, Action<SegBatchResult> receiveAction)
         {
-            using (output0)
-            using (output1)
-            {
-                var result = _postprocess.PostProcess(output0, output1, item.PreResult);
-                batchResults[idx] = BuildBatchResult(item, result, startTime);
-            }
-            _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+            return Task.Run(() =>
+              {
+                  using (output0)
+                  using (output1)
+                  {
+                      var result = _postprocess.PostProcess(output0, output1, item.PreResult);
+                      batchResults[idx] = BuildBatchResult(item, result, startTime);
+                  }
+                  _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+              });
+
         }
 
         public void DrawSegments(Mat inputImage, List<SegResult> list)
@@ -136,7 +140,7 @@ namespace YoloSharpOnnx.Inference.Segment
         public static void DrawTransparentMask(Mat image, Mat binaryMask, Rect box, Scalar color, double alpha = 0.4)
         {
             Rect validRect = new Rect(
-                Math.Max(0, box.X), 
+                Math.Max(0, box.X),
                 Math.Max(0, box.Y),
                 Math.Min(box.Width, image.Width - box.X),
                 Math.Min(box.Height, image.Height - box.Y));

@@ -2,6 +2,7 @@
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -32,7 +33,7 @@ namespace YoloSharpOnnx.Inference
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
-        protected abstract void RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
+        protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
@@ -185,21 +186,17 @@ namespace YoloSharpOnnx.Inference
             Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
 
             var producer = PreprocessBatch(listImg, channel.Writer);
-
+           
             var consumer = Task.Run(async () =>
             {
+                ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
                 int idx = 0;
                 await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    //var result = _batchProcess.RunBatch(item);
-                    //var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
-                    //batchResults[idx++] = modelResult;
-
-                    //_ = InferCompleteAsync(modelResult, processCallback, receiveAction);
-
-                    RunBatchInfer(batchResults, idx++,item, startTime, processCallback, receiveAction);
+                    tasks.Add(RunBatchInfer(batchResults, idx++,item, startTime, processCallback, receiveAction));
                 }
+                await Task.WhenAll(tasks);
             });
             return (producer, consumer, batchResults);
         }
