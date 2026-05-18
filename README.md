@@ -15,7 +15,7 @@
 🚀a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.
 
 # Features
- - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect), [Image Classification](https://docs.ultralytics.com/tasks/classify)
+ - **YOLO Task**  [Object Detection](https://docs.ultralytics.com/tasks/detect), [Image Classification](https://docs.ultralytics.com/tasks/classify), [Instance Segmentation](https://docs.ultralytics.com/tasks/segment)
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
@@ -334,7 +334,6 @@ private static async Task TestBatchForeachInfer()
 
 | Time  | Feature |
 | ------------- | ------------- |
-| 2026-11  | Yolo task Instance Segmentation  |
 | 2026-11  | Yolo task Pose Estimation  |
 | 2026-12  | Yolo task OBB  |
 
