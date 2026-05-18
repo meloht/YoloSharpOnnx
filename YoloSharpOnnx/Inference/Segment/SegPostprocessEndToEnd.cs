@@ -20,14 +20,16 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly int _classAtts;
         private readonly int _boxAttrs;
 
+
         public SegPostprocessEndToEnd(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
         {
             _maxDet = (int)onnx.OutputShape0[1]; //[1,300,38]   300
             _classAtts = (int)onnx.OutputShape0[2];//38
             _boxAttrs = _classAtts - _maskDim;//38-32=6
+           
         }
 
-        private List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        private List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult, YoloSegDecode segDecode)
         {
             List<SegResult> results = new List<SegResult>();
 
@@ -50,9 +52,9 @@ namespace YoloSharpOnnx.Inference.Segment
                 Rect box = EndToEndDecode.Decode(output0, offset, preResult);
 
                 var maskCoeffs = output0.Slice(offset + _boxAttrs, _maskDim);//maskCoeffs(32)
-             
+
                 coeffMatList.Add(GetCoeffMat(maskCoeffs));
-               
+
                 var result = new SegResult
                 {
                     Box = box,
@@ -63,19 +65,28 @@ namespace YoloSharpOnnx.Inference.Segment
                 results.Add(result);
             }
 
-            GEMM(results, coeffMatList, output1, preResult);
+            segDecode.Decode(results, coeffMatList, output1, preResult);
             return results;
 
         }
 
         public List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
-            return PostProcess(outputValue0, outputValue1, preResult);
+            var decode = _segDecodePool.Value.Rent();
+            try
+            {
+                return PostProcess(outputValue0, outputValue1, preResult, decode);
+            }
+            finally
+            {
+                _segDecodePool.Value.Return(decode);
+            }
+
         }
 
         public List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
-            return PostProcess(outputValue0, outputValue1, preResult);
+            return PostProcess(outputValue0, outputValue1, preResult, _yoloSegDecode);
         }
     }
 }

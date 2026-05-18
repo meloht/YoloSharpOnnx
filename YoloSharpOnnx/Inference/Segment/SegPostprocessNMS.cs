@@ -33,14 +33,15 @@ namespace YoloSharpOnnx.Inference.Segment
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
 
         }
-        private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids)
+        private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult,
+            List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids, YoloSegDecode segDecode)
         {
-           
+
             var output0 = outputValue0.GetTensorDataAsSpan<float>();
             var output1 = outputValue1.GetTensorDataAsSpan<float>();
 
             int[] indices = _nmsDecode.Decode(output0, preResult, boxes, scores, classIds, ids);
-           
+
             List<SegResult> results = new List<SegResult>();
             using DisposableList<Mat> coeffMatList = new DisposableList<Mat>();
 
@@ -63,11 +64,11 @@ namespace YoloSharpOnnx.Inference.Segment
                     Confidence = scores[idx],
                     ClassId = classIds[idx],
                     ClassName = _labels[classIds[idx]].Name
-                   
+
                 };
                 results.Add(result);
             }
-            GEMM(results, coeffMatList, output1, preResult);
+            segDecode.Decode(results, coeffMatList, output1, preResult);
             return results;
         }
 
@@ -77,8 +78,16 @@ namespace YoloSharpOnnx.Inference.Segment
             List<float> scores = new List<float>();
             List<int> classIds = new List<int>();
             List<int> ids = new List<int>();
+            var decode = _segDecodePool.Value.Rent();
+            try
+            {
+                return PostProcessBase(outputValue0, outputValue1, preResult, boxes, scores, classIds, ids, decode);
+            }
+            finally
+            {
+                _segDecodePool.Value.Return(decode);
+            }
 
-            return PostProcessBase(outputValue0, outputValue1, preResult, boxes, scores, classIds, ids);
         }
 
         public List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
@@ -87,9 +96,9 @@ namespace YoloSharpOnnx.Inference.Segment
             _scores.Clear();
             _classIds.Clear();
             _ids.Clear();
-            return PostProcessBase(outputValue0, outputValue1, preResult, _boxes, _scores, _classIds, _ids);
+            return PostProcessBase(outputValue0, outputValue1, preResult, _boxes, _scores, _classIds, _ids, _yoloSegDecode);
         }
 
-       
+
     }
 }

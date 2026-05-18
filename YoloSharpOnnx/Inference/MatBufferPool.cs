@@ -21,10 +21,6 @@ namespace YoloSharpOnnx.Inference
         /// </summary>
         private readonly int _maxSize;
 
-        /// <summary>
-        /// 当前池中缓存数量（近似值）
-        /// </summary>
-        private int _count;
 
         /// <summary>
         /// 当前正在使用中的对象数量
@@ -48,7 +44,6 @@ namespace YoloSharpOnnx.Inference
             for (int i = 0; i < _maxSize; i++)
             {
                 _pool.Add(new ImageBatchData(_onnxModel));
-                _count++;
             }
         }
 
@@ -57,10 +52,7 @@ namespace YoloSharpOnnx.Inference
         /// </summary>
         public int UsedCount => Volatile.Read(ref _usedCount);
 
-        /// <summary>
-        /// 当前池中缓存数量
-        /// </summary>
-        public int CachedCount => Volatile.Read(ref _count);
+
 
         public ImageBatchData Rent()
         {
@@ -70,11 +62,6 @@ namespace YoloSharpOnnx.Inference
 
             if (_pool.TryTake(out var item))
             {
-                Interlocked.Decrement(ref _count);
-
-                // 如果你有 Reset() 方法，建议这里调用
-                // item.Reset();
-
                 return item;
             }
 
@@ -102,13 +89,12 @@ namespace YoloSharpOnnx.Inference
             Interlocked.Decrement(ref _usedCount);
 
             // 超过池容量 -> 直接销毁
-            if (Interlocked.Increment(ref _count) <= _maxSize)
+            if (_pool.Count < _maxSize)
             {
                 _pool.Add(item);
             }
             else
             {
-                Interlocked.Decrement(ref _count);
                 item.Dispose();
             }
         }
@@ -123,7 +109,6 @@ namespace YoloSharpOnnx.Inference
                 item.Dispose();
             }
 
-            Interlocked.Exchange(ref _count, 0);
         }
         private void ThrowIfDisposed()
         {

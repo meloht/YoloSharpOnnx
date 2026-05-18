@@ -18,6 +18,8 @@ namespace YoloSharpOnnx.Inference.Segment
     {
         protected readonly LabelModel[] _labels;
         protected readonly YoloConfig _yoloConfig;
+        protected readonly YoloSegDecode _yoloSegDecode;
+        protected readonly Lazy<ObjectPool<YoloSegDecode>> _segDecodePool;
         protected const float _threshold = 0.5f;
         protected int _inputSizeW;
         protected int _inputSizeH;
@@ -25,6 +27,7 @@ namespace YoloSharpOnnx.Inference.Segment
         protected readonly int _protoW;
         protected readonly int _maskDim;
         private readonly int _hw;
+
 
         public SegPostprocessBase(OnnxModel onnx, YoloConfig yoloConfig)
         {
@@ -37,6 +40,9 @@ namespace YoloSharpOnnx.Inference.Segment
             _maskDim = (int)onnx.OutputShape1[1];//[1,32,160,160]  32 
 
             _hw = _protoH * _protoW;
+
+            _yoloSegDecode = new YoloSegDecode(onnx, yoloConfig);
+            _segDecodePool = new Lazy<ObjectPool<YoloSegDecode>>(() => new ObjectPool<YoloSegDecode>(() => new YoloSegDecode(onnx, yoloConfig), 20));
         }
 
         protected Mat GetMaskFromProto(ReadOnlySpan<float> output1)
@@ -123,7 +129,7 @@ namespace YoloSharpOnnx.Inference.Segment
             }
             using Mat merged = new Mat();
             Cv2.Merge(channels, merged);
-          
+
             using Mat upsampled = new Mat();
             Cv2.Resize(merged, upsampled, new OpenCvSharp.Size(_inputSizeW, _inputSizeH), interpolation: InterpolationFlags.Linear);
 
@@ -275,6 +281,15 @@ namespace YoloSharpOnnx.Inference.Segment
         protected static float Sigmoid(float x)
         {
             return 1.0f / (1.0f + MathF.Exp(-x));
+        }
+
+        public void Dispose()
+        {
+            _yoloSegDecode?.Dispose();
+            if (_segDecodePool.IsValueCreated)
+            {
+                _segDecodePool.Value.Dispose();
+            }
         }
     }
 }

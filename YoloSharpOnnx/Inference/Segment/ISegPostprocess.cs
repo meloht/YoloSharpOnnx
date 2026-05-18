@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public interface ISegPostprocess
+    public interface ISegPostprocess : IDisposable
     {
         List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult);
         List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult);
