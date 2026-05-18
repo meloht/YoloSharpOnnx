@@ -21,8 +21,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestChannel();
 
             //TestBatchInfer();
-            //TestBatchInferSeg();
-            TestInferSeg();
+            TestBatchInferSeg();
+            //TestInferSeg();
             // _ = TestBatchForeachInfer();
             // TestInferPerf();
             //TestInferCls();
@@ -195,7 +195,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             int num = 0;
             var files = Directory.GetFiles(@"D:\code\model\TestCOCO");
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo11n-seg.onnx", _deviceId)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
             {
                
                 _stopwatch.Start();
@@ -220,7 +220,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             int num = 0;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo11n-seg.onnx", _deviceId)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
