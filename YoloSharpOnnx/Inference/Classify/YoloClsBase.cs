@@ -7,17 +7,22 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>, IYoloClassify
+    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>,
+        IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
         private bool disposedValue;
 
+
         protected abstract void DisposedSub();
+        protected abstract OrtValue RunInferenceBatch(PreClsResultBatch preResult);
         public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
             : base(session, options, onnxModel, config)
         {
@@ -25,57 +30,120 @@ namespace YoloSharpOnnx.Inference.Classify
             _preprocess = preprocess;
             InitBatchProcess(this);
         }
-
-
-        public List<ClsResult> Run(Mat inputImage)
+        protected void PreprocessTime(Mat inputImage, SpeedResult speed)
         {
-            // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-            // 执行推理
-            var ortValue = RunInference();
-
-            // 后处理
-            var result = _postprocess.PostProcess(ortValue);
-
-            AfterInference(ortValue);
-
-            return result;
-        }
-
-        public YoloResult<ClsResult> RunWithTime(Mat inputImage)
-        {
-            SpeedResult speed = new SpeedResult();
-
             _stopwatch.Restart();
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+
+        }
+
+
+        protected List<ClsResult> PostProcessTime(OrtValue output0, SpeedResult speed)
+        {
             _stopwatch.Restart();
-
-            // 执行推理
-            var ortValue = RunInference();
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
             // 后处理
-            var res = _postprocess.PostProcess(ortValue);
-            AfterInference(ortValue);
+            var result = _postprocess.PostProcess(output0);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
             speed.SumTotal();
 
-            return new YoloResult<ClsResult>(res, speed);
+            return result;
+        }
+        protected Task BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            return Task.Run(() =>
+              {
+                  using (output0)
+                  {
+                      var result = _postprocess.PostProcess(output0);
+                      batchResults[idx] = BuildBatchResult(item, result, startTime);
+                  }
+
+                  _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+
+              });
+
+        }
+        protected override ClsBatchResult PostprocessChannel(InferModel<PreClsResultBatch> inferModel)
+        {
+            using (inferModel.Output0)
+            {
+                var res = _postprocess.PostProcess(inferModel.Output0);
+                return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
+            }
         }
 
+        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                using var output0 = RunInferenceBatch(preResult);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcess(output0);
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+
+        }
+
+        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var ortValue = RunInferenceBatch(item);
+                isReturn = true;
+
+                // 后处理
+                return BatchPostProcess(batchResults, idx, ortValue, item, startTime, processCallback, receiveAction);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
+
+        protected override InferModel<PreClsResultBatch> RunInfer(PreClsResultBatch preResult, long startTime)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var ortValue = RunInferenceBatch(preResult);
+                isReturn = true;
+
+                return new InferModel<PreClsResultBatch>(ortValue, null, preResult, startTime);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+        }
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
+            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             return new PreClsResultBatch(imagePath, imageBatchData);
         }
 

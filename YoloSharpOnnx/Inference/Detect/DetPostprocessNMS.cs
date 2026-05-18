@@ -7,102 +7,42 @@ using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
     public class DetPostprocessNMS : IDetPostprocess
     {
-        private readonly int _boxNums;
-        private readonly int _boxNums2;
-        private readonly int _boxNums3;
-        private readonly int _boxNums4;
         private readonly LabelModel[] _labels;
+        private readonly NmsDecode _nmsDecode;
+        private readonly List<Rect> _boxes = new List<Rect>();
+        private readonly List<float> _scores = new List<float>();
+        private readonly List<int> _classIds = new List<int>();
 
-
-        private List<Rect> _boxes = new List<Rect>();
-        private List<float> _scores = new List<float>();
-        private List<int> _classIds = new List<int>();
-
-        public DetPostprocessNMS(int boxNum, LabelModel[] labels)
+        public DetPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig)
         {
-            _labels = labels;
-            _boxNums = boxNum;
-            _boxNums2 = _boxNums * 2;
-            _boxNums3 = _boxNums * 3;
-            _boxNums4 = _boxNums * 4;
+            _labels = onnx.Labels;
+            _nmsDecode = new NmsDecode(onnx, yoloConfig);
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult, YoloConfig yoloConfig)
+
+
+        private List<DetectionResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds)
         {
-            _boxes.Clear();
-            _scores.Clear();
-            _classIds.Clear();
-            var ortSpan = outputValue.GetTensorDataAsSpan<float>();
 
-            for (int i = 0; i < _boxNums; i++)
-            {
-                // Move forward to confidence value of first label
-                var labelOffset = i + _boxNums4;
+            var ortSpan = outputValue.GetTensorDataAsSpan<float>();//[1,84,8400]
 
-                float bestConfidence = 0f;
-                int bestLabelIndex = -1;
+            int[] indices = _nmsDecode.Decode(ortSpan, preResult, boxes, scores, classIds);
 
-                // Get confidence and label for current bounding box
-                for (var l = 0; l < _labels.Length; l++, labelOffset += _boxNums)
-                {
-                    var boxConfidence = ortSpan[labelOffset];
-
-                    if (boxConfidence > bestConfidence)
-                    {
-                        bestConfidence = boxConfidence;
-                        bestLabelIndex = l;
-                    }
-                }
-
-                // Stop early if confidence is low
-                if (bestConfidence < yoloConfig.Confidence)
-                    continue;
-
-                float x = ortSpan[i] - preResult.PadX;
-                float y = ortSpan[i + _boxNums] - preResult.PadY;
-                float w = ortSpan[i + _boxNums2];
-                float h = ortSpan[i + _boxNums3];
-
-                // Calculate the scaled coordinates of the bounding box
-                int left = (int)((x - w / 2) / preResult.Scale);
-                int top = (int)((y - h / 2) / preResult.Scale);
-                int width = (int)(w / preResult.Scale);
-                int height = (int)(h / preResult.Scale);
-
-                // Ensure coordinates are within image bounds
-                left = Math.Max(0, left);
-                top = Math.Max(0, top);
-                width = Math.Min(width, preResult.ImageWidth - left);
-                height = Math.Min(height, preResult.ImageHeight - top);
-
-                // Add the class ID, score, and box coordinates to the respective lists
-                if (width > 0 && height > 0)
-                {
-                    _classIds.Add(bestLabelIndex);
-                    _scores.Add(bestConfidence);
-                    _boxes.Add(new Rect(left, top, width, height));
-                }
-            }
-
-            // 非极大值抑制
-            int[] indices = [];
-            if (_boxes.Count > 0)
-            {
-                CvDnn.NMSBoxes(_boxes, _scores, yoloConfig.Confidence, yoloConfig.IoU, out indices);
-            }
             List<DetectionResult> results = new List<DetectionResult>();
             // 绘制检测结果
             foreach (var idx in indices)
             {
-                Rect box = _boxes[idx];
-                float score = _scores[idx];
-                int class_id = _classIds[idx];
+                Rect box = boxes[idx];
+                float score = scores[idx];
+                int class_id = classIds[idx];
                 string lable = _labels[class_id].Name;
 
                 DetectionResult detection = new DetectionResult();
@@ -115,6 +55,22 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
             return results;
+        }
+
+        public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            List<Rect> boxes = new List<Rect>();
+            List<float> scores = new List<float>();
+            List<int> classIds = new List<int>();
+           
+            return PostProcessBase(outputValue, preResult, boxes, scores, classIds);
+        }
+        public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            _boxes.Clear();
+            _scores.Clear();
+            _classIds.Clear();
+            return PostProcessBase(outputValue, preResult, _boxes, _scores, _classIds);
         }
     }
 }

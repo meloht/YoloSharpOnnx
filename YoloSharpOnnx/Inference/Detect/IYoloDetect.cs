@@ -15,11 +15,11 @@ namespace YoloSharpOnnx.Inference.Detect
 
         void DrawDetections(Mat inputImage, List<DetectionResult> list);
 
-        DetectionBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction);
+        DetectionBatchResult[] BatchRunPostSync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction);
 
-        Task<DetectionBatchResult[]> BatchRunAsync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction);
+        Task<DetectionBatchResult[]> BatchRunAsyncPostSync(List<string> listImg, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction);
 
-        IAsyncEnumerable<DetectionBatchResult> BatchRunForeachAsync(List<string> listImg);
+        IAsyncEnumerable<DetectionBatchResult> BatchRunForeachSync(List<string> listImg);
 
 
         IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync();

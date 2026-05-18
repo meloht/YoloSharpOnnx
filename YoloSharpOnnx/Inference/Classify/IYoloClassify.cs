@@ -18,11 +18,11 @@ namespace YoloSharpOnnx.Inference.Classify
 
         void DrawClassification(Mat img, List<ClsResult> results);
 
-        ClsBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+        ClsBatchResult[] BatchRunPostSync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
 
-        Task<ClsBatchResult[]> BatchRunAsync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
+        Task<ClsBatchResult[]> BatchRunAsyncPostSync(List<string> listImg, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction);
 
-        IAsyncEnumerable<ClsBatchResult> BatchRunForeachAsync(List<string> listImg);
+        IAsyncEnumerable<ClsBatchResult> BatchRunForeachSync(List<string> listImg);
 
         IYoloProcessAsync<PreClsResultBatch> GetYoloProcessAsync();
 

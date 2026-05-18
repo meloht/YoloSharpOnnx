@@ -11,18 +11,22 @@ using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch>, IYoloDetect
+    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>,
+        IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch>
     {
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
         private bool disposedValue;
 
         protected abstract void DisposedSub();
+        protected abstract OrtValue RunInferenceBatch(PreDetectResultBatch preResult);
+
         public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
         {
@@ -31,57 +35,119 @@ namespace YoloSharpOnnx.Inference.Detect
             InitBatchProcess(this);
         }
 
-
-        public List<DetectionResult> Run(Mat inputImage)
+        protected PreDetectResult PreprocessTime(Mat inputImage, SpeedResult speed)
         {
-            // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
-
-            // 执行推理
-            var output0 = RunInference();
-
-            // 后处理
-            var result = _postprocess.PostProcess(output0, preRes, _config);
-
-            AfterInference(output0);
-            return result;
-        }
-
-        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
-        {
-
-            SpeedResult speed = new SpeedResult();
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer, _config.ResizeAlgorithm);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
+
+            return preRes;
+        }
+
+
+        protected List<DetectionResult> PostProcessTime(OrtValue output0, PreDetectResult preDetect, SpeedResult speed)
+        {
             _stopwatch.Restart();
-
-            // 执行推理
-            var output0 = RunInference();
-
-            _stopwatch.Stop();
-            speed.Inference = _stopwatch.ElapsedMilliseconds;
-            _stopwatch.Restart();
-
             // 后处理
-            var res = _postprocess.PostProcess(output0, preRes, _config);
-            AfterInference(output0);
+            var res = _postprocess.PostProcessSync(output0, preDetect);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
             speed.SumTotal();
 
-            return new YoloResult<DetectionResult>(res, speed);
+            return res;
+        }
+        protected Task BatchPostProcess(DetectionBatchResult[] batchResults, int idx, OrtValue output0, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        {
+            return Task.Run(() =>
+             {
+                 using (output0)
+                 {
+                     var result = _postprocess.PostProcessAsync(output0, item.PreResult);
+                     batchResults[idx] = BuildBatchResult(item, result, startTime);
+                 }
+
+                 _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+             });
+
+        }
+        protected override DetectionBatchResult PostprocessChannel(InferModel<PreDetectResultBatch> inferModel)
+        {
+            using (inferModel.Output0)
+            {
+                var res = _postprocess.PostProcessSync(inferModel.Output0, inferModel.TBatchPreResult.PreResult);
+                return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
+            }
         }
 
+        protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                using var output = RunInferenceBatch(preResult);
+                isReturn = true;
+                // 后处理
+                var result = _postprocess.PostProcessSync(output, preResult.PreResult);
+                return result;
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+
+        }
+        protected override Task RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime, IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var output = RunInferenceBatch(item);
+                isReturn = true;
+                // 后处理
+                return BatchPostProcess(batchResults, idx, output, item, startTime, processCallback, receiveAction);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(item.Data);
+                }
+            }
+        }
+
+        protected override InferModel<PreDetectResultBatch> RunInfer(PreDetectResultBatch preResult, long startTime)
+        {
+            bool isReturn = false;
+            try
+            {
+                // 执行推理
+                var ortValue = RunInferenceBatch(preResult);
+                isReturn = true;
+
+                return new InferModel<PreDetectResultBatch>(ortValue, null, preResult, startTime);
+            }
+            finally
+            {
+                if (!isReturn)
+                {
+                    _matPool.Return(preResult.Data);
+                }
+            }
+        }
 
         public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer, _config.ResizeAlgorithm);
+            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
         }
 
@@ -108,45 +174,9 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             foreach (var item in list)
             {
-                DrawDetections(inputImage, item.Box, item.Confidence, item.ClassId, item.ClassName);
+                YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
             }
         }
-        public void DrawDetections(Mat img, Rect box, float score, int classId, string className)
-        {
-            var color = _onnxModel.ColorPalette[classId];
-
-            double fontScale = 1.0;
-            // 绘制边界框
-            Cv2.Rectangle(img, box, color, 2);
-
-            int height = img.Height;
-            int width = img.Width;
-
-            // 绘制标签
-            string label = $"{className}: {score:F2}";
-            int fontThick = 2;
-            var textSize = Cv2.GetTextSize(label, HersheyFonts.HersheySimplex, fontScale, fontThick, out int baseline);
-
-            int x = box.X;
-            int y = box.Y - 10; ;
-            if (y < textSize.Height)
-                y = box.Y + 10;
-
-            if (x + textSize.Width > width)
-            {
-                x = x - (x + textSize.Width - width) - 4;
-            }
-
-            // 标签背景
-            Cv2.Rectangle(img,
-                new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
-                new OpenCvSharp.Point(x + textSize.Width, y + baseline),
-                color, -1);
-
-            // 标签文本
-            Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
-        }
-
 
         protected virtual void Dispose(bool disposing)
         {

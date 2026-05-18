@@ -15,11 +15,13 @@ namespace YoloSharpOnnx.Inference.Classify
     public class ClsPreprocess : PreprocessBase, IClsPreprocess
     {
         private readonly OnnxModel _onnxModel;
-        public ClsPreprocess(OnnxModel onnxModel)
+        private readonly YoloConfig _yoloConfig;
+        public ClsPreprocess(OnnxModel onnxModel, YoloConfig yoloConfig)
         {
             _onnxModel = onnxModel;
+            _yoloConfig = yoloConfig;
         }
-        public void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
+        public void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer)
         {
             // A.Resize: 将短边缩放到 targetSize
             int minSize = Math.Min(inputImage.Height, inputImage.Width);
@@ -36,7 +38,7 @@ namespace YoloSharpOnnx.Inference.Classify
                 newW = (int)Math.Round(inputImage.Width * scaleImg);
             }
 
-            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newW, newH), interpolation: interpolationFlags);
+            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newW, newH), interpolation: _yoloConfig.ResizeAlgorithm);
 
             //// B. CenterCrop: 从中心裁剪 224x224
             int startX = (newW - _onnxModel.InputWidth) / 2;

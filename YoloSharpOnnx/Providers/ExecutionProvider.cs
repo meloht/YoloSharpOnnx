@@ -9,6 +9,7 @@ using System.Text;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -27,6 +28,10 @@ namespace YoloSharpOnnx.Providers
 
         protected abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
+
+        protected abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+
+
         protected abstract DeviceType GetDeviceType();
         private readonly Random _rand;
         public ExecutionProvider(string modelPath)
@@ -52,7 +57,7 @@ namespace YoloSharpOnnx.Providers
                 options.Dispose();
                 return null;
             }
-            var postprocess = GetPostprocessor(onnxModel);
+            var postprocess = GetDetPostprocessor(onnxModel);
             var preprocess = GetPreprocess(onnxModel);
 
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
@@ -73,24 +78,49 @@ namespace YoloSharpOnnx.Providers
             }
 
             var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
-            var preprocess = new ClsPreprocess(onnxModel);
+            var preprocess = new ClsPreprocess(onnxModel, YoloConfiguration);
 
             return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
         }
+        public IYoloSegment CreateYoloSegment()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.Segmentation)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
+            var postprocess = GetSegPostprocessor(onnxModel);
+            var preprocess = GetPreprocess(onnxModel);
 
+            return GetYoloSegment(session, options, postprocess, preprocess, onnxModel);
+        }
 
-        private IDetPostprocess GetPostprocessor(OnnxModel onnxModel)
+        private IDetPostprocess GetDetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {
-                return new DetPostprocessEndToEnd(onnxModel.Labels);
+                return new DetPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
-            return new DetPostprocessNMS(onnxModel.BoxNum, onnxModel.Labels);
+            return new DetPostprocessNMS(onnxModel, YoloConfiguration);
+        }
+
+        private ISegPostprocess GetSegPostprocessor(OnnxModel onnxModel)
+        {
+            if (onnxModel.IsEndToEnd)
+            {
+                return new SegPostprocessEndToEnd(onnxModel, YoloConfiguration);
+            }
+            return new SegPostprocessNMS(onnxModel, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
         {
-            return new DetPreprocessComm(onnxModel);
+            return new DetPreprocessComm(onnxModel, YoloConfiguration);
         }
 
         protected OnnxModel ParseOnnxModel(InferenceSession session)
@@ -98,25 +128,45 @@ namespace YoloSharpOnnx.Providers
             OnnxModel model = new OnnxModel();
 
             model.InputName = session.InputNames[0];
-            model.OutputName = session.OutputNames[0];
+            model.OutputName0 = session.OutputNames[0];
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputName1 = session.OutputNames[1];
+            }
             model.DeviceType = GetDeviceType();
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
 
-            model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
-            model.OutputShape = Array.ConvertAll<int, long>(outputMeta[model.OutputName].Dimensions, Convert.ToInt64);
 
+
+            model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
+            model.OutputShape0 = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputShape1 = Array.ConvertAll<int, long>(outputMeta[model.OutputName1].Dimensions, Convert.ToInt64);
+            }
             model.InputHeight = (int)model.InputShape[2];
             model.InputWidth = (int)model.InputShape[3];
 
             model.InputShapeSize = ShapeUtils.GetSizeForShape(model.InputShape);
-            model.OutputShapeSize = ShapeUtils.GetSizeForShape(model.OutputShape);
+            model.OutputShapeSize0 = ShapeUtils.GetSizeForShape(model.OutputShape0);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputShapeSize1 = ShapeUtils.GetSizeForShape(model.OutputShape1);
+            }
 
             model.InputSizeInBytes = model.InputShapeSize * sizeof(float);
-            model.OutputSizeInBytes = model.OutputShapeSize * sizeof(float);
+            model.OutputSizeInBytes0 = model.OutputShapeSize0 * sizeof(float);
+
+            if (session.OutputNames.Count > 1)
+            {
+                model.OutputSizeInBytes1 = model.OutputShapeSize1 * sizeof(float);
+            }
 
             model.Labels = GetModelLabels(session);
-           
+
             var metaData = session.ModelMetadata.CustomMetadataMap;
 
             bool isEndToEnd = false;
@@ -130,12 +180,12 @@ namespace YoloSharpOnnx.Providers
             }
             model.IsEndToEnd = isEndToEnd;
 
-            if (model.ModelType == ModelType.ObjectDetection)
+            if (model.ModelType == ModelType.ObjectDetection || model.ModelType == ModelType.Segmentation)
             {
-                model.BoxNum = outputMeta[model.OutputName].Dimensions[2];
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
-           
+
+
             return model;
         }
 

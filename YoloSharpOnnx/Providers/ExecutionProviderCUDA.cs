@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 
@@ -73,6 +74,11 @@ namespace YoloSharpOnnx.Providers
             options.EnableCpuMemArena = true;
 
             return options;
+        }
+
+        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }

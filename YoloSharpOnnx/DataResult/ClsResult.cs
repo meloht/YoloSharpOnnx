@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public struct ClsResult: IYoloResult, IYoloSummary<ClsResult>
+    public class ClsResult: IYoloResult, IYoloSummary<ClsResult>
     {
         public string ClassName { get; set; }
         public int ClassId { get; set; }

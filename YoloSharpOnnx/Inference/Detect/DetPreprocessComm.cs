@@ -15,13 +15,15 @@ namespace YoloSharpOnnx.Inference.Detect
     {
         protected readonly Scalar _paddingColor;
         private readonly OnnxModel _onnxModel;
+        private readonly YoloConfig _yoloConfig;
 
-        public DetPreprocessComm(OnnxModel onnxModel)
+        public DetPreprocessComm(OnnxModel onnxModel, YoloConfig yoloConfig)
         {
             _onnxModel = onnxModel;
             _paddingColor = new Scalar(114, 114, 114);
+            _yoloConfig = yoloConfig;
         }
-        public PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer, InterpolationFlags interpolationFlags)
+        public PreDetectResult PreprocessImage(Mat inputImage,Mat resizedImg, FixedBuffer buffer)
         {
 
             // 1. 获取原始图像尺寸
@@ -36,13 +38,18 @@ namespace YoloSharpOnnx.Inference.Detect
             int newImgH = (int)Math.Round(imgH * scale);
 
             // 4. 计算填充值（左右填充、上下填充，确保最终尺寸=1280×1280）
-            int padW = (_onnxModel.InputWidth - newImgW) / 2; // 左右填充的一半
-            int padH = (_onnxModel.InputHeight - newImgH) / 2; // 上下填充的一半
+            float padW = (float)(_onnxModel.InputWidth - newImgW) / 2.0f; // 左右填充的一半
+            float padH = (float)(_onnxModel.InputHeight - newImgH) / 2.0f; // 上下填充的一半
 
 
             // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
+            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: _yoloConfig.ResizeAlgorithm);
 
-            Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: interpolationFlags);
+
+            int top = (int)Math.Round(padH - 0.1);
+            int bottom = (int)Math.Round(padH + 0.1);
+            int left = (int)Math.Round(padW - 0.1);
+            int right = (int)Math.Round(padW + 0.1);
 
             // BGR转RGB
             // Cv2.CvtColor(resizedImg, resizedImg, ColorConversionCodes.BGR2RGB);
@@ -50,10 +57,10 @@ namespace YoloSharpOnnx.Inference.Detect
             Cv2.CopyMakeBorder(
             src: resizedImg,
             dst: resizedImg,
-            top: padH,        // 顶部填充
-            bottom: _onnxModel.InputHeight - newImgH - padH, // 底部填充（补全到 1280）
-            left: padW,       // 左侧填充
-            right: _onnxModel.InputWidth - newImgW - padW,  // 右侧填充（补全到 1280）
+            top: top,        // 顶部填充
+            bottom: bottom, // 底部填充（补全到 1280）
+            left: left,       // 左侧填充
+            right: right,  // 右侧填充（补全到 1280）
             borderType: BorderTypes.Constant,
             value: _paddingColor);
 
@@ -67,7 +74,7 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
             // 添加批次维度 (1, 3, H, W)
-            return new PreDetectResult(imgH, imgW, padH, padW, scale);
+            return new PreDetectResult(imgH, imgW, top, left, scale);
         }
 
 

@@ -5,12 +5,13 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
+using YoloSharpOnnx.TestCommon;
 
 namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -19,14 +20,17 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-             //TestBatchInfer();
+            //TestBatchInfer();
+            TestBatchInferSeg();
+            //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            //TestInferPerf();
+            // TestInferPerf();
             //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
             //TestBufferPool();
+            //Task.WaitAll(TestAsyncChannel());
 
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -49,6 +53,25 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                 bufferPool.Return(arr[i]);
             }
+        }
+
+        private static async Task TestAsyncChannel()
+        {
+
+            var model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            string imgPath = TestDataUtils.GetImagePathCls(TestDataUtils.Cls01);
+
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+
+            var res = await yoloAsync.RunClassifyAsync(imgPath);
+            Console.WriteLine(res.Summary());
+
+
+            using Mat img = Cv2.ImRead(imgPath);
+            var res2 = await yoloAsync.RunClassifyAsync(img);
+            string ans2 = res2.Summary();
+            Console.WriteLine(ans2);
         }
         private static void TestInferCls()
         {
@@ -167,6 +190,51 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
 
+        private static void TestInferSeg()
+        {
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = 0;
+            var files = Directory.GetFiles(@"D:\code\model\TestCOCO");
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
+            {
+               
+                _stopwatch.Start();
+                for (int i = 0; i < files.Length; i++)
+                {
+
+                    var res = yolo.RunSegmentWithTime(files[i]);
+                    Console.WriteLine($"{i + 1} {res.SpeedResult}");
+                }
+
+               
+                num = files.Length;
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
+        private static void TestBatchInferSeg()
+        {
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = 0;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
+            {
+                yolo.YoloConfiguration.BatchPoolSize = 30;
+                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+                _stopwatch.Start();
+                var list = yolo.RunBatchSegment(@"D:\code\model\TestCOCO", receiveAction: ReceiveProcess);
+                num = list.Length;
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
         private static async Task TestBatchForeachInfer()
         {
             var files = Directory.GetFiles(dir);
@@ -191,6 +259,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
 
         private static void ReceiveProcess(DetectionBatchResult e)
+        {
+
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = e.Results.Summary();
+            Console.WriteLine($"{ans} time:{cost}ms");
+
+        }
+        private static void ReceiveProcess(SegBatchResult e)
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;

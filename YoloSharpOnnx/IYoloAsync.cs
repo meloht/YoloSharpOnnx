@@ -18,5 +18,9 @@ namespace YoloSharpOnnx
 
         Task<List<ClsResult>> RunClassifyAsync(Mat img);
 
+        Task<List<SegResult>> RunSegmentAsync(string inputImage);
+
+        Task<List<SegResult>> RunSegmentAsync(Mat img);
+
     }
 }

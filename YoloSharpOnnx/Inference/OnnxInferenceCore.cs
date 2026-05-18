@@ -2,12 +2,14 @@
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
@@ -19,7 +21,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly RunOptions _runOptions;
 
         protected readonly FixedBuffer _inputFixedBuffer;
-        protected readonly FixedBuffer _outputFixedBuffer;
 
         protected readonly OnnxModel _onnxModel;
         protected OrtValue _inputOrtValue;
@@ -27,20 +28,22 @@ namespace YoloSharpOnnx.Inference
 
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
-        protected Mat _resizedImg;
+        protected readonly Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
-
-        protected abstract OrtValue RunInference();
-        protected abstract void AfterInference(OrtValue ortValue);
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
+
+        protected abstract InferModel<TBatchPreResult> RunInfer(TBatchPreResult preResult, long startTime);
+        protected abstract TBatchResult PostprocessChannel(InferModel<TBatchPreResult> inferModel);
+        protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
+
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
-            _config = config;
             _resizedImg = new Mat();
+            _config = config;
             _onnxModel = onnxModel;
             _stopwatch = new Stopwatch();
             _session = session;
@@ -48,7 +51,6 @@ namespace YoloSharpOnnx.Inference
             _runOptions = new RunOptions();
 
             _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
-            _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize);
 
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
@@ -179,13 +181,48 @@ namespace YoloSharpOnnx.Inference
             Task.WaitAll(producer, consumer);
             return results;
         }
+
+        public async Task<TBatchResult[]> BatchRunAsyncPostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchRunBasePostSync(listImg, processCallback, receiveAction);
+            await Task.WhenAll(producer, consumer);
+            return results;
+        }
+        public TBatchResult[] BatchRunPostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchRunBasePostSync(listImg, processCallback, receiveAction);
+            Task.WaitAll(producer, consumer);
+            return results;
+        }
         private (Task producer, Task consumer, TBatchResult[] results) BatchRunBaseFunc(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
             InitBufferPool(_config.BatchPoolSize);
 
             TBatchResult[] batchResults = new TBatchResult[listImg.Count];
-            var ChannelOptions = YoloUtils.GetChannelOptions(_config.BatchPoolSize);
-            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+
+            var producer = PreprocessBatch(listImg, channel.Writer);
+
+            var consumer = Task.Run(async () =>
+            {
+                ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
+                int idx = 0;
+                await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+                {
+                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    tasks.Add(RunBatchInfer(batchResults, idx++, item, startTime, processCallback, receiveAction));
+                }
+                await Task.WhenAll(tasks);
+            });
+            return (producer, consumer, batchResults);
+        }
+
+        private (Task producer, Task consumer, TBatchResult[] results) BatchRunBasePostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            TBatchResult[] batchResults = new TBatchResult[listImg.Count];
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
 
             var producer = PreprocessBatch(listImg, channel.Writer);
 
@@ -209,8 +246,27 @@ namespace YoloSharpOnnx.Inference
         {
             InitBufferPool(_config.BatchPoolSize);
 
-            var ChannelOptions =YoloUtils.GetChannelOptions(_config.BatchPoolSize);
-            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(ChannelOptions);
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+            Channel<InferModel<TBatchPreResult>> postChannel = Channel.CreateBounded<InferModel<TBatchPreResult>>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+
+            _ = PreprocessBatch(listImg, channel.Writer);
+            _ = ReaderForeach(channel, postChannel).ContinueWith(t =>
+             {
+                 postChannel.Writer.Complete();
+             });
+
+            await foreach (InferModel<TBatchPreResult> item in postChannel.Reader.ReadAllAsync())
+            {
+                yield return PostprocessChannel(item);
+            }
+
+        }
+
+        public async IAsyncEnumerable<TBatchResult> BatchRunForeachSync(List<string> listImg)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
 
             _ = PreprocessBatch(listImg, channel.Writer);
             await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
@@ -223,9 +279,19 @@ namespace YoloSharpOnnx.Inference
 
         }
 
-        private async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        private async Task ReaderForeach(Channel<TBatchPreResult> channel, Channel<InferModel<TBatchPreResult>> postChannel)
         {
+            await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+            {
+                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                var result = RunInfer(item, startTime);
+                await postChannel.Writer.WriteAsync(result);
+            }
+        }
 
+
+        protected async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
             if (processCallback != null)
             {
                 await Task.Run(() =>
@@ -246,11 +312,10 @@ namespace YoloSharpOnnx.Inference
 
         public void DisposeCore()
         {
-            _resizedImg.Dispose();
             _matPool?.Dispose();
 
             _inputFixedBuffer.Dispose();
-            _outputFixedBuffer.Dispose();
+
             _runOptions.Dispose();
             _session.Dispose();
             _options.Dispose();

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
@@ -87,6 +88,18 @@ namespace YoloSharpOnnx.Providers
             options.EnableCpuMemArena = true;
             options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
             return options;
+        }
+
+        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloSegOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+            else
+            {
+                return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
         }
     }
 }

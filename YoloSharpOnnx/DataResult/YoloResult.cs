@@ -11,5 +11,10 @@ namespace YoloSharpOnnx.DataResult
         public SpeedResult SpeedResult { get; } = speed;
 
         public override string ToString() => T.Describe(Items);
+
+        public string Summary()
+        {
+            return $"{T.Describe(Items)} {SpeedResult}";
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,135 +9,121 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class MatBufferPool : IDisposable
+    public sealed class MatBufferPool : IDisposable
     {
-        private ImageBatchData[] _matPool;
-        private int _valIdx = 0;
-        private int _nullIdx = -1;
-        private readonly object _lock = new object();
+        /// <summary>
+        /// 实际缓存池
+        /// </summary>
+        private readonly ConcurrentBag<ImageBatchData> _pool = new();
 
-        private readonly int _poolSzie;
-        private OnnxModel _OnnxModel;
-        private readonly bool[] _flagArr;
-        private int _usedCount = 0;
+        /// <summary>
+        /// 最大缓存数量（超过则直接 Dispose）
+        /// </summary>
+        private readonly int _maxSize;
 
-        public MatBufferPool(int poolSzie, OnnxModel onnxModel)
+
+        /// <summary>
+        /// 当前正在使用中的对象数量
+        /// </summary>
+        private int _usedCount;
+
+        /// <summary>
+        /// 用于创建对象
+        /// </summary>
+        private readonly OnnxModel _onnxModel;
+
+        private bool _disposed;
+
+        public MatBufferPool(int maxSize, OnnxModel onnxModel)
         {
-            _poolSzie = poolSzie + 1;
-            _OnnxModel = onnxModel;
-            _flagArr = new bool[_poolSzie];
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxSize);
+            _maxSize = maxSize;
+            _onnxModel = onnxModel ?? throw new ArgumentNullException(nameof(onnxModel));
 
-            _matPool = new ImageBatchData[_poolSzie];
-            for (int i = 0; i < _poolSzie; i++)
+            // 预热池
+            for (int i = 0; i < _maxSize; i++)
             {
-                _matPool[i] = new ImageBatchData(_OnnxModel);
-                _flagArr[i] = true;
+                _pool.Add(new ImageBatchData(_onnxModel));
             }
-
         }
 
-        public int UsedCount
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    return _usedCount;
-                }
-            }
-        }
+        /// <summary>
+        /// 当前使用中的对象数量
+        /// </summary>
+        public int UsedCount => Volatile.Read(ref _usedCount);
+
+
 
         public ImageBatchData Rent()
         {
+            ThrowIfDisposed();
+
             Interlocked.Increment(ref _usedCount);
-            lock (_lock)
+
+            if (_pool.TryTake(out var item))
             {
-                if (_valIdx < _matPool.Length && _valIdx >= 0 && _flagArr[_valIdx])
-                {
-                    var mat = _matPool[_valIdx];
-                    _flagArr[_valIdx] = false;
-
-                    _nullIdx = _valIdx;
-                    _valIdx++;
-
-                    if (_valIdx > _matPool.Length - 1)
-                    {
-                        _valIdx = _matPool.Length - 1;
-                    }
-                    // Test("Rent");
-                    return mat;
-                }
-                else
-                {
-                    //Console.WriteLine("new mat()");
-                    // Test("Rent");
-                    return new ImageBatchData(_OnnxModel);
-                }
-
+                return item;
             }
 
+            // 池空了，临时创建
+            return new ImageBatchData(_onnxModel);
+
         }
-        public void Return(ImageBatchData mat)
+        /// <summary>
+        /// 归还对象
+        /// </summary>
+        public void Return(ImageBatchData item)
         {
-            Interlocked.Decrement(ref _usedCount);
-            lock (_lock)
+            if (item == null)
+                return;
+
+            if (_disposed)
             {
-                if (_nullIdx < _matPool.Length && _nullIdx >= 0 && _flagArr[_nullIdx] == false)
-                {
-                    _matPool[_nullIdx] = mat;
-                    _flagArr[_nullIdx] = true;
-
-                    _valIdx = _nullIdx;
-                    _nullIdx--;
-
-                    if (_nullIdx < 0)
-                    {
-                        _nullIdx = 0;
-                    }
-                }
-                else
-                {
-                    mat.Dispose();
-                    //Console.WriteLine("mat.Dispose()");
-                }
-                //Test("Return");
+                item.Dispose();
+                return;
             }
 
+            // 如果你有 Clear() / Reset() 方法，建议这里调用
+            // item.Reset();
 
+            Interlocked.Decrement(ref _usedCount);
 
+            // 超过池容量 -> 直接销毁
+            if (_pool.Count < _maxSize)
+            {
+                _pool.Add(item);
+            }
+            else
+            {
+                item.Dispose();
+            }
         }
 
-        //public void Test(string flag)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    for (int i = 0; i < _flagArr.Length; i++)
-        //    {
-        //        if (_flagArr[i] == false)
-        //        {
-        //            sb.Append("null, ");
-        //        }
-        //        else
-        //        {
-        //            sb.Append("value, ");
-        //        }
+        /// <summary>
+        /// 清空池
+        /// </summary>
+        public void Clear()
+        {
+            while (_pool.TryTake(out var item))
+            {
+                item.Dispose();
+            }
 
-        //    }
-        //    Console.WriteLine($"{flag} {sb.ToString()}, UsedCount:{_usedCount}");
-        //}
-
+        }
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(_disposed, nameof(MatBufferPool));
+        }
         public void Dispose()
         {
-            for (int i = 0; i < _matPool.Length; i++)
-            {
-                if (_matPool[i] != null)
-                {
-                    _matPool[i].Dispose();
-                    _matPool[i] = null;
-                }
+            if (_disposed)
+                return;
 
-            }
-            Array.Clear(_matPool);
-            _matPool = null;
+            _disposed = true;
+
+            Clear();
+
+            GC.SuppressFinalize(this);
         }
     }
 }
