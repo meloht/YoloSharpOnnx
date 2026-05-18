@@ -11,7 +11,7 @@
 		<RepositoryUrl>https://github.com/meloht/YoloSharpOnnx</RepositoryUrl>
 		<PackageTags>yolov8;yolo8;yolo11;yolo26;yolo;object-detection;image-classification;instance-segmentation;opencv;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;computer-vision</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library for object detection base on OpenCV and ONNX Runtime.</Description>
+		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
 		<Version>2.1.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
