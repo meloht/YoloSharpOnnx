@@ -32,9 +32,9 @@
 | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/bus_detect.jpg?raw=true" height="600"> <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/det_000000270579.jpg?raw=true" width="500" >|  <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000000009.jpg?raw=true" width="500"   > <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/cls_000000063409.jpg?raw=true"  height="650"  >|
 
 | Instance Segmentation  |
-|---------------|
+|--------|
 |<img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_seg_zidane.jpg?raw=true" height="600">|
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_650.jpg?raw=true" height="300"><img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_307.jpg?raw=true" height="300">|
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_650.jpg?raw=true" height="347"><img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_307.jpg?raw=true" height="347">|
 
 
 
