@@ -17,6 +17,8 @@ namespace YoloSharpOnnx.WinFormsDemo
     {
         private string _model;
         private string _image;
+        private Mat _resultImage;
+        private string _modelType;
 
         public FormResult(string model, string image)
         {
@@ -30,30 +32,31 @@ namespace YoloSharpOnnx.WinFormsDemo
             int deviceId = Utils.GetMainGPU();
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(_model, deviceId));
             string res = string.Empty;
-            using Mat image = Cv2.ImRead(_image);
+            _resultImage = Cv2.ImRead(_image);
+            _modelType = yolo.CurrentModelType.GetDescription();
             if (yolo.CurrentModelType == ModelType.ObjectDetection)
             {
                 var result = yolo.RunDetectWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
-                yolo.DrawDetections(image, result.Items);
-                ShowImageForm(_image, image.ToBytes());
+                yolo.DrawDetections(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
             }
             else if (yolo.CurrentModelType == ModelType.Classification)
             {
                 var result = yolo.RunClassifyWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
-                yolo.DrawClassification(image, result.Items);
-                ShowImageForm(_image, image.ToBytes());
+                yolo.DrawClassification(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
             }
             else if (yolo.CurrentModelType == ModelType.Segmentation)
             {
                 var result = yolo.RunSegmentWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
-                yolo.DrawSegment(image, result.Items);
-                ShowImageForm(_image, image.ToBytes());
+                yolo.DrawSegment(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
             }
 
 
@@ -84,7 +87,22 @@ namespace YoloSharpOnnx.WinFormsDemo
             formView.Show();
         }
 
+        private void saveResultImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_resultImage != null)
+            {
+                saveFileDialog1.Filter = "JPEG Image (*.jpg)|*.jpg|PNG Image (*.png)|*.png";
+                saveFileDialog1.FileName=$"res_{_modelType}_{Path.GetFileName(_image)}";
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                {
+                    _resultImage.SaveImage(saveFileDialog1.FileName);
+                }
+            }
+        }
 
-
+        private void FormResult_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _resultImage?.Dispose();
+        }
     }
 }

@@ -28,10 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             groupBox1 = new GroupBox();
             txtReuslt = new TextBox();
             groupBoxImage = new GroupBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            saveResultImageToolStripMenuItem = new ToolStripMenuItem();
+            saveFileDialog1 = new SaveFileDialog();
             groupBox1.SuspendLayout();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // groupBox1
@@ -57,6 +62,7 @@
             // 
             // groupBoxImage
             // 
+            groupBoxImage.ContextMenuStrip = contextMenuStrip1;
             groupBoxImage.Dock = DockStyle.Fill;
             groupBoxImage.Location = new Point(0, 77);
             groupBoxImage.Name = "groupBoxImage";
@@ -64,6 +70,19 @@
             groupBoxImage.TabIndex = 1;
             groupBoxImage.TabStop = false;
             groupBoxImage.Text = "Result Image";
+            // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { saveResultImageToolStripMenuItem });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(179, 26);
+            // 
+            // saveResultImageToolStripMenuItem
+            // 
+            saveResultImageToolStripMenuItem.Name = "saveResultImageToolStripMenuItem";
+            saveResultImageToolStripMenuItem.Size = new Size(178, 22);
+            saveResultImageToolStripMenuItem.Text = "save result image";
+            saveResultImageToolStripMenuItem.Click += saveResultImageToolStripMenuItem_Click;
             // 
             // FormResult
             // 
@@ -74,10 +93,11 @@
             Controls.Add(groupBox1);
             Name = "FormResult";
             Text = "FormResult";
-            
+            FormClosing += FormResult_FormClosing;
             Load += FormResult_Load;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -86,5 +106,8 @@
         private GroupBox groupBox1;
         private GroupBox groupBoxImage;
         private TextBox txtReuslt;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem saveResultImageToolStripMenuItem;
+        private SaveFileDialog saveFileDialog1;
     }
 }
