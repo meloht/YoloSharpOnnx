@@ -34,7 +34,7 @@
 | Instance Segmentation  |
 |--------|
 |<img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_seg_zidane.jpg?raw=true" height="600">|
-| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_650.jpg?raw=true" height="345"><img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_307.jpg?raw=true" height="345">|
+| <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_650.jpg?raw=true" height="340"><img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_segment_307.jpg?raw=true" height="340">|
 
 
 
