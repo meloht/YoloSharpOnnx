@@ -146,7 +146,7 @@ namespace YoloSharpOnnx.Test
 
 
         [Fact]
-        public async Task BatchDetectForeachAsync()
+        public async Task BatchClsForeachAsync()
         {
             yolo.YoloConfiguration.BatchPoolSize = 4;
             var processCallback = new ProcessCallbackCls(_dictCls);
