@@ -181,6 +181,19 @@ namespace YoloSharpOnnx.Inference
             Task.WaitAll(producer, consumer);
             return results;
         }
+
+        public async Task<TBatchResult[]> BatchRunAsyncPostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchRunBasePostSync(listImg, processCallback, receiveAction);
+            await Task.WhenAll(producer, consumer);
+            return results;
+        }
+        public TBatchResult[] BatchRunPostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            var (producer, consumer, results) = BatchRunBasePostSync(listImg, processCallback, receiveAction);
+            Task.WaitAll(producer, consumer);
+            return results;
+        }
         private (Task producer, Task consumer, TBatchResult[] results) BatchRunBaseFunc(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
             InitBufferPool(_config.BatchPoolSize);
@@ -204,6 +217,31 @@ namespace YoloSharpOnnx.Inference
             return (producer, consumer, batchResults);
         }
 
+        private (Task producer, Task consumer, TBatchResult[] results) BatchRunBasePostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            TBatchResult[] batchResults = new TBatchResult[listImg.Count];
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+
+            var producer = PreprocessBatch(listImg, channel.Writer);
+
+            var consumer = Task.Run(async () =>
+            {
+                int idx = 0;
+                await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+                {
+                    long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    var result = _batchProcess.RunBatch(item);
+                    var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                    batchResults[idx++] = modelResult;
+
+                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
+                }
+            });
+            return (producer, consumer, batchResults);
+        }
+
         public async IAsyncEnumerable<TBatchResult> BatchRunForeachAsync(List<string> listImg)
         {
             InitBufferPool(_config.BatchPoolSize);
@@ -220,6 +258,23 @@ namespace YoloSharpOnnx.Inference
             await foreach (InferModel<TBatchPreResult> item in postChannel.Reader.ReadAllAsync())
             {
                 yield return PostprocessChannel(item);
+            }
+
+        }
+
+        public async IAsyncEnumerable<TBatchResult> BatchRunForeachSync(List<string> listImg)
+        {
+            InitBufferPool(_config.BatchPoolSize);
+
+            Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+
+            _ = PreprocessBatch(listImg, channel.Writer);
+            await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
+            {
+                long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                var result = _batchProcess.RunBatch(item);
+                var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                yield return modelResult;
             }
 
         }
