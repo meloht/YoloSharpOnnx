@@ -158,15 +158,7 @@ namespace YoloSharpOnnx.Inference.Segment
             Mat[] finalChannels = Cv2.Split(mat8u);
             for (int i = 0; i < count; i++)
             {
-
-                var box = list[i].Box;
-                Rect safeBox = new Rect(
-                  Math.Max(box.X, 0),
-                  Math.Max(box.Y, 0),
-                  Math.Min(box.Width, preResult.ImageWidth - Math.Abs(box.X)),
-                  Math.Min(box.Height, preResult.ImageHeight - Math.Abs(box.Y)));
-
-                list[i].Mask = new Mat(finalChannels[i], safeBox);
+                list[i].Mask = new Mat(finalChannels[i], list[i].Box);
             }
 
             for (int i = 0; i < channels.Length; i++)
