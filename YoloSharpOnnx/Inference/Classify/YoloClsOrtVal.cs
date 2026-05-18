@@ -33,7 +33,7 @@ namespace YoloSharpOnnx.Inference.Classify
         public List<ClsResult> Run(Mat inputImage)
         {
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
             using var ortValue = outputs[0];

@@ -72,7 +72,7 @@ namespace YoloSharpOnnx.Inference.Segment
         public List<SegResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
 
             // 执行推理
             RunInference();

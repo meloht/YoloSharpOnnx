@@ -12,14 +12,14 @@ namespace YoloSharpOnnx.Models
 {
     public class ImageBatchData : IDisposable
     {
-        public Mat ResizedImg { get; set; }
+
         public FixedBuffer FixedBuffer { get; set; }
 
         public OrtValue InputOrtValue { get; set; }
 
         public ImageBatchData(OnnxModel onnxModel)
         {
-            ResizedImg = new Mat();
+
             FixedBuffer = new FixedBuffer(onnxModel.InputShapeSize);
             InputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
             onnxModel.InputShape, FixedBuffer.Address, onnxModel.InputSizeInBytes);
@@ -27,7 +27,6 @@ namespace YoloSharpOnnx.Models
 
         public void Dispose()
         {
-            ResizedImg?.Dispose();
             FixedBuffer?.Dispose();
             InputOrtValue?.Dispose();
         }

@@ -27,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Segment
         public List<SegResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
 
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
@@ -66,6 +66,7 @@ namespace YoloSharpOnnx.Inference.Segment
         protected override IDisposableReadOnlyCollection<OrtValue> RunInferenceBatch(PreDetectResultBatch preResult)
         {
             var outputs = _session.Run(_runOptions, _session.InputNames, [preResult.Data.InputOrtValue], _session.OutputNames);
+            _matPool.Return(preResult.Data);
             return outputs;
         }
     }

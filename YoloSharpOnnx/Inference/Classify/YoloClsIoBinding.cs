@@ -50,7 +50,7 @@ namespace YoloSharpOnnx.Inference.Classify
         public List<ClsResult> Run(Mat inputImage)
         {
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            _preprocess.PreprocessImage(inputImage,  _inputFixedBuffer);
             // 执行推理
             RunInference();
             // 后处理
@@ -75,29 +75,7 @@ namespace YoloSharpOnnx.Inference.Classify
             return new YoloResult<ClsResult>(res, speed);
         }
 
-        protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
-        {
-            bool isReturn = false;
-            try
-            {
-                // 执行推理
-                using var ortValue = RunInferenceBatch(preResult);
-                _matPool.Return(preResult.Data);
-                isReturn = true;
-                // 后处理
-                var result = _postprocess.PostProcess(ortValue);
-                return result;
-            }
-            finally
-            {
-                if (!isReturn)
-                {
-                    _matPool.Return(preResult.Data);
-                }
-            }
 
-
-        }
         protected override OrtValue RunInferenceBatch(PreClsResultBatch preResult)
         {
             _binding.BindInput(_onnxModel.InputName, preResult.Data.InputOrtValue);

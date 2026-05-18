@@ -32,12 +32,10 @@ namespace YoloSharpOnnx.Inference.Detect
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
         }
 
-
-
         public List<DetectionResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
 
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);

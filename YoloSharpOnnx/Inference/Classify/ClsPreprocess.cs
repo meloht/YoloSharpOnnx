@@ -21,7 +21,7 @@ namespace YoloSharpOnnx.Inference.Classify
             _onnxModel = onnxModel;
             _yoloConfig = yoloConfig;
         }
-        public void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer)
+        public void PreprocessImage(Mat inputImage, FixedBuffer buffer)
         {
             // A.Resize: 将短边缩放到 targetSize
             int minSize = Math.Min(inputImage.Height, inputImage.Width);
@@ -38,6 +38,7 @@ namespace YoloSharpOnnx.Inference.Classify
                 newW = (int)Math.Round(inputImage.Width * scaleImg);
             }
 
+            using Mat resizedImg = new Mat();
             Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newW, newH), interpolation: _yoloConfig.ResizeAlgorithm);
 
             //// B. CenterCrop: 从中心裁剪 224x224

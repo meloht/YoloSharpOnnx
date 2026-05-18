@@ -60,12 +60,12 @@ namespace YoloSharpOnnx.TestIoBinding
 
             using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
 
-            var res = await yoloAsync.RunClassifyAsync(imgPath);
+            var res =await yoloAsync.RunClassifyAsync(imgPath);
             string ans = res.Summary();
             Assert.Equal(Yolo11.Cls01, ans);
 
             using Mat img = Cv2.ImRead(imgPath);
-            var res2 = await yoloAsync.RunClassifyAsync(img);
+            var res2 =await yoloAsync.RunClassifyAsync(img);
             string ans2 = res2.Summary();
             Assert.Equal(Yolo11.Cls01, ans2);
         }

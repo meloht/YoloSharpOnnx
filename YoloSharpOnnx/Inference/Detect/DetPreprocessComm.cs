@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _paddingColor = new Scalar(114, 114, 114);
             _yoloConfig = yoloConfig;
         }
-        public PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer)
+        public PreDetectResult PreprocessImage(Mat inputImage, FixedBuffer buffer)
         {
 
             // 1. 获取原始图像尺寸
@@ -43,7 +43,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
 
             // 5. 缩放图像（若原始尺寸≠缩放后尺寸）
-
+            using Mat resizedImg = new Mat();
             Cv2.Resize(inputImage, resizedImg, new OpenCvSharp.Size(newImgW, newImgH), interpolation: _yoloConfig.ResizeAlgorithm);
 
 

@@ -11,7 +11,7 @@ using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
-using static System.Formats.Asn1.AsnWriter;
+
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -41,7 +41,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
         public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.FixedBuffer);
             return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
         }
 
@@ -87,7 +87,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
@@ -139,7 +139,6 @@ namespace YoloSharpOnnx.Inference.Segment
             {
                 // 执行推理
                 var results = RunInferenceBatch(preResult);
-
                 isReturn = true;
                 return new InferModel<PreDetectResultBatch>(results[0], results[1], preResult, startTime);
 
@@ -164,7 +163,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 isReturn = true;
                 // 后处理
                 var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
-
+              
                 return result;
             }
             finally
@@ -186,7 +185,9 @@ namespace YoloSharpOnnx.Inference.Segment
                 var results = RunInferenceBatch(item);
                 isReturn = true;
                 // 后处理
-                return BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
+                var res= BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
+             
+                return res;
             }
             finally
             {

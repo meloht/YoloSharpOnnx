@@ -9,6 +9,6 @@ namespace YoloSharpOnnx.Inference.Classify
 {
     public interface IClsPreprocess
     {
-        void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer);
+        void PreprocessImage(Mat inputImage, FixedBuffer buffer);
     }
 }

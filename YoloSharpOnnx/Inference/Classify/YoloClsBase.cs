@@ -34,7 +34,7 @@ namespace YoloSharpOnnx.Inference.Classify
         {
             _stopwatch.Restart();
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            _preprocess.PreprocessImage(inputImage,  _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
@@ -143,7 +143,7 @@ namespace YoloSharpOnnx.Inference.Classify
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            _preprocess.PreprocessImage(inputImage, imageBatchData.ResizedImg, imageBatchData.FixedBuffer);
+            _preprocess.PreprocessImage(inputImage, imageBatchData.FixedBuffer);
             return new PreClsResultBatch(imagePath, imageBatchData);
         }
 

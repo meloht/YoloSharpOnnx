@@ -28,7 +28,6 @@ namespace YoloSharpOnnx.Inference
 
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
-        protected Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
@@ -43,7 +42,6 @@ namespace YoloSharpOnnx.Inference
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
             _config = config;
-            _resizedImg = new Mat();
             _onnxModel = onnxModel;
             _stopwatch = new Stopwatch();
             _session = session;
@@ -257,7 +255,6 @@ namespace YoloSharpOnnx.Inference
 
         public void DisposeCore()
         {
-            _resizedImg.Dispose();
             _matPool?.Dispose();
 
             _inputFixedBuffer.Dispose();

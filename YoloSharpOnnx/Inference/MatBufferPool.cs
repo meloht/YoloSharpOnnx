@@ -63,13 +63,13 @@ namespace YoloSharpOnnx.Inference
                     {
                         _valIdx = _matPool.Length - 1;
                     }
-                    // Test("Rent");
+                    //Test("Rent");
                     return mat;
                 }
                 else
                 {
                     //Console.WriteLine("new mat()");
-                    // Test("Rent");
+                     //Test("Rent");
                     return new ImageBatchData(_OnnxModel);
                 }
 
@@ -97,7 +97,7 @@ namespace YoloSharpOnnx.Inference
                 else
                 {
                     mat.Dispose();
-                    //Console.WriteLine("mat.Dispose()");
+                   // Console.WriteLine("mat.Dispose()");
                 }
                 //Test("Return");
             }

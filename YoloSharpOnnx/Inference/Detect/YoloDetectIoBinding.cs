@@ -60,11 +60,11 @@ namespace YoloSharpOnnx.Inference.Detect
             //using var output = results[0];
 
         }
-       
+
         public List<DetectionResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
 
             // 执行推理
             RunInference();

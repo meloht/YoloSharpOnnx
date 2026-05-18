@@ -5,12 +5,13 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
+using YoloSharpOnnx.TestCommon;
 
 namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -22,12 +23,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
             TestBatchInfer();
             //TestBatchInferSeg();
             // _ = TestBatchForeachInfer();
-           // TestInferPerf();
+            // TestInferPerf();
             //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
 
             //TestBufferPool();
+            //Task.WaitAll(TestAsyncChannel());
 
             Console.WriteLine("end!");
             Console.ReadKey();
@@ -50,6 +52,25 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
                 bufferPool.Return(arr[i]);
             }
+        }
+
+        public static async Task TestAsyncChannel()
+        {
+
+            var model = TestDataUtils.GetModelPath("yolo11n-cls.onnx");
+            using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(model, _deviceId));
+            string imgPath = TestDataUtils.GetImagePathCls(TestDataUtils.Cls01);
+
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+
+            var res = await yoloAsync.RunClassifyAsync(imgPath);
+            Console.WriteLine(res.Summary());
+
+
+            using Mat img = Cv2.ImRead(imgPath);
+            var res2 = await yoloAsync.RunClassifyAsync(img);
+            string ans2 = res2.Summary();
+            Console.WriteLine(ans2);
         }
         private static void TestInferCls()
         {
@@ -171,7 +192,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
         private static void TestBatchInferSeg()
         {
 
-           
+
 
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             int num = 0;
