@@ -94,7 +94,6 @@ namespace YoloSharpOnnx.TestIoBinding
         [Fact]
         public async Task TestClsBatchForeachAsync()
         {
-            string dir = TestDataUtils.GetImageDirDetect();
 
             yolo11n.YoloConfiguration.BatchPoolSize = 4;
             List<string> imgs = TestDataUtils.GetImgClsPaths();
