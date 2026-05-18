@@ -17,9 +17,11 @@ namespace YoloSharpOnnx.Models
 
         public OrtValue InputOrtValue { get; set; }
 
+        public Mat ResizeMat { get; set; }
+
         public ImageBatchData(OnnxModel onnxModel)
         {
-
+            ResizeMat = new Mat();
             FixedBuffer = new FixedBuffer(onnxModel.InputShapeSize);
             InputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
             onnxModel.InputShape, FixedBuffer.Address, onnxModel.InputSizeInBytes);
@@ -27,6 +29,7 @@ namespace YoloSharpOnnx.Models
 
         public void Dispose()
         {
+            ResizeMat?.Dispose();
             FixedBuffer?.Dispose();
             InputOrtValue?.Dispose();
         }

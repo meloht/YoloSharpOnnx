@@ -50,7 +50,7 @@ namespace YoloSharpOnnx.Inference.Classify
         public List<ClsResult> Run(Mat inputImage)
         {
             // 预处理图像
-            _preprocess.PreprocessImage(inputImage,  _inputFixedBuffer);
+            _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
             // 执行推理
             RunInference();
             // 后处理

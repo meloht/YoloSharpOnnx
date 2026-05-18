@@ -10,6 +10,6 @@ namespace YoloSharpOnnx.Inference.Detect
 {
     public interface IDetPreprocess
     {
-        PreDetectResult PreprocessImage(Mat inputImage, FixedBuffer buffer);
+        PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer);
     }
 }

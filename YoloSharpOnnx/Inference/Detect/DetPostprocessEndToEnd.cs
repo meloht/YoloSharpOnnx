@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _rowCount = (int)onnx.OutputShape0[1];//[1,300,6]
             _colCount = (int)onnx.OutputShape0[2];//[1,300,6]
         }
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
+        private List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
             var detections = new List<DetectionResult>();
 
@@ -57,6 +57,16 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
             return detections;
+        }
+
+        public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            return PostProcess(outputValue, preResult);
+        }
+
+        public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            return PostProcess(outputValue, preResult);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
         public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.FixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
         }
 
@@ -87,7 +87,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
@@ -100,7 +100,7 @@ namespace YoloSharpOnnx.Inference.Segment
         {
             _stopwatch.Restart();
             // 后处理
-            var res = _postprocess.PostProcess(output0, output1, preDetect);
+            var res = _postprocess.PostProcessSync(output0, output1, preDetect);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
@@ -115,7 +115,7 @@ namespace YoloSharpOnnx.Inference.Segment
                   using (output0)
                   using (output1)
                   {
-                      var result = _postprocess.PostProcess(output0, output1, item.PreResult);
+                      var result = _postprocess.PostProcessAsync(output0, output1, item.PreResult);
                       batchResults[idx] = BuildBatchResult(item, result, startTime);
                   }
                   _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
@@ -127,7 +127,7 @@ namespace YoloSharpOnnx.Inference.Segment
             using (inferModel.Output0)
             using (inferModel.Output1)
             {
-                var res = _postprocess.PostProcess(inferModel.Output0, inferModel.Output1, inferModel.TBatchPreResult.PreResult);
+                var res = _postprocess.PostProcessSync(inferModel.Output0, inferModel.Output1, inferModel.TBatchPreResult.PreResult);
                 return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
             }
         }
@@ -162,8 +162,8 @@ namespace YoloSharpOnnx.Inference.Segment
                 using var output1 = results[1];
                 isReturn = true;
                 // 后处理
-                var result = _postprocess.PostProcess(output0, output1, preResult.PreResult);
-              
+                var result = _postprocess.PostProcessSync(output0, output1, preResult.PreResult);
+
                 return result;
             }
             finally
@@ -185,8 +185,8 @@ namespace YoloSharpOnnx.Inference.Segment
                 var results = RunInferenceBatch(item);
                 isReturn = true;
                 // 后处理
-                var res= BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
-             
+                var res = BatchPostProcess(batchResults, idx, results[0], results[1], item, startTime, processCallback, receiveAction);
+
                 return res;
             }
             finally

@@ -11,6 +11,7 @@ namespace YoloSharpOnnx.Inference.Segment
 {
     public interface ISegPostprocess
     {
-        List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult);
+        List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult);
+        List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult);
     }
 }

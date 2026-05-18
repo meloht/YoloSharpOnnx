@@ -1,6 +1,7 @@
 ﻿using OpenCvSharp;
 using OpenCvSharp.Dnn;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -122,7 +123,7 @@ namespace YoloSharpOnnx.Inference.Segment
             }
             using Mat merged = new Mat();
             Cv2.Merge(channels, merged);
-
+          
             using Mat upsampled = new Mat();
             Cv2.Resize(merged, upsampled, new OpenCvSharp.Size(_inputSizeW, _inputSizeH), interpolation: InterpolationFlags.Linear);
 

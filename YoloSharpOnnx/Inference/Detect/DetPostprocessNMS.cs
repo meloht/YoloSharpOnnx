@@ -9,33 +9,29 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
     public class DetPostprocessNMS : IDetPostprocess
     {
-        private readonly int _numAnchors;
-
         private readonly LabelModel[] _labels;
-
-
-        private readonly YoloConfig _yoloConfig;
-
         private readonly NmsDecode _nmsDecode;
+        private readonly List<Rect> _boxes = new List<Rect>();
+        private readonly List<float> _scores = new List<float>();
+        private readonly List<int> _classIds = new List<int>();
 
         public DetPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig)
         {
             _labels = onnx.Labels;
-            _numAnchors = (int)onnx.OutputShape0[2];
-            _yoloConfig = yoloConfig;
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
         }
 
-        public List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
+
+
+        private List<DetectionResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds)
         {
-            List<Rect> boxes = new List<Rect>();
-            List<float> scores = new List<float>();
-            List<int> classIds = new List<int>();
+
             var ortSpan = outputValue.GetTensorDataAsSpan<float>();//[1,84,8400]
 
             int[] indices = _nmsDecode.Decode(ortSpan, preResult, boxes, scores, classIds);
@@ -59,6 +55,22 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
             return results;
+        }
+
+        public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            List<Rect> boxes = new List<Rect>();
+            List<float> scores = new List<float>();
+            List<int> classIds = new List<int>();
+           
+            return PostProcessBase(outputValue, preResult, boxes, scores, classIds);
+        }
+        public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
+        {
+            _boxes.Clear();
+            _scores.Clear();
+            _classIds.Clear();
+            return PostProcessBase(outputValue, preResult, _boxes, _scores, _classIds);
         }
     }
 }

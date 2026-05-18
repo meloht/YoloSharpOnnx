@@ -27,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Segment
         public List<SegResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             // 执行推理
             using var outputs = _session.Run(_runOptions, _session.InputNames, [_inputOrtValue], _session.OutputNames);
@@ -35,7 +35,7 @@ namespace YoloSharpOnnx.Inference.Segment
             using var output1 = outputs[1];
 
             // 后处理
-            return _postprocess.PostProcess(output0, output1, preRes);
+            return _postprocess.PostProcessSync(output0, output1, preRes);
         }
 
         public YoloResult<SegResult> RunWithTime(Mat inputImage)

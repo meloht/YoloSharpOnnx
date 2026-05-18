@@ -27,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _boxAttrs = _classAtts - _maskDim;//38-32=6
         }
 
-        public List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        private List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
             List<SegResult> results = new List<SegResult>();
 
@@ -64,12 +64,18 @@ namespace YoloSharpOnnx.Inference.Segment
             }
 
             GEMM(results, coeffMatList, output1, preResult);
-            
-
             return results;
 
         }
 
+        public List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        {
+            return PostProcess(outputValue0, outputValue1, preResult);
+        }
 
+        public List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        {
+            return PostProcess(outputValue0, outputValue1, preResult);
+        }
     }
 }

@@ -28,6 +28,7 @@ namespace YoloSharpOnnx.Inference
 
         private readonly object _detectLock = new();
         protected MatBufferPool _matPool;
+        protected readonly Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
@@ -41,6 +42,7 @@ namespace YoloSharpOnnx.Inference
 
         public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
         {
+            _resizedImg = new Mat();
             _config = config;
             _onnxModel = onnxModel;
             _stopwatch = new Stopwatch();
@@ -217,7 +219,7 @@ namespace YoloSharpOnnx.Inference
 
             await foreach (InferModel<TBatchPreResult> item in postChannel.Reader.ReadAllAsync())
             {
-                yield return PostprocessChannel(item); 
+                yield return PostprocessChannel(item);
             }
 
         }

@@ -40,7 +40,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _stopwatch.Restart();
 
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             _stopwatch.Stop();
             speed.Preprocess = _stopwatch.ElapsedMilliseconds;
@@ -53,7 +53,7 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             _stopwatch.Restart();
             // 后处理
-            var res = _postprocess.PostProcess(output0, preDetect);
+            var res = _postprocess.PostProcessSync(output0, preDetect);
 
             _stopwatch.Stop();
             speed.Postprocess = _stopwatch.ElapsedMilliseconds;
@@ -67,7 +67,7 @@ namespace YoloSharpOnnx.Inference.Detect
              {
                  using (output0)
                  {
-                     var result = _postprocess.PostProcess(output0, item.PreResult);
+                     var result = _postprocess.PostProcessAsync(output0, item.PreResult);
                      batchResults[idx] = BuildBatchResult(item, result, startTime);
                  }
 
@@ -79,7 +79,7 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             using (inferModel.Output0)
             {
-                var res = _postprocess.PostProcess(inferModel.Output0, inferModel.TBatchPreResult.PreResult);
+                var res = _postprocess.PostProcessSync(inferModel.Output0, inferModel.TBatchPreResult.PreResult);
                 return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
             }
         }
@@ -93,7 +93,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 using var output = RunInferenceBatch(preResult);
                 isReturn = true;
                 // 后处理
-                var result = _postprocess.PostProcess(output, preResult.PreResult);
+                var result = _postprocess.PostProcessSync(output, preResult.PreResult);
                 return result;
             }
             finally
@@ -147,7 +147,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
-            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.FixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             return new PreDetectResultBatch(preRes, imagePath, imageBatchData);
         }
 

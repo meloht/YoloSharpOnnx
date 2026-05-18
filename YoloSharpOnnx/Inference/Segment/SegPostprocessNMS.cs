@@ -17,12 +17,13 @@ namespace YoloSharpOnnx.Inference.Segment
     public class SegPostprocessNMS : SegPostprocessBase, ISegPostprocess
     {
         private readonly int _numAnchors;
-
-
-
         private readonly int _classAtts;
-
         private readonly NmsDecode _nmsDecode;
+
+        private readonly List<Rect> _boxes = new List<Rect>();
+        private readonly List<float> _scores = new List<float>();
+        private readonly List<int> _classIds = new List<int>();
+        private readonly List<int> _ids = new List<int>();
 
 
         public SegPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
@@ -32,13 +33,9 @@ namespace YoloSharpOnnx.Inference.Segment
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
 
         }
-        public List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids)
         {
-            List<Rect> boxes = new List<Rect>();
-            List<float> scores = new List<float>();
-            List<int> classIds = new List<int>();
-            List<int> ids = new List<int>();
-
+           
             var output0 = outputValue0.GetTensorDataAsSpan<float>();
             var output1 = outputValue1.GetTensorDataAsSpan<float>();
 
@@ -73,5 +70,26 @@ namespace YoloSharpOnnx.Inference.Segment
             GEMM(results, coeffMatList, output1, preResult);
             return results;
         }
+
+        public List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        {
+            List<Rect> boxes = new List<Rect>();
+            List<float> scores = new List<float>();
+            List<int> classIds = new List<int>();
+            List<int> ids = new List<int>();
+
+            return PostProcessBase(outputValue0, outputValue1, preResult, boxes, scores, classIds, ids);
+        }
+
+        public List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
+        {
+            _boxes.Clear();
+            _scores.Clear();
+            _classIds.Clear();
+            _ids.Clear();
+            return PostProcessBase(outputValue0, outputValue1, preResult, _boxes, _scores, _classIds, _ids);
+        }
+
+       
     }
 }
