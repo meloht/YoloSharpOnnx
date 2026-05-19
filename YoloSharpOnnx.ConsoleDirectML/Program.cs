@@ -11,18 +11,18 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 1;
-        static string modelPath = @"D:\code\model\best.onnx";
-        static string dir = @"D:\code\model\TestImages";
+        static int _deviceId = 0;
+        static string modelPath = @"C:\code\model\yolo11n-seg.onnx";
+        static string dir = @"C:\code\model\val2017";
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
 
-            TestBatchInfer();
+            //TestBatchInfer();
             //TestBatchInferSeg();
-            //TestInferSeg();
+            TestInferSeg();
             // _ = TestBatchForeachInfer();
             // TestInferPerf();
             //TestInferCls();
@@ -31,7 +31,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestBufferPool();
             //Task.WaitAll(TestAsyncChannel());
-
+            //Task.WaitAll(TestBatchForeachInfer());
             Console.WriteLine("end!");
             Console.ReadKey();
 
@@ -193,8 +193,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             int num = 0;
-            var files = Directory.GetFiles(@"D:\code\model\TestCOCO");
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
+            var files = Directory.GetFiles(dir);
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"C:\code\model\yolo11n-seg.onnx", _deviceId)))
             {
                
                 _stopwatch.Start();
@@ -219,12 +219,12 @@ namespace YoloSharpOnnx.ConsoleDirectML
         {
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             int num = 0;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"D:\code\model\yolo26n-seg.onnx", _deviceId)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"C:\code\model\yolo26n-seg.onnx", _deviceId)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
-                var list = yolo.RunBatchSegment(@"D:\code\model\TestCOCO", receiveAction: ReceiveProcess);
+                var list = yolo.RunBatchSegment(@"C:\code\model\coco128-seg\images\train2017", receiveAction: ReceiveProcess);
                 num = list.Length;
                 _stopwatch.Stop();
 
