@@ -5,14 +5,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public abstract class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloTaskAsync<TResult> where TPreChannelData : IGuidValue
+    public class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloTaskAsync<TResult> where TPreChannelData : class, IGuidValue<TBatchPreResult>, IBatchPreChannelResult<TBatchPreResult>, new()
     {
         // Producer/consumer
         private readonly Channel<TPreChannelData> _channel;
@@ -23,9 +22,9 @@ namespace YoloSharpOnnx.Inference
 
         private ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>> _concurrentDict;
 
-        protected abstract TPreChannelData BuildPreChannelData(TBatchPreResult batchPreResult, Guid guid);
-        protected abstract List<TResult> RunBatch(TPreChannelData batchPreResult);
+        protected readonly Lazy<ObjectPool<TPreChannelData>> _preChannelPool;
 
+ 
         public YoloChannelAsync(YoloConfig yoloConfig,
             IYoloProcessAsync<TBatchPreResult> yoloProcessAsync,
             IRunBatch<TResult, TBatchPreResult> runBatch)
@@ -35,13 +34,14 @@ namespace YoloSharpOnnx.Inference
             _yoloProcessAsync = yoloProcessAsync;
             _yoloProcessAsync.InitBufferPool(yoloConfig.BatchPoolSize);
 
+            _preChannelPool = new Lazy<ObjectPool<TPreChannelData>>(() => new ObjectPool<TPreChannelData>(() => new TPreChannelData(), yoloConfig.BatchPoolSize));
+
             _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>>();
             var ChannelOptions = YoloUtils.GetChannelOptions(yoloConfig.BatchPoolSize);
             _channel = Channel.CreateBounded<TPreChannelData>(ChannelOptions);
 
-
             _ = Task.Run(async () => ExecuteInferAsync());
-           
+
         }
 
         public async Task<List<TResult>> RunAsync(string inputImage)
@@ -57,7 +57,6 @@ namespace YoloSharpOnnx.Inference
             {
                 _ = WritePreprocessAsync(inputImage, guid);
             }
-
 
             return await CreateTaskCompletionSource(guid);
         }
@@ -100,28 +99,40 @@ namespace YoloSharpOnnx.Inference
             return tcs.Task;
         }
 
+        private TPreChannelData BuildPreChannelData(TBatchPreResult preResult,Guid guid)
+        {
+            var data = _preChannelPool.Value.Rent();
+            data.Initialize(guid, preResult);
+            return data;
+        }
 
         private async ValueTask ExecuteInferAsync()
         {
             await foreach (TPreChannelData item in _channel.Reader.ReadAllAsync())
             {
-                var result = RunBatch(item);
+                try
+                {
+                    var result = _runBatch.RunBatch(item.PreResult);
 
-                TaskCompletionSource<List<TResult>> tempTCS = _concurrentDict[item.Guid];
-                tempTCS.TrySetResult(result);
-                _concurrentDict.TryRemove(item.Guid, out tempTCS);
-
+                    TaskCompletionSource<List<TResult>> tempTCS = _concurrentDict[item.Guid];
+                    tempTCS.TrySetResult(result);
+                    _concurrentDict.TryRemove(item.Guid, out tempTCS);
+                }
+                finally
+                {
+                    _preChannelPool.Value.Return(item);
+                    _runBatch.ReturnBatchPreResult(item.PreResult);
+                }
             }
         }
 
         public void Dispose()
         {
             _channel.Writer.Complete();
+            if (_preChannelPool.IsValueCreated)
+            {
+                _preChannelPool.Value.Dispose();
+            }
         }
-
-
-
-
-
     }
 }

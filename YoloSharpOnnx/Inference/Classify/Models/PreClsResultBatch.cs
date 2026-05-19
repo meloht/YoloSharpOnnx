@@ -8,5 +8,21 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify.Models
 {
-    public record PreClsResultBatch(string ImagePath, ImageBatchData Data);
+    public class PreClsResultBatch : PreResultBatchBase, IDisposable
+    {
+        public PreClsResultBatch()
+        {
+        }
+        public void Initialize(string imagePath, ImageBatchData data)
+        {
+            ImagePath = imagePath;
+            Data = data;
+        }
+
+        public void Dispose()
+        {
+            ImagePath = null;
+            Data = null;
+        }
+    }
 }

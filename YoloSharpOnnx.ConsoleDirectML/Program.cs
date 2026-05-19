@@ -20,8 +20,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-            //TestBatchInfer();
-            TestBatchInferSeg();
+            TestBatchInfer();
+            //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
             // TestInferPerf();
@@ -176,7 +176,6 @@ namespace YoloSharpOnnx.ConsoleDirectML
             int num = files.Length;
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
-
 
                 yolo.YoloConfiguration.BatchPoolSize = 30;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;

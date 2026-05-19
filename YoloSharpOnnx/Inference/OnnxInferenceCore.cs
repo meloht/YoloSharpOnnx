@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult>
+    public abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult> where TBatchPreResult : PreResultBatchBase, IDisposable, new()
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;
@@ -33,10 +33,13 @@ namespace YoloSharpOnnx.Inference
         protected YoloConfig _config;
         protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
+        protected readonly Lazy<ObjectPool<TBatchPreResult>> _preResultPool;
+        protected readonly Lazy<ObjectPool<InferModel>> _inferModelPool;
+
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
 
-        protected abstract InferModel<TBatchPreResult> RunInfer(TBatchPreResult preResult, long startTime);
-        protected abstract TBatchResult PostprocessChannel(InferModel<TBatchPreResult> inferModel);
+        protected abstract InferModel RunInfer(TBatchPreResult preResult, long startTime);
+        protected abstract TBatchResult PostprocessChannel(InferModel inferModel);
         protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
 
@@ -55,6 +58,8 @@ namespace YoloSharpOnnx.Inference
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
 
+            _preResultPool = new Lazy<ObjectPool<TBatchPreResult>>(() => new ObjectPool<TBatchPreResult>(() => new TBatchPreResult(), _config.BatchPoolSize));
+            _inferModelPool = new Lazy<ObjectPool<InferModel>>(() => new ObjectPool<InferModel>(() => new InferModel(), _config.BatchPoolSize));
         }
 
         protected void InitBatchProcess(IBatchProcess<TResult, TBatchPreResult, TBatchResult> batchProcess)
@@ -233,7 +238,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     var result = _batchProcess.RunBatch(item);
-                    var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                    var modelResult = _batchProcess.BuildBatchResult(item.ImagePath, result, startTime);
                     batchResults[idx++] = modelResult;
 
                     _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
@@ -247,7 +252,7 @@ namespace YoloSharpOnnx.Inference
             InitBufferPool(_config.BatchPoolSize);
 
             Channel<TBatchPreResult> channel = Channel.CreateBounded<TBatchPreResult>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
-            Channel<InferModel<TBatchPreResult>> postChannel = Channel.CreateBounded<InferModel<TBatchPreResult>>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
+            Channel<InferModel> postChannel = Channel.CreateBounded<InferModel>(YoloUtils.GetChannelOptions(_config.BatchPoolSize));
 
             _ = PreprocessBatch(listImg, channel.Writer);
             _ = ReaderForeach(channel, postChannel).ContinueWith(t =>
@@ -255,7 +260,7 @@ namespace YoloSharpOnnx.Inference
                  postChannel.Writer.Complete();
              });
 
-            await foreach (InferModel<TBatchPreResult> item in postChannel.Reader.ReadAllAsync())
+            await foreach (InferModel item in postChannel.Reader.ReadAllAsync())
             {
                 yield return PostprocessChannel(item);
             }
@@ -273,13 +278,13 @@ namespace YoloSharpOnnx.Inference
             {
                 long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                 var result = _batchProcess.RunBatch(item);
-                var modelResult = _batchProcess.BuildBatchResult(item, result, startTime);
+                var modelResult = _batchProcess.BuildBatchResult(item.ImagePath, result, startTime);
                 yield return modelResult;
             }
 
         }
 
-        private async Task ReaderForeach(Channel<TBatchPreResult> channel, Channel<InferModel<TBatchPreResult>> postChannel)
+        private async Task ReaderForeach(Channel<TBatchPreResult> channel, Channel<InferModel> postChannel)
         {
             await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
             {
@@ -308,7 +313,10 @@ namespace YoloSharpOnnx.Inference
             }
         }
 
-
+        public void ReturnBatchPreResult(TBatchPreResult preResult)
+        {
+            _preResultPool.Value.Return(preResult);
+        }
 
         public void DisposeCore()
         {
@@ -322,6 +330,16 @@ namespace YoloSharpOnnx.Inference
 
             _runOptions.Dispose();
             _inputOrtValue.Dispose();
+
+            if (_preResultPool.IsValueCreated)
+            {
+                _preResultPool.Value.Dispose();
+            }
+
+            if (_inferModelPool.IsValueCreated)
+            {
+                _inferModelPool.Value.Dispose();
+            }
         }
     }
 }

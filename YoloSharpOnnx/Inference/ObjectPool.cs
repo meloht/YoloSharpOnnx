@@ -68,7 +68,7 @@ namespace YoloSharpOnnx.Inference
         /// <summary>
         /// 清空对象池
         /// </summary>
-        public void Clear()
+        private void Clear()
         {
             while (_items.TryTake(out var item))
             {

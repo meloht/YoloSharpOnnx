@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify;
+using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment;
 
 namespace YoloSharpOnnx.Inference
@@ -35,15 +37,15 @@ namespace YoloSharpOnnx.Inference
 
             if (_yoloDetect != null)
             {
-                _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult>>(() => new YoloChannelDetectAsync(_yoloConfig, _yoloDetect.GetYoloProcessAsync(), _yoloDetect.GetRunBatch()));
+                _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult>>(() => new YoloChannelAsync<DetectionResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloDetect.GetYoloProcessAsync(), _yoloDetect.GetRunBatch()));
             }
             if (_yoloClassify != null)
             {
-                _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult>>(() => new YoloChannelClsAsync(_yoloConfig, _yoloClassify.GetYoloProcessAsync(), _yoloClassify.GetRunBatch()));
+                _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult>>(() => new YoloChannelAsync<ClsResult, PreClsResultBatch, PreClsChannelData>(_yoloConfig, _yoloClassify.GetYoloProcessAsync(), _yoloClassify.GetRunBatch()));
             }
             if (_yoloSegment != null)
             {
-                _yoloSegAsync = new Lazy<IYoloTaskAsync<SegResult>>(() => new YoloChannelSegAsync(_yoloConfig, _yoloSegment.GetYoloProcessAsync(), _yoloSegment.GetRunBatch()));
+                _yoloSegAsync = new Lazy<IYoloTaskAsync<SegResult>>(() => new YoloChannelAsync<SegResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloSegment.GetYoloProcessAsync(), _yoloSegment.GetRunBatch()));
             }
 
         }

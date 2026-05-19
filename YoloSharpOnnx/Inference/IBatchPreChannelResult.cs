@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Inference.Classify.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IGuidValue<T>
+    public interface IBatchPreChannelResult<T> : IDisposable
     {
-        public Guid Guid { get; set; }
-
-        public T PreResult { get; set; }
+        void Initialize(Guid guid, T preResult);
     }
 }

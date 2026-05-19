@@ -9,5 +9,8 @@ namespace YoloSharpOnnx.Inference
     public interface IRunBatch<TResult, TBatchPreResult>
     {
         List<TResult> RunBatch(TBatchPreResult preResult);
+        void ReturnBatchPreResult(TBatchPreResult preResult);
+
+        
     }
 }
