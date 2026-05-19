@@ -90,7 +90,6 @@ namespace YoloSharpOnnx.Inference.Classify
             return results[0];
         }
 
-
-
+      
     }
 }

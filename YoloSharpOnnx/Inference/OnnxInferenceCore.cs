@@ -31,7 +31,6 @@ namespace YoloSharpOnnx.Inference
         protected readonly Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
-        protected IBatchProcess<TResult, TBatchPreResult, TBatchResult> _batchProcess;
 
         protected readonly Lazy<ObjectPool<TBatchPreResult>> _preResultPool;
         protected readonly Lazy<ObjectPool<InferModel>> _inferModelPool;
@@ -40,6 +39,10 @@ namespace YoloSharpOnnx.Inference
 
         protected abstract InferModel RunInfer(TBatchPreResult preResult, long startTime);
         protected abstract TBatchResult PostprocessChannel(InferModel inferModel);
+
+        protected abstract TBatchPreResult GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath);
+
+        protected abstract TBatchResult PostprocessModel(TBatchPreResult preResult, long startTime);
         protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
 
@@ -62,10 +65,7 @@ namespace YoloSharpOnnx.Inference
             _inferModelPool = new Lazy<ObjectPool<InferModel>>(() => new ObjectPool<InferModel>(() => new InferModel(), _config.BatchPoolSize));
         }
 
-        protected void InitBatchProcess(IBatchProcess<TResult, TBatchPreResult, TBatchResult> batchProcess)
-        {
-            _batchProcess = batchProcess;
-        }
+      
         public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
@@ -170,7 +170,7 @@ namespace YoloSharpOnnx.Inference
         public TBatchPreResult PreprocessImageChannel(Mat img, string imagePath)
         {
             var data = _matPool.Rent();
-            return _batchProcess.GetPreprocessImageBatchData(img, data, imagePath);
+            return GetPreprocessImageBatchData(img, data, imagePath);
         }
 
 
@@ -237,8 +237,7 @@ namespace YoloSharpOnnx.Inference
                 await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
                 {
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                    var result = _batchProcess.RunBatch(item);
-                    var modelResult = _batchProcess.BuildBatchResult(item.ImagePath, result, startTime);
+                    var modelResult = PostprocessModel(item, startTime);
                     batchResults[idx++] = modelResult;
 
                     _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
@@ -277,8 +276,7 @@ namespace YoloSharpOnnx.Inference
             await foreach (TBatchPreResult item in channel.Reader.ReadAllAsync())
             {
                 long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                var result = _batchProcess.RunBatch(item);
-                var modelResult = _batchProcess.BuildBatchResult(item.ImagePath, result, startTime);
+                var modelResult = PostprocessModel(item, startTime);
                 yield return modelResult;
             }
 

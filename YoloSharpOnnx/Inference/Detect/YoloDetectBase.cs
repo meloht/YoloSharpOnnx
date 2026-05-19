@@ -10,6 +10,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
@@ -17,8 +18,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>,
-        IBatchProcess<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch>
+    public abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch, DetectionResult>
     {
         protected readonly IDetPostprocess _postprocess;
         protected readonly IDetPreprocess _preprocess;
@@ -32,7 +32,6 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             _postprocess = postprocess;
             _preprocess = preprocess;
-            InitBatchProcess(this);
         }
 
         protected PreDetectResult PreprocessTime(Mat inputImage, SpeedResult speed)
@@ -159,7 +158,7 @@ namespace YoloSharpOnnx.Inference.Detect
             }
         }
 
-        public PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
+        protected override PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
             var preRes = _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             var batchData = _preResultPool.Value.Rent();
@@ -167,7 +166,7 @@ namespace YoloSharpOnnx.Inference.Detect
             return batchData;
         }
 
-        public DetectionBatchResult BuildBatchResult(string imagePath, List<DetectionResult> results, long timestamp)
+        private static DetectionBatchResult BuildBatchResult(string imagePath, List<DetectionResult> results, long timestamp)
         {
             return new DetectionBatchResult(imagePath, results, timestamp);
         }
@@ -176,12 +175,14 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             return RunBatchInfer(preResult);
         }
-
-        public IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync()
+        protected override DetectionBatchResult PostprocessModel(PreDetectResultBatch preResult, long startTime)
         {
-            return this;
+            var res = BuildBatchResult(preResult.ImagePath, null, startTime);
+            res.Results = RunBatchInfer(preResult);
+            return res;
         }
-        public IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch()
+
+        public IYoloProcessAsync<PreDetectResultBatch, DetectionResult> GetYoloProcessAsync()
         {
             return this;
         }

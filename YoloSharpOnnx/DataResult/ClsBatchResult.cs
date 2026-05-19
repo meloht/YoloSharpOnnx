@@ -24,6 +24,7 @@ namespace YoloSharpOnnx.DataResult
             this.StartTimestamp = timestamp;
         }
 
+
         public override string ToString()
         {
             return $"Image:{Path.GetFileName(ImagePath)} Result:{Results.Summary()}";

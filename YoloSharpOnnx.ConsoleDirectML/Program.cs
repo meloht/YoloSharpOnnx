@@ -11,18 +11,18 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
-        static string modelPath = @"C:\code\model\yolo11n-seg.onnx";
-        static string dir = @"C:\code\model\val2017";
+        static int _deviceId = 1;
+        static string modelPath = @"D:\code\model\yolo11n.onnx";
+        static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
 
             //TestChannel();
 
-            //TestBatchInfer();
+            TestBatchInfer();
             //TestBatchInferSeg();
-            TestInferSeg();
+            //TestInferSeg();
             // _ = TestBatchForeachInfer();
             // TestInferPerf();
             //TestInferCls();
@@ -262,7 +262,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
             string ans = e.Results.Summary();
-            Console.WriteLine($"{ans} time:{cost}ms");
+            Console.WriteLine($"{e.ImagePath} {ans} time:{cost}ms");
 
         }
         private static void ReceiveProcess(SegBatchResult e)
@@ -270,7 +270,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
             string ans = e.Results.Summary();
-            Console.WriteLine($"{ans} time:{cost}ms");
+            Console.WriteLine($"{e.ImagePath} {ans} time:{cost}ms");
 
         }
         internal class ProcessCallback : IBatchProcessCallback<DetectionBatchResult>

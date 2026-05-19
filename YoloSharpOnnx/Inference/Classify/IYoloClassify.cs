@@ -24,8 +24,7 @@ namespace YoloSharpOnnx.Inference.Classify
 
         IAsyncEnumerable<ClsBatchResult> BatchRunForeachSync(List<string> listImg);
 
-        IYoloProcessAsync<PreClsResultBatch> GetYoloProcessAsync();
+        IYoloProcessAsync<PreClsResultBatch, ClsResult> GetYoloProcessAsync();
 
-        IRunBatch<ClsResult, PreClsResultBatch> GetRunBatch();
     }
 }

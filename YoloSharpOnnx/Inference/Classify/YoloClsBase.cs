@@ -13,8 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>,
-        IBatchProcess<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch>
+    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch, ClsResult>
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
@@ -28,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Classify
         {
             _postprocess = postprocess;
             _preprocess = preprocess;
-            InitBatchProcess(this);
+
         }
         protected void PreprocessTime(Mat inputImage, SpeedResult speed)
         {
@@ -157,7 +156,7 @@ namespace YoloSharpOnnx.Inference.Classify
             }
         }
 
-        public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
+        protected override PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
             _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
             PreClsResultBatch preClsResult = _preResultPool.Value.Rent();
@@ -165,7 +164,7 @@ namespace YoloSharpOnnx.Inference.Classify
             return preClsResult;
         }
 
-        public ClsBatchResult BuildBatchResult(string imagePath, List<ClsResult> results, long timestamp)
+        private static ClsBatchResult BuildBatchResult(string imagePath, List<ClsResult> results, long timestamp)
         {
             return new ClsBatchResult(imagePath, results, timestamp);
         }
@@ -174,12 +173,14 @@ namespace YoloSharpOnnx.Inference.Classify
         {
             return RunBatchInfer(preResult);
         }
-
-        public IRunBatch<ClsResult, PreClsResultBatch> GetRunBatch()
+        protected override ClsBatchResult PostprocessModel(PreClsResultBatch preResult, long startTime)
         {
-            return this;
+            var res = BuildBatchResult(preResult.ImagePath, null, startTime);
+            res.Results = RunBatchInfer(preResult);
+            return res;
         }
-        public IYoloProcessAsync<PreClsResultBatch> GetYoloProcessAsync()
+
+        public IYoloProcessAsync<PreClsResultBatch, ClsResult> GetYoloProcessAsync()
         {
             return this;
         }
