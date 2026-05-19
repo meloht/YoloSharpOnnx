@@ -22,9 +22,7 @@ namespace YoloSharpOnnx.Inference.Detect
         IAsyncEnumerable<DetectionBatchResult> BatchRunForeachSync(List<string> listImg);
 
 
-        IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync();
-
-        IRunBatch<DetectionResult, PreDetectResultBatch> GetRunBatch();
+        IYoloProcessAsync<PreDetectResultBatch, DetectionResult> GetYoloProcessAsync();
 
     }
 }

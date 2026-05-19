@@ -15,9 +15,7 @@ namespace YoloSharpOnnx.Inference
     {
         // Producer/consumer
         private readonly Channel<TPreChannelData> _channel;
-        private readonly IYoloProcessAsync<TBatchPreResult> _yoloProcessAsync;
-        protected readonly IRunBatch<TResult, TBatchPreResult> _runBatch;
-
+        private readonly IYoloProcessAsync<TBatchPreResult, TResult> _yoloProcessAsync;
         private readonly YoloConfig _yoloConfig;
 
         private ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>> _concurrentDict;
@@ -25,11 +23,9 @@ namespace YoloSharpOnnx.Inference
         protected readonly Lazy<ObjectPool<TPreChannelData>> _preChannelPool;
 
  
-        public YoloChannelAsync(YoloConfig yoloConfig,
-            IYoloProcessAsync<TBatchPreResult> yoloProcessAsync,
-            IRunBatch<TResult, TBatchPreResult> runBatch)
+        public YoloChannelAsync(YoloConfig yoloConfig, IYoloProcessAsync<TBatchPreResult, TResult> yoloProcessAsync)
         {
-            _runBatch = runBatch;
+
             _yoloConfig = yoloConfig;
             _yoloProcessAsync = yoloProcessAsync;
             _yoloProcessAsync.InitBufferPool(yoloConfig.BatchPoolSize);
@@ -112,7 +108,7 @@ namespace YoloSharpOnnx.Inference
             {
                 try
                 {
-                    var result = _runBatch.RunBatch(item.PreResult);
+                    var result = _yoloProcessAsync.RunBatch(item.PreResult);
 
                     TaskCompletionSource<List<TResult>> tempTCS = _concurrentDict[item.Guid];
                     tempTCS.TrySetResult(result);
@@ -121,7 +117,7 @@ namespace YoloSharpOnnx.Inference
                 finally
                 {
                     _preChannelPool.Value.Return(item);
-                    _runBatch.ReturnBatchPreResult(item.PreResult);
+                    _yoloProcessAsync.ReturnBatchPreResult(item.PreResult);
                 }
             }
         }

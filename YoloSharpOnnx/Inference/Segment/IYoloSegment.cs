@@ -24,8 +24,8 @@ namespace YoloSharpOnnx.Inference.Segment
         IAsyncEnumerable<SegBatchResult> BatchRunForeachAsync(List<string> listImg);
 
 
-        IYoloProcessAsync<PreDetectResultBatch> GetYoloProcessAsync();
+        IYoloProcessAsync<PreDetectResultBatch, SegResult> GetYoloProcessAsync();
 
-        IRunBatch<SegResult, PreDetectResultBatch> GetRunBatch();
+
     }
 }

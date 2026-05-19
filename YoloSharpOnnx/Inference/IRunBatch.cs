@@ -10,7 +10,5 @@ namespace YoloSharpOnnx.Inference
     {
         List<TResult> RunBatch(TBatchPreResult preResult);
         void ReturnBatchPreResult(TBatchPreResult preResult);
-
-        
     }
 }

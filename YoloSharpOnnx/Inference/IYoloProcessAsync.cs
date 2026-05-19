@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IYoloProcessAsync<TBatchPreResult>
+    public interface IYoloProcessAsync<TBatchPreResult, TResult> : IRunBatch<TResult, TBatchPreResult>
     {
         TBatchPreResult PreprocessImageChannel(string imagePath);
         TBatchPreResult PreprocessImageChannel(Mat img, string imagePath);
