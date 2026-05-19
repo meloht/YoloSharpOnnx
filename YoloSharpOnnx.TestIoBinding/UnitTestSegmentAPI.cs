@@ -16,8 +16,8 @@ namespace YoloSharpOnnx.TestIoBinding
 
         public UnitTestSegmentAPI()
         {
-            _dictSeg = TestDataUtils.GetYolo11SegDict();
-            model = TestDataUtils.GetModelPath("yolo11n-seg.onnx");
+            _dictSeg = TestDataUtils.GetYolo26SegDict();
+            model = TestDataUtils.GetModelPath("yolo26n-seg.onnx");
             int deviceId = Utils.GetMainGPU();
             yolo = new YoloSharp(new ExecutionProviderDirectML(model, deviceId));
         }
@@ -28,12 +28,12 @@ namespace YoloSharpOnnx.TestIoBinding
 
             var res = yolo.RunSegment(imgPath);
             string ans = res.Summary();
-            Assert.Equal(Yolo11.Seg01, ans);
+            Assert.Equal(Yolo26.Seg01, ans);
 
             using Mat img = Cv2.ImRead(imgPath);
             var res2 = yolo.RunSegment(img);
             string ans2 = res2.Summary();
-            Assert.Equal(Yolo11.Seg01, ans2);
+            Assert.Equal(Yolo26.Seg01, ans2);
         }
 
         [Fact]
@@ -43,12 +43,12 @@ namespace YoloSharpOnnx.TestIoBinding
 
             var res = yolo.RunSegmentWithTime(imgPath);
             string ans = res.Items.Summary();
-            Assert.Equal(Yolo11.Seg01, ans);
+            Assert.Equal(Yolo26.Seg01, ans);
 
             using Mat img = Cv2.ImRead(imgPath);
             var res2 = yolo.RunSegmentWithTime(img);
             string ans2 = res2.Items.Summary();
-            Assert.Equal(Yolo11.Seg01, ans2);
+            Assert.Equal(Yolo26.Seg01, ans2);
         }
 
 
@@ -61,12 +61,12 @@ namespace YoloSharpOnnx.TestIoBinding
 
             var res = await yoloAsync.RunSegmentAsync(imgPath);
             string ans = res.Summary();
-            Assert.Equal(Yolo11.Seg01, ans);
+            Assert.Equal(Yolo26.Seg01, ans);
 
             using Mat img = Cv2.ImRead(imgPath);
             var res2 = await yoloAsync.RunSegmentAsync(img);
             string ans2 = res2.Summary();
-            Assert.Equal(Yolo11.Seg01, ans2);
+            Assert.Equal(Yolo26.Seg01, ans2);
         }
 
         [Fact]

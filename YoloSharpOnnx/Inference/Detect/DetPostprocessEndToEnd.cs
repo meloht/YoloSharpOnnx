@@ -68,5 +68,10 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             return PostProcess(outputValue, preResult);
         }
+
+        public void Dispose()
+        {
+           
+        }
     }
 }

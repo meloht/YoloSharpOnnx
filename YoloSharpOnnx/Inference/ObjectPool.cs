@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public sealed class ObjectPool<T>: IDisposable where T : IDisposable
+    public sealed class ObjectPool<T> : IDisposable where T : IDisposable
     {
         /// <summary>
         /// 创建对象的方法
         /// </summary>
         private readonly Func<T> _factory;
+        private readonly Action<T>? _resetAction;
 
         /// <summary>
         /// 最大缓存数量
@@ -28,15 +29,16 @@ namespace YoloSharpOnnx.Inference
 
         private bool _disposed;
 
-        public ObjectPool(Func<T> factory, int maxSize = 30)
+        public ObjectPool(Func<T> factory, int maxSize = 30, Action<T>? resetAction = null)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _maxSize = maxSize > 0 ? maxSize : 30;
+            _resetAction = resetAction;
         }
 
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(_disposed, nameof(MatBufferPool));
+            ObjectDisposedException.ThrowIf(_disposed, instance: nameof(ObjectPool<T>));
         }
         public void Dispose()
         {
@@ -86,7 +88,7 @@ namespace YoloSharpOnnx.Inference
                 item?.Dispose();
                 return;
             }
-
+            _resetAction?.Invoke(item);
             // 超过最大容量则直接销毁
             if (_items.Count < _maxSize)
             {

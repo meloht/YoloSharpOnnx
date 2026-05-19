@@ -8,8 +8,8 @@ using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
+using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
@@ -20,14 +20,22 @@ namespace YoloSharpOnnx.Inference.Detect
         private readonly List<Rect> _boxes = new List<Rect>();
         private readonly List<float> _scores = new List<float>();
         private readonly List<int> _classIds = new List<int>();
+        private readonly Lazy<ObjectPool<PostResultArray>> _postResultPool;
 
         public DetPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig)
         {
             _labels = onnx.Labels;
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
+            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForDetect, yoloConfig.BatchPoolSize, ClearList));
         }
 
-
+        private void ClearList(PostResultArray resultArray)
+        {
+            resultArray.Boxes.Clear();
+            resultArray.Scores.Clear();
+            resultArray.ClassIds.Clear();
+            resultArray.Ids?.Clear();
+        }
 
         private List<DetectionResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds)
         {
@@ -59,11 +67,18 @@ namespace YoloSharpOnnx.Inference.Detect
 
         public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
         {
-            List<Rect> boxes = new List<Rect>();
-            List<float> scores = new List<float>();
-            List<int> classIds = new List<int>();
-           
-            return PostProcessBase(outputValue, preResult, boxes, scores, classIds);
+            var arr = _postResultPool.Value.Rent();
+            try
+            {
+                return PostProcessBase(outputValue, preResult, arr.Boxes, arr.Scores, arr.ClassIds);
+            }
+            finally
+            {
+                _postResultPool.Value.Return(arr);
+            }
+
+
+
         }
         public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
         {
@@ -71,6 +86,14 @@ namespace YoloSharpOnnx.Inference.Detect
             _scores.Clear();
             _classIds.Clear();
             return PostProcessBase(outputValue, preResult, _boxes, _scores, _classIds);
+        }
+
+        public void Dispose()
+        {
+            if (_postResultPool.IsValueCreated)
+            {
+                _postResultPool.Value.Dispose();
+            }
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.OutputDecode
 {
@@ -33,7 +32,6 @@ namespace YoloSharpOnnx.Inference.OutputDecode
             _classCount = onnx.Labels.Length;
             _yoloConfig = yoloConfig;
         }
-
 
 
         public int[] Decode(ReadOnlySpan<float> output0, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids = null)
@@ -91,5 +89,6 @@ namespace YoloSharpOnnx.Inference.OutputDecode
             }
             return indices;
         }
+
     }
 }

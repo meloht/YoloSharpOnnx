@@ -63,6 +63,7 @@ namespace YoloSharpOnnx.Inference.Segment
                 // TODO: set large fields to null
                 DisposeCore();
                 DisposedSub();
+                _postprocess.Dispose();
                 disposedValue = true;
             }
         }

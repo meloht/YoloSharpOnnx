@@ -42,7 +42,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _hw = _protoH * _protoW;
 
             _yoloSegDecode = new YoloSegDecode(onnx, yoloConfig);
-            _segDecodePool = new Lazy<ObjectPool<YoloSegDecode>>(() => new ObjectPool<YoloSegDecode>(() => new YoloSegDecode(onnx, yoloConfig), 20));
+            _segDecodePool = new Lazy<ObjectPool<YoloSegDecode>>(() => new ObjectPool<YoloSegDecode>(() => new YoloSegDecode(onnx, yoloConfig), yoloConfig.BatchPoolSize));
         }
 
         protected Mat GetMaskFromProto(ReadOnlySpan<float> output1)
@@ -283,7 +283,7 @@ namespace YoloSharpOnnx.Inference.Segment
             return 1.0f / (1.0f + MathF.Exp(-x));
         }
 
-        public void Dispose()
+        public void DisposeBase()
         {
             _yoloSegDecode?.Dispose();
             if (_segDecodePool.IsValueCreated)
