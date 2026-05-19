@@ -7,15 +7,22 @@ using System.Threading.Tasks;
 namespace YoloSharpOnnx.Inference.Detect.Models
 {
 
-    public class PreDetectChannelData : IGuidValue
+    public class PreDetectChannelData : IGuidValue<PreDetectResultBatch>, IBatchPreChannelResult<PreDetectResultBatch>
     {
-        public Guid Guid { get; init; }
-        public PreDetectResultBatch PreResult { get; init; }
+        public Guid Guid { get; set; }
+        public PreDetectResultBatch PreResult { get; set; }
 
-        public PreDetectChannelData(Guid guid, PreDetectResultBatch preResult)
+        public void Initialize(Guid guid, PreDetectResultBatch preResult)
         {
             Guid = guid;
             PreResult = preResult;
+        }
+        public PreDetectChannelData()
+        {
+        }
+        public void Dispose()
+        {
+            PreResult = null;
         }
     }
 }

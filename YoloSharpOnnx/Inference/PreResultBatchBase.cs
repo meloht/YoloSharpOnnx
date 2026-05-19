@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IGuidValue<T>
+    public class PreResultBatchBase
     {
-        public Guid Guid { get; set; }
-
-        public T PreResult { get; set; }
+        public string ImagePath { get; set; }
+        public ImageBatchData Data { get; set; }
     }
 }

@@ -14,7 +14,7 @@ namespace YoloSharpOnnx.Inference
     {
         TBatchPreResult GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath);
 
-        TBatchResult BuildBatchResult(TBatchPreResult batchPreResult, List<TResult> results, long timestamp);
+        TBatchResult BuildBatchResult(string imagePath, List<TResult> results, long timestamp);
 
 
     }

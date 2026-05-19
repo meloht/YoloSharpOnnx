@@ -20,7 +20,6 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly int _classAtts;
         private readonly int _boxAttrs;
 
-
         public SegPostprocessEndToEnd(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
         {
             _maxDet = (int)onnx.OutputShape0[1]; //[1,300,38]   300
@@ -87,6 +86,11 @@ namespace YoloSharpOnnx.Inference.Segment
         public List<SegResult> PostProcessSync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
             return PostProcess(outputValue0, outputValue1, preResult, _yoloSegDecode);
+        }
+
+        public void Dispose()
+        {
+            DisposeBase();
         }
     }
 }

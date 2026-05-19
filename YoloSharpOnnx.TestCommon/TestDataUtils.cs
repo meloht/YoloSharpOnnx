@@ -64,6 +64,14 @@
             return dict;
         }
 
+        public static Dictionary<string, string> GetYolo26SegDict()
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add(GetImagePathSeg(Seg01), Yolo26.Seg01);
+            dict.Add(GetImagePathSeg(Seg02), Yolo26.Seg02);
+
+            return dict;
+        }
         public static Dictionary<string, string> GetYolo11SegDict()
         {
             Dictionary<string, string> dict = new Dictionary<string, string>();
@@ -72,7 +80,6 @@
 
             return dict;
         }
-
         public static List<string> GetImgPaths()
         {
             List<string> list = [GetImagePathDetect(Bus),GetImagePathDetect(Zidane)];

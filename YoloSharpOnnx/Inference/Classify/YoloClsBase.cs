@@ -54,14 +54,14 @@ namespace YoloSharpOnnx.Inference.Classify
 
             return result;
         }
-        protected Task BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        protected Task BatchPostProcess(ClsBatchResult[] batchResults, int idx, OrtValue output0, string imagePath, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
             return Task.Run(() =>
               {
                   using (output0)
                   {
                       var result = _postprocess.PostProcess(output0);
-                      batchResults[idx] = BuildBatchResult(item, result, startTime);
+                      batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
                   }
 
                   _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
@@ -69,13 +69,23 @@ namespace YoloSharpOnnx.Inference.Classify
               });
 
         }
-        protected override ClsBatchResult PostprocessChannel(InferModel<PreClsResultBatch> inferModel)
+        protected override ClsBatchResult PostprocessChannel(InferModel inferModel)
         {
-            using (inferModel.Output0)
+            try
             {
-                var res = _postprocess.PostProcess(inferModel.Output0);
-                return BuildBatchResult(inferModel.TBatchPreResult, res, inferModel.StartTime);
+                using (inferModel.Output0)
+                {
+                    var res = _postprocess.PostProcess(inferModel.Output0);
+                    return BuildBatchResult(inferModel.ImagePath, res, inferModel.StartTime);
+                }
             }
+            finally
+            {
+
+                _inferModelPool.Value.Return(inferModel);
+
+            }
+
         }
 
         protected override List<ClsResult> RunBatchInfer(PreClsResultBatch preResult)
@@ -95,12 +105,15 @@ namespace YoloSharpOnnx.Inference.Classify
                 if (!isReturn)
                 {
                     _matPool.Return(preResult.Data);
+
                 }
+                _preResultPool.Value.Return(preResult);
             }
 
         }
 
-        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime, IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
+        protected override Task RunBatchInfer(ClsBatchResult[] batchResults, int idx, PreClsResultBatch item, long startTime,
+            IBatchProcessCallback<ClsBatchResult> processCallback, Action<ClsBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -108,9 +121,8 @@ namespace YoloSharpOnnx.Inference.Classify
                 // 执行推理
                 var ortValue = RunInferenceBatch(item);
                 isReturn = true;
-
                 // 后处理
-                return BatchPostProcess(batchResults, idx, ortValue, item, startTime, processCallback, receiveAction);
+                return BatchPostProcess(batchResults, idx, ortValue, item.ImagePath, startTime, processCallback, receiveAction);
             }
             finally
             {
@@ -118,10 +130,11 @@ namespace YoloSharpOnnx.Inference.Classify
                 {
                     _matPool.Return(item.Data);
                 }
+                _preResultPool.Value.Return(item);
             }
         }
 
-        protected override InferModel<PreClsResultBatch> RunInfer(PreClsResultBatch preResult, long startTime)
+        protected override InferModel RunInfer(PreClsResultBatch preResult, long startTime)
         {
             bool isReturn = false;
             try
@@ -130,7 +143,9 @@ namespace YoloSharpOnnx.Inference.Classify
                 var ortValue = RunInferenceBatch(preResult);
                 isReturn = true;
 
-                return new InferModel<PreClsResultBatch>(ortValue, null, preResult, startTime);
+                var inferModel = _inferModelPool.Value.Rent();
+                inferModel.Initialize(ortValue, null, preResult.ImagePath, startTime, new PreDetectResult());
+                return inferModel;
             }
             finally
             {
@@ -138,18 +153,21 @@ namespace YoloSharpOnnx.Inference.Classify
                 {
                     _matPool.Return(preResult.Data);
                 }
+                _preResultPool.Value.Return(preResult);
             }
         }
 
         public PreClsResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)
         {
             _preprocess.PreprocessImage(inputImage, imageBatchData.ResizeMat, imageBatchData.FixedBuffer);
-            return new PreClsResultBatch(imagePath, imageBatchData);
+            PreClsResultBatch preClsResult = _preResultPool.Value.Rent();
+            preClsResult.Initialize(imagePath, imageBatchData);
+            return preClsResult;
         }
 
-        public ClsBatchResult BuildBatchResult(PreClsResultBatch batchPreResult, List<ClsResult> results, long timestamp)
+        public ClsBatchResult BuildBatchResult(string imagePath, List<ClsResult> results, long timestamp)
         {
-            return new ClsBatchResult(batchPreResult.ImagePath, results, timestamp);
+            return new ClsBatchResult(imagePath, results, timestamp);
         }
 
         public List<ClsResult> RunBatch(PreClsResultBatch preResult)
