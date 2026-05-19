@@ -13,6 +13,7 @@ namespace YoloSharpOnnx.ConsoleGPU
             Console.WriteLine("Hello, World!");
             TestBatchInferTensorRT();
             //TestInferPerf();
+            //TestInferSeg();
             Console.WriteLine("end!");
             Console.ReadKey();
         }
@@ -55,7 +56,17 @@ namespace YoloSharpOnnx.ConsoleGPU
             System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
             _stopwatch.Start();
             int num = files.Length;
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId)))
+
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add("device_id", _deviceId.ToString());
+            dict.Add("trt_engine_cache_enable", "true");
+            dict.Add("trt_dump_ep_context_model", "true");
+            dict.Add("trt_ep_context_file_path", Path.Combine(Directory.GetCurrentDirectory(), "trt_engine_cache"));
+            dict.Add("trt_engine_cache_path", Path.Combine(Directory.GetCurrentDirectory(), "trt_engine_cache"));
+            dict.Add("trt_engine_cache_prefix", "YoloSharpOnnx");
+            dict.Add("trt_auxiliary_streams", "0");
+            dict.Add("trt_builder_optimization_level", "3");
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId, dict)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
 
@@ -103,6 +114,31 @@ namespace YoloSharpOnnx.ConsoleGPU
             Console.WriteLine($"time:{_stopwatchTotal.Elapsed}");
 
         }
+        private static void TestInferSeg()
+        {
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = 0;
+            var files = Directory.GetFiles(@"C:\code\model\val2017");
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderCUDA(@"C:\code\model\yolo11n-seg.onnx", _deviceId)))
+            {
+
+                _stopwatch.Start();
+                for (int i = 0; i < files.Length; i++)
+                {
+
+                    var res = yolo.RunSegmentWithTime(files[i]);
+                    Console.WriteLine($"{i + 1} {res.SpeedResult}");
+                }
+
+
+                num = files.Length;
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
 
         private static void TestInferPerfTensorRT()
         {
@@ -111,7 +147,15 @@ namespace YoloSharpOnnx.ConsoleGPU
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId)))
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add("device_id", _deviceId.ToString());
+            dict.Add("trt_engine_cache_enable", "1");
+            dict.Add("trt_engine_cache_path", Path.Combine(Directory.GetCurrentDirectory(), "trt_engine_cache"));
+            dict.Add("trt_engine_cache_prefix", "YoloSharpOnnx");
+            dict.Add("trt_auxiliary_streams", "0");
+            dict.Add("trt_builder_optimization_level", "3");
+
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT(modelPath, _deviceId, dict)))
             {
                 foreach (var item in files)
                 {
