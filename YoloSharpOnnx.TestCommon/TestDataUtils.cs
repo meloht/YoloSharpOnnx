@@ -11,6 +11,9 @@
         public const string Seg01 = "000000000650.jpg";
         public const string Seg02 = "zidane.jpg";
 
+        public const string Pose01 = "";
+        public const string Pose02 = "";
+
 
         public static string GetImagePathDetect(string path)
         {
@@ -25,6 +28,11 @@
         public static string GetImagePathSeg(string path)
         {
             return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Segment", path);
+        }
+
+        public static string GetImagePathPose(string path)
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Pose", path);
         }
 
         public static string GetModelPath(string path)
@@ -45,6 +53,10 @@
         {
             return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Segment");
         }
+        public static string GetImageDirPose()
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Pose");
+        }
 
         public static Dictionary<string, string> GetYolo11Dict()
         {
@@ -60,6 +72,14 @@
             Dictionary<string, string> dict = new Dictionary<string, string>();
             dict.Add(GetImagePathCls(Cls01), Yolo11.Cls01);
             dict.Add(GetImagePathCls(Cls02), Yolo11.Cls02);
+
+            return dict;
+        }
+        public static Dictionary<string, string> GetYolo11PoseDict()
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add(GetImagePathPose(Pose01), Yolo11.Pose01);
+            dict.Add(GetImagePathPose(Pose02), Yolo11.Pose02);
 
             return dict;
         }
@@ -97,5 +117,11 @@
             List<string> list = [GetImagePathSeg(Seg01), GetImagePathSeg(Seg02)];
             return list;
         }
+
+        public static List<string> GetImgPosePaths()
+        {
+            List<string> list = [GetImagePathPose(Pose01), GetImagePathPose(Pose02)];
+            return list;
+        }   
     }
 }
