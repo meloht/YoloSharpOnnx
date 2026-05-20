@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.Inference.Pose
 
         YoloResult<PoseResult> RunWithTime(Mat inputImage);
 
-        void DrawPose(Mat inputImage, List<PoseResult> list);
+        void DrawPoses(Mat inputImage, List<PoseResult> list);
 
         PoseBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<PoseBatchResult> processCallback, Action<PoseBatchResult> receiveAction);
 

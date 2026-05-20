@@ -225,7 +225,7 @@ namespace YoloSharpOnnx.Inference.Pose
 
 
 
-        public void DrawPose(Mat image, List<PoseResult> results)
+        public void DrawPoses(Mat image, List<PoseResult> results)
         {
             foreach (var det in results)
             {
