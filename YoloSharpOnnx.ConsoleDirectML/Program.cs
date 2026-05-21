@@ -11,8 +11,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 1;
-        static string modelPath = @"D:\code\model\yolo11n.onnx";
+        static int _deviceId = 0;
+        static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
         {
@@ -24,7 +24,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            // TestInferPerf();
+            //TestInferPerf();
             //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
@@ -177,7 +177,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
 
-                yolo.YoloConfiguration.BatchPoolSize = 30;
+                yolo.YoloConfiguration.BatchPoolSize = 80;
                 //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
                 _stopwatch.Start();
                 var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
