@@ -20,6 +20,7 @@ namespace YoloSharpOnnx
             return list.Summary();
         }
 
+
         public static List<string> GetFilesFromDirectory(string path, string[] exts)
         {
             List<string> list = new List<string>();

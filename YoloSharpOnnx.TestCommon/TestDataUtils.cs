@@ -11,8 +11,8 @@
         public const string Seg01 = "000000000650.jpg";
         public const string Seg02 = "zidane.jpg";
 
-        public const string Pose01 = "";
-        public const string Pose02 = "";
+        public const string Pose01 = "000000000036.jpg";
+        public const string Pose02 = "zidane.jpg";
 
 
         public static string GetImagePathDetect(string path)
@@ -122,6 +122,8 @@
         {
             List<string> list = [GetImagePathPose(Pose01), GetImagePathPose(Pose02)];
             return list;
-        }   
+        }
+
+       
     }
 }

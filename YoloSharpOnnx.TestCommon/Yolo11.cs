@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.TestCommon
         public const string Seg01 = "1 cat, 1 car [0.91, 0.64]";
         public const string Seg02 = "2 person, 1 tie [0.9, 0.8, 0.33]";
 
-        public const string Pose01 = "";
-        public const string Pose02 = "";
+        public const string Pose01 = "1 person [0.9]";
+        public const string Pose02 = "2 person [0.9, 0.85]";
     }
 }
