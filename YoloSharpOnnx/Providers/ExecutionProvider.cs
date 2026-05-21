@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.Json;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
@@ -20,6 +21,8 @@ namespace YoloSharpOnnx.Providers
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
         private const string ModelTask = "task";
+        private const string kpt_shape = "kpt_shape";
+        private const string kpt_names = "kpt_names";
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
@@ -211,7 +214,15 @@ namespace YoloSharpOnnx.Providers
             {
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
-
+            if (metaData.ContainsKey(kpt_shape))
+            {
+                var kptShape = metaData[kpt_shape].Split(',').Select(int.Parse).ToArray();
+                model.KPTShape = kptShape;
+            }
+            if (metaData.ContainsKey(kpt_names))
+            {
+                model.KPTNames = GetKptNames(metaData[kpt_names]);
+            }
 
             return model;
         }
@@ -261,6 +272,33 @@ namespace YoloSharpOnnx.Providers
                 Index = index,
                 Name = label.Value,
             })];
+        }
+        /// <summary>
+        /// "{0: ['nose', 'left_eye', 'right_eye', 'left_ear']}";
+        /// </summary>
+        /// <param name="kptNamesData"></param>
+        /// <returns></returns>
+        private string[][] GetKptNames(string kptNamesData)
+        {
+            List<string[]> kptNamesList = new List<string[]>();
+            string text = kptNamesData.Trim('{', '}');
+
+            var arr = text.Split(':', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var item in arr)
+            {
+                if (!item.Contains("["))
+                {
+                    continue;
+                }
+                string str = item.Trim();
+                var els = str.Trim('[', ']').Replace("'", "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+                if (els.Length > 0)
+                {
+                    kptNamesList.Add(els);
+                }
+            }
+            return kptNamesList.ToArray();
         }
 
         protected Scalar[] GenerateColorPalette(int count)
