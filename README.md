@@ -15,7 +15,7 @@
 🚀a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.
 
 # Features
- - **YOLO Task**  [Detect](https://docs.ultralytics.com/tasks/detect), [Classify](https://docs.ultralytics.com/tasks/classify), [Segment](https://docs.ultralytics.com/tasks/segment)
+ - **YOLO Task**  [Detect](https://docs.ultralytics.com/tasks/detect), [Classify](https://docs.ultralytics.com/tasks/classify), [Segment](https://docs.ultralytics.com/tasks/segment), [Pose](https://docs.ultralytics.com/tasks/pose)
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
@@ -35,6 +35,10 @@
 |--------|
 |<img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_seg_zidane.jpg?raw=true" height="600">|
 | <img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_seg_02.png?raw=true" height="350">|
+
+| Pose Estimation  | Pose Estimation |
+|--------|--------|
+|<img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_pose_01.png?raw=true" width="550">|<img src="https://github.com/meloht/YoloSharpOnnx/blob/master/ExampleImages/res_pose_02.png?raw=true" width="400">|
 
 
 
@@ -334,7 +338,6 @@ private static async Task TestBatchForeachInfer()
 
 | Time  | Feature |
 | ------------- | ------------- |
-| 2026-11  | Yolo task Pose Estimation  |
 | 2026-12  | Yolo task OBB  |
 
 # Model Licensing & Responsibility
