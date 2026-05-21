@@ -84,5 +84,13 @@ namespace YoloSharpOnnx
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run segment task");
             }
         }
+
+        public static void ValidationPoseModelType(ModelType currentModelType)
+        {
+            if (currentModelType != ModelType.PoseEstimation)
+            {
+                throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run pose task");
+            }
+        }
     }
 }

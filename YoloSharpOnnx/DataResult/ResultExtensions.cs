@@ -31,7 +31,13 @@ namespace YoloSharpOnnx.DataResult
             if (list == null || list.Count == 0)
                 return string.Empty;
             return YoloResultToString(list);
+        }
 
+        public static string Summary(this List<PoseResult> list)
+        {
+            if (list == null || list.Count == 0)
+                return string.Empty;
+            return YoloResultToString(list);
         }
 
         public static string SummaryOrder(this List<DetectionResult> boxes)

@@ -2,27 +2,25 @@
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Text;
-using System.Threading.Channels;
+using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference.Detect
+namespace YoloSharpOnnx.Inference.Pose
 {
-    public class YoloDetectIoBinding : YoloDetectBase, IYoloDetect
+    public class YoloPoseIoBinding : YoloPoseBase, IYoloPose
     {
         private readonly OrtIoBinding _binding;
         private readonly OrtValue _outputOrtValue;
         private readonly FixedBuffer _outputFixedBuffer;
-
-        public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-          : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloPoseIoBinding(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config) 
+            : base(session, options, postprocess, preprocess, onnxModel, config)
         {
-
             _binding = _session.CreateIoBinding();
             _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize0);
             _outputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
@@ -59,7 +57,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         }
 
-        public List<DetectionResult> Run(Mat inputImage)
+        public List<PoseResult> Run(Mat inputImage)
         {
             // 预处理图像
             var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
@@ -71,7 +69,7 @@ namespace YoloSharpOnnx.Inference.Detect
             return _postprocess.PostProcessSync(_outputOrtValue, preRes);
         }
 
-        public YoloResult<DetectionResult> RunWithTime(Mat inputImage)
+        public YoloResult<PoseResult> RunWithTime(Mat inputImage)
         {
             SpeedResult speed = new SpeedResult();
             // 预处理图像
@@ -85,7 +83,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
             // 后处理
             var res = PostProcessTime(_outputOrtValue, preRes, speed);
-            return new YoloResult<DetectionResult>(res, speed);
+            return new YoloResult<PoseResult>(res, speed);
         }
 
         protected override OrtValue RunInferenceBatch(PreDetectResultBatch preResult)
@@ -100,8 +98,6 @@ namespace YoloSharpOnnx.Inference.Detect
             _matPool.Return(preResult.Data);
             return results[0];
         }
-
-
 
     }
 }

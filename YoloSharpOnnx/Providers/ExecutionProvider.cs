@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.Json;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
@@ -19,6 +21,8 @@ namespace YoloSharpOnnx.Providers
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
         private const string ModelTask = "task";
+        private const string kpt_shape = "kpt_shape";
+        private const string kpt_names = "kpt_names";
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
@@ -30,6 +34,7 @@ namespace YoloSharpOnnx.Providers
         protected abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
 
         protected abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        protected abstract IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
 
 
         protected abstract DeviceType GetDeviceType();
@@ -100,6 +105,24 @@ namespace YoloSharpOnnx.Providers
             return GetYoloSegment(session, options, postprocess, preprocess, onnxModel);
         }
 
+        public IYoloPose CreateYoloPose()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.PoseEstimation)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
+            var postprocess = GetPosePostprocessor(onnxModel);
+            var preprocess = GetPreprocess(onnxModel);
+
+            return GetYoloPose(session, options, postprocess, preprocess, onnxModel);
+        }
+
         private IDetPostprocess GetDetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
@@ -116,6 +139,15 @@ namespace YoloSharpOnnx.Providers
                 return new SegPostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
             return new SegPostprocessNMS(onnxModel, YoloConfiguration);
+        }
+
+        private IPosePostprocess GetPosePostprocessor(OnnxModel onnxModel)
+        {
+            if (onnxModel.IsEndToEnd)
+            {
+                return new PosePostprocessEndToEnd(onnxModel, YoloConfiguration);
+            }
+            return new PosePostprocessNMS(onnxModel, YoloConfiguration);
         }
 
         protected IDetPreprocess GetPreprocess(OnnxModel onnxModel)
@@ -136,8 +168,6 @@ namespace YoloSharpOnnx.Providers
             model.DeviceType = GetDeviceType();
             var inputMeta = session.InputMetadata;
             var outputMeta = session.OutputMetadata;
-
-
 
             model.InputShape = Array.ConvertAll<int, long>(inputMeta[model.InputName].Dimensions, Convert.ToInt64);
             model.OutputShape0 = Array.ConvertAll<int, long>(outputMeta[model.OutputName0].Dimensions, Convert.ToInt64);
@@ -180,11 +210,19 @@ namespace YoloSharpOnnx.Providers
             }
             model.IsEndToEnd = isEndToEnd;
 
-            if (model.ModelType == ModelType.ObjectDetection || model.ModelType == ModelType.Segmentation)
+            if (model.ModelType != ModelType.Classification)
             {
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
-
+            if (metaData.ContainsKey(kpt_shape))
+            {
+                var kptShape = metaData[kpt_shape].Trim('[', ']').Split(',').Select(int.Parse).ToArray();
+                model.KPTShape = kptShape;
+            }
+            if (metaData.ContainsKey(kpt_names))
+            {
+                model.KPTNames = GetKptNames(metaData[kpt_names]);
+            }
 
             return model;
         }
@@ -234,6 +272,33 @@ namespace YoloSharpOnnx.Providers
                 Index = index,
                 Name = label.Value,
             })];
+        }
+        /// <summary>
+        /// "{0: ['nose', 'left_eye', 'right_eye', 'left_ear']}";
+        /// </summary>
+        /// <param name="kptNamesData"></param>
+        /// <returns></returns>
+        private string[][] GetKptNames(string kptNamesData)
+        {
+            List<string[]> kptNamesList = new List<string[]>();
+            string text = kptNamesData.Trim('{', '}');
+
+            var arr = text.Split(':', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var item in arr)
+            {
+                if (!item.Contains("["))
+                {
+                    continue;
+                }
+                string str = item.Trim();
+                var els = str.Trim('[', ']').Replace("'", "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+                if (els.Length > 0)
+                {
+                    kptNamesList.Add(els);
+                }
+            }
+            return kptNamesList.ToArray();
         }
 
         protected Scalar[] GenerateColorPalette(int count)

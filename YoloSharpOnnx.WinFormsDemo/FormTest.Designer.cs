@@ -144,6 +144,7 @@
             // 
             openFileDialogModel.FileName = "openFileDialogModel";
             openFileDialogModel.Filter = "onnx model|*.onnx";
+            openFileDialogModel.RestoreDirectory = true;
             // 
             // openFileDialogImage
             // 

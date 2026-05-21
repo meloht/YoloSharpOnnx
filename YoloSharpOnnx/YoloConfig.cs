@@ -7,16 +7,30 @@ namespace YoloSharpOnnx
 {
     public class YoloConfig
     {
-        private int _batchPoolSize = 20;
-        private float _confidence = 0.3f;
-        private float _iou = 0.4f;
+        private const float _defaultConfidence = 0.3f;
+        private const float _defaultIoU = 0.4f;
+        private int _batchPoolSize = 30;
+        private float _confidence = _defaultConfidence;
+        private float _iou = _defaultIoU;
         private int _asyncChannelTimeout = 5000;
         private int _clsTopK = 5;
+        private ISkeleton _skeleton = new HumanSkeleton();
 
-        public int ClassifyTopK 
+        public int KeypointRadius { get; set; } = 5;
+
+        public int KeypointLineThickness { get; set; } = 2;
+
+        public float KeypointConfidence { get; set; } = 0.25f;
+
+        public ISkeleton Skeleton
+        {
+            get { return _skeleton; }
+            set { _skeleton = value; }
+        }
+        public int ClassifyTopK
         {
             get { return _clsTopK; }
-            set 
+            set
             {
                 if (value < 0 && value > 5)
                 {
@@ -104,14 +118,14 @@ namespace YoloSharpOnnx
         /// default IoU=0.4 ,ResizeAlgorithm=InterpolationFlags.Linear
         /// </summary>
         /// <param name="confidence"></param>
-        public YoloConfig(float confidence) : this(confidence, 0.4f, InterpolationFlags.Linear)
+        public YoloConfig(float confidence) : this(confidence, _defaultIoU, InterpolationFlags.Linear)
         {
 
         }
         /// <summary>
         /// default confidence=0.3, IoU=0.4 ,ResizeAlgorithm=InterpolationFlags.Linear
         /// </summary>
-        public YoloConfig() : this(0.3f, 0.4f, InterpolationFlags.Linear)
+        public YoloConfig() : this(_defaultConfidence, _defaultIoU, InterpolationFlags.Linear)
         {
 
         }

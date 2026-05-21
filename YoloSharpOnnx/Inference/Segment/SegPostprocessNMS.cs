@@ -33,16 +33,10 @@ namespace YoloSharpOnnx.Inference.Segment
             _numAnchors = (int)onnx.OutputShape0[2];
             _classAtts = (int)onnx.OutputShape0[1] - _maskDim;//[1,116,8400] 116-32=84
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
-            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, ClearList));
+            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
 
         }
-        private void ClearList(PostResultArray resultArray)
-        {
-            resultArray.Boxes.Clear();
-            resultArray.Scores.Clear();
-            resultArray.ClassIds.Clear();
-            resultArray.Ids.Clear();
-        }
+
         private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult,
             List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids, YoloSegDecode segDecode)
         {

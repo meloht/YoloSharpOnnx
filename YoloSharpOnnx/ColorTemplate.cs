@@ -6,7 +6,7 @@ using System.Text;
 
 namespace YoloSharpOnnx
 {
-    internal static class ColorTemplate
+    public static class ColorTemplate
     {
         public static Scalar HexToRgbaScalar(string hexColor)
         {

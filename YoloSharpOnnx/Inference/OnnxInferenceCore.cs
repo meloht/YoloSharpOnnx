@@ -328,6 +328,7 @@ namespace YoloSharpOnnx.Inference
 
             _runOptions.Dispose();
             _inputOrtValue.Dispose();
+            _resizedImg.Dispose();
 
             if (_preResultPool.IsValueCreated)
             {

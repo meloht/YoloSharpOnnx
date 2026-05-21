@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
@@ -99,6 +100,18 @@ namespace YoloSharpOnnx.Providers
             else
             {
                 return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+        }
+
+        protected override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloPoseOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+            else
+            {
+                return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
     }

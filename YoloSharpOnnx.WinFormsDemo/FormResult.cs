@@ -58,7 +58,14 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawSegment(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
+            else if (yolo.CurrentModelType == ModelType.PoseEstimation)
+            {
+                var result = yolo.RunPoseWithTime(_image);
+                res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
+                yolo.DrawPose(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
+            }
 
             this.txtReuslt.Text = res;
 
@@ -92,7 +99,7 @@ namespace YoloSharpOnnx.WinFormsDemo
             if (_resultImage != null)
             {
                 saveFileDialog1.Filter = "JPEG Image (*.jpg)|*.jpg|PNG Image (*.png)|*.png";
-                saveFileDialog1.FileName=$"res_{_modelType}_{Path.GetFileName(_image)}";
+                saveFileDialog1.FileName = $"res_{_modelType}_{Path.GetFileName(_image)}";
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
                     _resultImage.SaveImage(saveFileDialog1.FileName);

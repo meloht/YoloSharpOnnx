@@ -22,5 +22,9 @@ namespace YoloSharpOnnx
 
         Task<List<SegResult>> RunSegmentAsync(Mat img);
 
+        Task<List<PoseResult>> RunPoseAsync(string inputImage);
+
+        Task<List<PoseResult>> RunPoseAsync(Mat img);
+
     }
 }

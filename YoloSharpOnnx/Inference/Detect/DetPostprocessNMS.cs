@@ -26,15 +26,7 @@ namespace YoloSharpOnnx.Inference.Detect
         {
             _labels = onnx.Labels;
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
-            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForDetect, yoloConfig.BatchPoolSize, ClearList));
-        }
-
-        private void ClearList(PostResultArray resultArray)
-        {
-            resultArray.Boxes.Clear();
-            resultArray.Scores.Clear();
-            resultArray.ClassIds.Clear();
-            resultArray.Ids?.Clear();
+            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForDetect, yoloConfig.BatchPoolSize, YoloUtils.ClearList));
         }
 
         private List<DetectionResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds)
@@ -76,9 +68,6 @@ namespace YoloSharpOnnx.Inference.Detect
             {
                 _postResultPool.Value.Return(arr);
             }
-
-
-
         }
         public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
         {

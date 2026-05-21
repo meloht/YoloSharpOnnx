@@ -26,7 +26,6 @@ namespace YoloSharpOnnx.Models
 
         public bool IsEndToEnd { get; set; }
       
-
         public Scalar[] ColorPalette { get; set; }
 
         public long InputSizeInBytes { get; set; }
@@ -36,5 +35,9 @@ namespace YoloSharpOnnx.Models
         public DeviceType DeviceType { get; set; }
 
         public ModelType ModelType { get; set; }
+
+        public int[] KPTShape { get; set; }
+
+        public string[][] KPTNames { get; set; }
     }
 }
