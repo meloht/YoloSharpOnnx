@@ -27,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Pose
             _labels = onnx.Labels;
             _yoloConfig = yoloConfig;
             _rowCount = (int)onnx.OutputShape0[1];//[1,300,57]
-            _colCount = (int)onnx.OutputShape0[2];//[1,300,57] 4 + 1 + 1 + 51 = 57  x1, y1, x2, y2,score + class
+            _colCount = (int)onnx.OutputShape0[2];//[1,300,57] 4 + 1 + 1 + 51 = 57  x1, y1, x2, y2,score
             _kCount = onnx.KPTShape[0];//[17, 3]
             _kDim = onnx.KPTShape[1];
         }

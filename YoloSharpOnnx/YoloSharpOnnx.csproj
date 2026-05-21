@@ -9,14 +9,14 @@
 		<Title>YoloSharpOnnx</Title>
 		<PackageProjectUrl>https://github.com/meloht/YoloSharpOnnx</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/meloht/YoloSharpOnnx</RepositoryUrl>
-		<PackageTags>yolov8;yolo8;yolo11;yolo26;yolo;object-detection;image-classification;instance-segmentation;opencv;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;computer-vision</PackageTags>
+		<PackageTags>yolov8;yolo8;yolo11;yolo26;yolo;object-detection;image-classification;instance-segmentation;pose-estimation;opencv;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;computer-vision</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
-		<Version>2.1.2</Version>
+		<Version>2.2.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 2.1.2 batch result image path is null bug fixed</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 2.2.0 yolo task pose estimation</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
