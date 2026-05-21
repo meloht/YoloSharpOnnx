@@ -216,7 +216,7 @@ namespace YoloSharpOnnx.Providers
             }
             if (metaData.ContainsKey(kpt_shape))
             {
-                var kptShape = metaData[kpt_shape].Split(',').Select(int.Parse).ToArray();
+                var kptShape = metaData[kpt_shape].Trim('[', ']').Split(',').Select(int.Parse).ToArray();
                 model.KPTShape = kptShape;
             }
             if (metaData.ContainsKey(kpt_names))

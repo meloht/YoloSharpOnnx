@@ -44,7 +44,7 @@ namespace YoloSharpOnnx.Inference.Pose
                 // TODO: set large fields to null
                 DisposeCore();
                 DisposedSub();
-                //  _postprocess.Dispose();
+                _postprocess.Dispose();
                 disposedValue = true;
             }
         }
@@ -229,33 +229,47 @@ namespace YoloSharpOnnx.Inference.Pose
         {
             foreach (var det in results)
             {
-                Cv2.Rectangle(image, det.Box, Scalar.Red, 2);
-
+                YoloUtils.DrawDetections(image, det.Box, det.Confidence, det.ClassName, _onnxModel.ColorPalette[det.ClassId]);
+           
                 foreach (var kp in det.KeyPoints)
                 {
-                    if (kp.Confidence < 0.5f)
+                    if (kp.Confidence < _config.KeypointConfidence)
                         continue;
-
-                    Cv2.Circle(image, new Point(kp.X, kp.Y), 3, Scalar.Lime, -1);
-
+                    int x = (int)Math.Round(kp.X);
+                    int y = (int)Math.Round(kp.Y);
+                    if (kp.X <= 0 || kp.Y <= 0 || kp.X >= image.Width || kp.Y >= image.Height)
+                    {
+                        continue;
+                    }
+                    Cv2.Circle(image, new Point(x, y), _config.KeypointRadius, _config.Skeleton.GetKeypointColor(kp.Index), -1,lineType:LineTypes.AntiAlias);
+                  
                 }
 
-                //foreach (var pair in Skeleton)
-                //{
-                //    PosePoint p1 = det.KeyPoints[pair.Item1];
-                //    PosePoint p2 = det.KeyPoints[pair.Item2];
+                for (int i = 0; i < _config.Skeleton.ConnectionCount; i++)
+                {
+                    var p1 = _config.Skeleton.GetKeypoint1(i, det.KeyPoints);
+                    var p2 = _config.Skeleton.GetKeypoint2(i, det.KeyPoints);
 
-                //    if (p1.Confidence < 0.5f ||
-                //        p2.Confidence < 0.5f)
-                //        continue;
+                    if (p1.Confidence < _config.KeypointConfidence || p2.Confidence < _config.KeypointConfidence)
+                        continue;
 
-                //    Cv2.Line(
-                //        image,
-                //        new Point(p1.X, p1.Y),
-                //        new Point(p2.X, p2.Y),
-                //        Scalar.Yellow,
-                //        2);
-                //}
+                    int x1 = (int)Math.Round(p1.X);
+                    int y1 = (int)Math.Round(p1.Y);
+                    int x2 = (int)Math.Round(p2.X);
+                    int y2 = (int)Math.Round(p2.Y);
+
+                    if (x1 <= 0 || y1 <= 0 || x1 >= image.Width || y1 >= image.Height)
+                    {
+                        continue;
+                    }
+                    if (x2 <= 0 || y2 <= 0 || x2 >= image.Width || y2 >= image.Height)
+                    {
+                        continue;
+                    }
+
+                    Cv2.Line(image, new Point(x1, y1), new Point(x2, y2), _config.Skeleton.GetLineColor(i), _config.KeypointLineThickness, lineType: LineTypes.AntiAlias);
+                }
+
             }
         }
 

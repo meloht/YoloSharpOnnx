@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 namespace YoloSharpOnnx.DataResult
 {
 
-    public record PosePoint(float X, float Y, float Confidence);
+    public record PosePoint(float X, float Y,int Index, float Confidence);
 }

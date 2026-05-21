@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx
@@ -41,7 +42,14 @@ namespace YoloSharpOnnx
             return channelOptions;
         }
 
-       
+
+        internal static void ClearList(PostResultArray resultArray)
+        {
+            resultArray.Boxes.Clear();
+            resultArray.Scores.Clear();
+            resultArray.ClassIds.Clear();
+            resultArray.Ids?.Clear();
+        }
 
         public static List<string> GetFilesFromListPaths(List<string> images, string[] exts)
         {

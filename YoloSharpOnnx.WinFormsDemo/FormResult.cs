@@ -58,7 +58,14 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawSegment(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
+            else if (yolo.CurrentModelType == ModelType.PoseEstimation)
+            {
+                var result = yolo.RunPoseWithTime(_image);
+                res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
+                yolo.DrawPose(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
+            }
 
             this.txtReuslt.Text = res;
 
