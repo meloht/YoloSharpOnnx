@@ -137,13 +137,13 @@ namespace YoloSharpOnnx.Inference
             return _yoloPoseAsync.Value.RunAsync(img);
         }
 
-        public Task<List<ObbResult>> RunObbAsync(string inputImage)
+        public Task<List<ObbResult>> RunObbDetectAsync(string inputImage)
         {
             YoloValidation.ValidationObbModelType(_currentModelType);
             return _yoloObbAsync.Value.RunAsync(inputImage);
         }
 
-        public Task<List<ObbResult>> RunObbAsync(Mat img)
+        public Task<List<ObbResult>> RunObbDetectAsync(Mat img)
         {
             YoloValidation.ValidationObbModelType(_currentModelType);
             return _yoloObbAsync.Value.RunAsync(img);

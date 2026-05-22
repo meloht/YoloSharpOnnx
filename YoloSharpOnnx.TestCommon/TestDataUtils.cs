@@ -14,6 +14,9 @@
         public const string Pose01 = "000000000036.jpg";
         public const string Pose02 = "zidane.jpg";
 
+        public const string Obb01 = "P1174__1024__2096___2620.jpg";
+        public const string Obb02 = "P1374__682__3490___1396.jpg";
+
 
         public static string GetImagePathDetect(string path)
         {
@@ -33,6 +36,11 @@
         public static string GetImagePathPose(string path)
         {
             return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Pose", path);
+        }
+
+        public static string GetImagePathObb(string path)
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Obb", path);
         }
 
         public static string GetModelPath(string path)
@@ -56,6 +64,11 @@
         public static string GetImageDirPose()
         {
             return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Pose");
+        }
+
+        public static string GetImageDirObb()
+        {
+            return Path.Combine(AppContext.BaseDirectory, "TestData", "Images", "Obb");
         }
 
         public static Dictionary<string, string> GetYolo11Dict()
@@ -100,6 +113,16 @@
 
             return dict;
         }
+
+        public static Dictionary<string, string> GetYolo26ObbDict()
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add(GetImagePathObb(Obb01), Yolo26.Obb01);
+            dict.Add(GetImagePathObb(Obb02), Yolo26.Obb02);
+
+            return dict;
+        }
+
         public static List<string> GetImgPaths()
         {
             List<string> list = [GetImagePathDetect(Bus),GetImagePathDetect(Zidane)];
@@ -124,6 +147,11 @@
             return list;
         }
 
-       
+        public static List<string> GetImgObbPaths()
+        {
+            List<string> list = [GetImagePathObb(Obb01), GetImagePathObb(Obb02)];
+            return list;
+        }
+
     }
 }

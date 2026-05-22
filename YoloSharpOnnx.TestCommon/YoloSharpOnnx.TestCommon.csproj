@@ -83,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="TestData\Images\Obb\" />
     <Folder Include="TestData\Images\Pose\" />
     <Folder Include="TestData\Images\Segment\" />
   </ItemGroup>

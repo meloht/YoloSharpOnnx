@@ -8,7 +8,7 @@ using YoloSharpOnnx.TestCommon;
 
 namespace YoloSharpOnnx.Test
 {
-    public class UnitTestPoseAPI: IDisposable
+    public class UnitTestPoseAPI : IDisposable
     {
         private Dictionary<string, string> _dictPose;
         private string model;

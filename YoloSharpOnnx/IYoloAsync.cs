@@ -26,9 +26,9 @@ namespace YoloSharpOnnx
 
         Task<List<PoseResult>> RunPoseAsync(Mat img);
 
-        Task<List<ObbResult>> RunObbAsync(string inputImage);
+        Task<List<ObbResult>> RunObbDetectAsync(string inputImage);
 
-        Task<List<ObbResult>> RunObbAsync(Mat img);
+        Task<List<ObbResult>> RunObbDetectAsync(Mat img);
 
     }
 }
