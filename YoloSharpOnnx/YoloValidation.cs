@@ -92,5 +92,12 @@ namespace YoloSharpOnnx
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run pose task");
             }
         }
+        public static void ValidationObbModelType(ModelType currentModelType)
+        {
+            if (currentModelType != ModelType.ObbDetection)
+            {
+                throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run obb task");
+            }
+        }
     }
 }

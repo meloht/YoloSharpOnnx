@@ -9,6 +9,7 @@ using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 
@@ -20,22 +21,25 @@ namespace YoloSharpOnnx.Inference
         private Lazy<IYoloTaskAsync<ClsResult>> _yoloClsAsync;
         private Lazy<IYoloTaskAsync<SegResult>> _yoloSegAsync;
         private Lazy<IYoloTaskAsync<PoseResult>> _yoloPoseAsync;
+        private Lazy<IYoloTaskAsync<ObbResult>> _yoloObbAsync;
 
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
         private IYoloPose _yoloPose;
+        private IYoloObb _yoloObb;
 
         private YoloConfig _yoloConfig;
         private ModelType _currentModelType;
 
-        public YoloAsync(IYoloDetect yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloPose yoloPose, YoloConfig yoloConfig, ModelType modelType)
+        public YoloAsync(IYoloDetect yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloPose yoloPose, IYoloObb yoloObb, YoloConfig yoloConfig, ModelType modelType)
         {
             _currentModelType = modelType;
             _yoloDetect = yoloDetect;
             _yoloClassify = yoloClassify;
             _yoloSegment = yoloSegment;
             _yoloPose = yoloPose;
+            _yoloObb = yoloObb;
 
             _yoloConfig = yoloConfig;
 
@@ -55,6 +59,10 @@ namespace YoloSharpOnnx.Inference
             {
                 _yoloPoseAsync = new Lazy<IYoloTaskAsync<PoseResult>>(() => new YoloChannelAsync<PoseResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloPose.GetYoloProcessAsync()));
             }
+            if (_yoloObb != null)
+            {
+                _yoloObbAsync = new Lazy<IYoloTaskAsync<ObbResult>>(() => new YoloChannelAsync<ObbResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloObb.GetYoloProcessAsync()));
+            }
 
         }
         public void Dispose()
@@ -68,6 +76,9 @@ namespace YoloSharpOnnx.Inference
             _yoloSegAsync = null;
             DisposeLazy(_yoloPoseAsync);
             _yoloPoseAsync = null;
+
+            DisposeLazy(_yoloObbAsync);
+            _yoloObbAsync = null;
         }
 
         private void DisposeLazy<T>(Lazy<T> lazy) where T : IDisposable
@@ -124,6 +135,18 @@ namespace YoloSharpOnnx.Inference
         {
             YoloValidation.ValidationPoseModelType(_currentModelType);
             return _yoloPoseAsync.Value.RunAsync(img);
+        }
+
+        public Task<List<ObbResult>> RunObbAsync(string inputImage)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            return _yoloObbAsync.Value.RunAsync(inputImage);
+        }
+
+        public Task<List<ObbResult>> RunObbAsync(Mat img)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            return _yoloObbAsync.Value.RunAsync(img);
         }
     }
 }
