@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
-using System.Text.Json;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
