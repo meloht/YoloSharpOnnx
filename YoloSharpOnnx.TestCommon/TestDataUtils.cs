@@ -114,6 +114,15 @@
             return dict;
         }
 
+        public static Dictionary<string, string> GetYolo11ObbDict()
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            dict.Add(GetImagePathObb(Obb01), Yolo11.Obb01);
+            dict.Add(GetImagePathObb(Obb02), Yolo11.Obb02);
+
+            return dict;
+        }
+
         public static Dictionary<string, string> GetYolo26ObbDict()
         {
             Dictionary<string, string> dict = new Dictionary<string, string>();
