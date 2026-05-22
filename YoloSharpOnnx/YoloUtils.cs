@@ -1,6 +1,7 @@
 ﻿using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
@@ -43,7 +44,11 @@ namespace YoloSharpOnnx
             return channelOptions;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static float ToDegree(float angle)
+        {
+            return angle * 180.0f / MathF.PI;
+        }
         internal static void ClearList(PostResultArray resultArray)
         {
             resultArray.Boxes.Clear();

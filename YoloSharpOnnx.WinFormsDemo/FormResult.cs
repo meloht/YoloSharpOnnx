@@ -66,6 +66,14 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawPose(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
+            else if (yolo.CurrentModelType == ModelType.ObbDetection)
+            {
+                var result = yolo.RunObbDetectWithTime(_image);
+                res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
+
+                yolo.DrawObb(_resultImage, result.Items);
+                ShowImageForm(_image, _resultImage.ToBytes());
+            }
 
             this.txtReuslt.Text = res;
 

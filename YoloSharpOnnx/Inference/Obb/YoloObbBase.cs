@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using OpenCvSharp;
+using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Obb
 {
@@ -221,7 +223,28 @@ namespace YoloSharpOnnx.Inference.Obb
 
         public void DrawObbs(Mat image, List<ObbResult> results)
         {
-            
+            foreach (var pred in results)
+            {
+                // 1. 实例化 OpenCV 旋转矩形
+                var color = _onnxModel.ColorPalette[pred.ClassId];
+                RotatedRect rotatedRect = new RotatedRect(pred.Center, new Size2f(pred.Width, pred.Height), pred.Angle);
+
+                // 2. 极其方便：直接获取旋转矩形的 4 个 Point2f 顶点
+                Point2f[] verticesF = rotatedRect.Points();
+                Point[] vertices = new Point[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    vertices[i] = new Point((int)Math.Round(verticesF[i].X), (int)Math.Round(verticesF[i].Y));
+                }
+
+                // 3. 绘制多边形闭合线圈
+                Cv2.Polylines(image, [vertices], isClosed: true, color: color, thickness: 2, lineType: LineTypes.AntiAlias);
+
+                // 4. 绘制文本标签（选在第一个顶点附近）
+                string label = $"{pred.ClassName}: {pred.Confidence:F2}";
+               
+                Cv2.PutText(image, label, vertices[0], HersheyFonts.HersheySimplex, 1.0, Scalar.White, 2, LineTypes.AntiAlias);
+            }
         }
     }
 }
