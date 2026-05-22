@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Obb
 {
-    internal interface IObbPostprocess
+    internal interface IObbPostprocess : IDisposable
     {
         List<ObbResult> PostProcessSync(OrtValue output, PreDetectResult preResult);
         List<ObbResult> PostProcessAsync(OrtValue output, PreDetectResult preResult);
