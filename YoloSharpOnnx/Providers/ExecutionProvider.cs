@@ -16,7 +16,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public abstract class ExecutionProvider : IExecutionProvider
+    public abstract class ExecutionProvider 
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
@@ -27,8 +27,6 @@ namespace YoloSharpOnnx.Providers
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
         internal ModelType CurrentModelType { get; private set; }
-
-        ModelType IExecutionProvider.CurrentModelType => CurrentModelType;
 
         internal abstract SessionOptions BuildSessionOptions();
 
@@ -47,12 +45,12 @@ namespace YoloSharpOnnx.Providers
             _rand = new Random(0);
         }
 
-        void IExecutionProvider.SetYoloConfiguration(YoloConfig yoloConfig)
+        internal void SetYoloConfiguration(YoloConfig yoloConfig)
         {
             YoloConfiguration = yoloConfig;
         }
 
-        IYoloDetect IExecutionProvider.CreateYoloDetect()
+        internal IYoloDetect CreateYoloDetect()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -70,7 +68,7 @@ namespace YoloSharpOnnx.Providers
             return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
         }
 
-        IYoloClassify IExecutionProvider.CreateYoloClassify()
+        internal IYoloClassify CreateYoloClassify()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -89,7 +87,7 @@ namespace YoloSharpOnnx.Providers
 
             return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
         }
-        IYoloSegment IExecutionProvider.CreateYoloSegment()
+        internal IYoloSegment CreateYoloSegment()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -107,7 +105,7 @@ namespace YoloSharpOnnx.Providers
             return GetYoloSegment(session, options, postprocess, preprocess, onnxModel);
         }
 
-        IYoloPose IExecutionProvider.CreateYoloPose()
+        internal IYoloPose CreateYoloPose()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -296,7 +294,7 @@ namespace YoloSharpOnnx.Providers
                     kptNamesList.Add(els);
                 }
             }
-            return kptNamesList.ToArray();
+            return [.. kptNamesList];
         }
 
         private Scalar[] GenerateColorPalette(int count)

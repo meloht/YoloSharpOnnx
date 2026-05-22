@@ -10,6 +10,7 @@ using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Providers;
 
 
 namespace YoloSharpOnnx
@@ -31,11 +32,11 @@ namespace YoloSharpOnnx
         #region Constructor
 
 
-        public YoloSharp(IExecutionProvider executionProvider) : this(new YoloConfig(), executionProvider)
+        public YoloSharp(ExecutionProvider executionProvider) : this(new YoloConfig(), executionProvider)
         {
 
         }
-        public YoloSharp(YoloConfig yoloConfig, IExecutionProvider executionProvider)
+        public YoloSharp(YoloConfig yoloConfig, ExecutionProvider executionProvider)
         {
             YoloConfiguration = yoloConfig;
             executionProvider.SetYoloConfiguration(yoloConfig);
@@ -47,13 +48,13 @@ namespace YoloSharpOnnx
 
         }
 
-        public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
+        public YoloSharp(float confidence, float iou, ExecutionProvider executionProvider)
             : this(confidence, iou, InterpolationFlags.Linear, executionProvider)
         {
 
         }
 
-        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
+        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, ExecutionProvider executionProvider)
             : this(new YoloConfig(confidence, iou, resizeAlgorithm), executionProvider)
         {
 
