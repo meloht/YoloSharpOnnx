@@ -98,11 +98,15 @@ namespace YoloSharpOnnx
 
         public static void DrawDetections(Mat img, Rect box, float score, string className, Scalar color)
         {
-
-            double fontScale = 1.0;
             // 绘制边界框
             Cv2.Rectangle(img, box, color, 2);
 
+            DrawLabel(img, score, className, new Point(box.X, box.Y), color);
+        }
+
+        public static void DrawLabel(Mat img, float score, string className, Point box, Scalar color)
+        {
+            double fontScale = 1.0;
             int height = img.Height;
             int width = img.Width;
 
@@ -122,13 +126,27 @@ namespace YoloSharpOnnx
             }
 
             // 标签背景
-            Cv2.Rectangle(img,
-                new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
-                new OpenCvSharp.Point(x + textSize.Width, y + baseline),
-                color, -1);
+            //Cv2.Rectangle(img,
+            //    new OpenCvSharp.Point(x - 1, y - 8 - textSize.Height),
+            //    new OpenCvSharp.Point(x + textSize.Width, y + baseline),
+            //    color, -1);
+
+            DrawTransparentRect(img, new Rect(x - 1, y - 8 - textSize.Height, textSize.Width + 2, textSize.Height + baseline + 8), color, 0.5);
 
             // 标签文本
             Cv2.PutText(img, label, new Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
+
+        public static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
+        {
+            rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
+            if (rect.Width <= 0 || rect.Height <= 0) return;
+
+            using var roi = new Mat(img, rect);
+            using var overlay = new Mat(roi.Size(), roi.Type(), color);
+
+            Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
+        }
+
     }
 }

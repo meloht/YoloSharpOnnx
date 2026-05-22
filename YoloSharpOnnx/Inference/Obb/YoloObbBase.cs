@@ -241,9 +241,7 @@ namespace YoloSharpOnnx.Inference.Obb
                 Cv2.Polylines(image, [vertices], isClosed: true, color: color, thickness: 2, lineType: LineTypes.AntiAlias);
 
                 // 4. 绘制文本标签（选在第一个顶点附近）
-                string label = $"{pred.ClassName}: {pred.Confidence:F2}";
-               
-                Cv2.PutText(image, label, vertices[0], HersheyFonts.HersheySimplex, 1.0, Scalar.White, 2, LineTypes.AntiAlias);
+                YoloUtils.DrawLabel(image, pred.Confidence, pred.ClassName, vertices[0], color);
             }
         }
     }
