@@ -10,6 +10,7 @@ using System.Text.Json;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
@@ -35,7 +36,7 @@ namespace YoloSharpOnnx.Providers
 
         internal abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         internal abstract IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
-
+        internal abstract IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
 
         internal abstract DeviceType GetDeviceType();
         private readonly Random _rand;
@@ -123,6 +124,24 @@ namespace YoloSharpOnnx.Providers
             return GetYoloPose(session, options, postprocess, preprocess, onnxModel);
         }
 
+        internal IYoloObb CreateYoloObb()
+        {
+            SessionOptions options = BuildSessionOptions();
+            InferenceSession session = new InferenceSession(ModelPath, options);
+            OnnxModel onnxModel = ParseOnnxModel(session);
+            CurrentModelType = onnxModel.ModelType;
+            if (CurrentModelType != ModelType.ObbDetection)
+            {
+                session.Dispose();
+                options.Dispose();
+                return null;
+            }
+            var postprocess = GetObbPostprocessor(onnxModel);
+            var preprocess = GetPreprocess(onnxModel);
+
+            return GetYoloObb(session, options, postprocess, preprocess, onnxModel);
+        }
+
         private IDetPostprocess GetDetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
@@ -148,6 +167,15 @@ namespace YoloSharpOnnx.Providers
                 return new PosePostprocessEndToEnd(onnxModel, YoloConfiguration);
             }
             return new PosePostprocessNMS(onnxModel, YoloConfiguration);
+        }
+
+        private IObbPostprocess GetObbPostprocessor(OnnxModel onnxModel)
+        {
+            if (onnxModel.IsEndToEnd)
+            {
+                return new ObbPostprocessEndToEnd(onnxModel, YoloConfiguration);
+            }
+            return new ObbPostprocessNMS(onnxModel, YoloConfiguration);
         }
 
         private IDetPreprocess GetPreprocess(OnnxModel onnxModel)

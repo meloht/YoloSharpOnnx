@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
@@ -56,6 +57,11 @@ namespace YoloSharpOnnx.Providers
         internal override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+        }
+
+        internal override IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }
