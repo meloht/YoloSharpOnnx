@@ -18,22 +18,22 @@ namespace YoloSharpOnnx.Providers
             _coreMLFlags = coreMLFlags;
         }
 
-        protected override DeviceType GetDeviceType()
+        internal override DeviceType GetDeviceType()
         {
             return DeviceType.CPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
         }
 
-        protected override SessionOptions BuildSessionOptions()
+        internal override SessionOptions BuildSessionOptions()
         {
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
@@ -42,12 +42,12 @@ namespace YoloSharpOnnx.Providers
             return sessionOptions;
         }
 
-        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloSegOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        protected override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloPoseOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }

@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public interface IYoloPose: IDisposable
+    internal interface IYoloPose: IDisposable
     {
         List<PoseResult> Run(Mat inputImage);
 

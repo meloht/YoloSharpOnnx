@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IYoloTaskAsync<TResult> : IDisposable
+    internal interface IYoloTaskAsync<TResult> : IDisposable
     {
         Task<List<TResult>> RunAsync(string inputImage);
 

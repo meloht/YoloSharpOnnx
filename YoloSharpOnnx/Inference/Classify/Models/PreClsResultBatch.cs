@@ -8,7 +8,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify.Models
 {
-    public class PreClsResultBatch : PreResultBatchBase, IDisposable
+    internal class PreClsResultBatch : PreResultBatchBase, IDisposable
     {
         public PreClsResultBatch()
         {

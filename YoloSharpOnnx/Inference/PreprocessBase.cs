@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class PreprocessBase
+    internal class PreprocessBase
     {
         protected unsafe void ToCHW_RGB_Normalized(Mat mat, FixedBuffer buffer)
         {

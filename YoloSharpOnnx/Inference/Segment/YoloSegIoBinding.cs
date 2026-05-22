@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class YoloSegIoBinding : YoloSegBase, IYoloSegment
+    internal class YoloSegIoBinding : YoloSegBase, IYoloSegment
     {
         private readonly OrtIoBinding _binding;
         private readonly OrtValue _outputOrtValue0;

@@ -11,7 +11,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class ClsPostprocess : IClsPostprocess
+    internal class ClsPostprocess : IClsPostprocess
     {
         private readonly OnnxModel _onnxModel;
         private readonly YoloConfig _yoloConfig;

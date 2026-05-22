@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace YoloSharpOnnx.Inference.Detect.Models
 {
 
-    public class PreDetectChannelData : IGuidValue<PreDetectResultBatch>, IBatchPreChannelResult<PreDetectResultBatch>
+    internal class PreDetectChannelData : IGuidValue<PreDetectResultBatch>, IBatchPreChannelResult<PreDetectResultBatch>
     {
         public Guid Guid { get; set; }
         public PreDetectResultBatch PreResult { get; set; }

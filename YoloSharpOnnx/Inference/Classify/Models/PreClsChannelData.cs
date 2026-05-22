@@ -8,7 +8,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 namespace YoloSharpOnnx.Inference.Classify.Models
 {
 
-    public class PreClsChannelData : IGuidValue<PreClsResultBatch>, IBatchPreChannelResult<PreClsResultBatch>
+    internal class PreClsChannelData : IGuidValue<PreClsResultBatch>, IBatchPreChannelResult<PreClsResultBatch>
     {
         public Guid Guid { get; set; }
         public PreClsResultBatch PreResult { get; set; }

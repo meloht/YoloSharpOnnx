@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference.OutputDecode
 {
-    public class PostResultArray : IDisposable
+    internal class PostResultArray : IDisposable
     {
         public readonly List<Rect> Boxes;
         public readonly List<float> Scores;

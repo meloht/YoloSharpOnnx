@@ -8,7 +8,7 @@ using YoloSharpOnnx.DataResult;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public interface IClsPostprocess
+    internal interface IClsPostprocess
     {
         List<ClsResult> PostProcess(OrtValue outputValue);
     }

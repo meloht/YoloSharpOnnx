@@ -10,7 +10,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class DetPostprocessEndToEnd : IDetPostprocess
+    internal class DetPostprocessEndToEnd : IDetPostprocess
     {
         private readonly LabelModel[] _labels;
         private readonly YoloConfig _yoloConfig;

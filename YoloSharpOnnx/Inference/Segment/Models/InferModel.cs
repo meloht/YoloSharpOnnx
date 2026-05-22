@@ -8,7 +8,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Segment.Models
 {
-    public class InferModel : IDisposable
+    internal class InferModel : IDisposable
     {
         public void Initialize(OrtValue output0, OrtValue output1, string imagePath, long startTime, PreDetectResult preDetectResult)
         {

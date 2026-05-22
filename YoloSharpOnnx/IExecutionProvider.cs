@@ -10,14 +10,14 @@ namespace YoloSharpOnnx
 {
     public interface IExecutionProvider
     {
-        IYoloDetect CreateYoloDetect();
-        IYoloClassify CreateYoloClassify();
+        internal IYoloDetect CreateYoloDetect();
+        internal IYoloClassify CreateYoloClassify();
 
-        IYoloSegment CreateYoloSegment();
+        internal IYoloSegment CreateYoloSegment();
 
-        IYoloPose CreateYoloPose();
+        internal IYoloPose CreateYoloPose();
 
-        ModelType CurrentModelType { get; }
-        void SetYoloConfiguration(YoloConfig yoloConfig);
+        internal ModelType CurrentModelType { get; }
+        internal void SetYoloConfiguration(YoloConfig yoloConfig);
     }
 }

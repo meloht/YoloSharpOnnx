@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class YoloDetectOrtVal : YoloDetectBase, IYoloDetect
+    internal class YoloDetectOrtVal : YoloDetectBase, IYoloDetect
     {
         public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
            : base(session, options, postprocess, preprocess, onnxModel, config)

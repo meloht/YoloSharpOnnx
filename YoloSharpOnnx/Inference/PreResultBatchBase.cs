@@ -7,7 +7,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class PreResultBatchBase
+    internal class PreResultBatchBase
     {
         public string ImagePath { get; set; }
         public ImageBatchData Data { get; set; }

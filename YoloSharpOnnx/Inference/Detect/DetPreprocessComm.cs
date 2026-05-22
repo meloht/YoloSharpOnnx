@@ -11,7 +11,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class DetPreprocessComm : PreprocessBase, IDetPreprocess
+    internal class DetPreprocessComm : PreprocessBase, IDetPreprocess
     {
         protected readonly Scalar _paddingColor;
         private readonly OnnxModel _onnxModel;

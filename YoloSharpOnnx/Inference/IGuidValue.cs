@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IGuidValue<T>
+    internal interface IGuidValue<T>
     {
         public Guid Guid { get; set; }
 

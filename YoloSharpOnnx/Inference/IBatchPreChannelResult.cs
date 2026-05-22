@@ -7,7 +7,7 @@ using YoloSharpOnnx.Inference.Classify.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IBatchPreChannelResult<T> : IDisposable
+    internal interface IBatchPreChannelResult<T> : IDisposable
     {
         void Initialize(Guid guid, T preResult);
     }

@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class SegPostprocessEndToEnd : SegPostprocessBase, ISegPostprocess
+    internal class SegPostprocessEndToEnd : SegPostprocessBase, ISegPostprocess
     {
         private readonly int _maxDet;
         private readonly int _classAtts;

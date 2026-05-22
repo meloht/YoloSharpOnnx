@@ -10,7 +10,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IYoloProcessAsync<TBatchPreResult, TResult> : IRunBatch<TResult, TBatchPreResult>
+    internal interface IYoloProcessAsync<TBatchPreResult, TResult> : IRunBatch<TResult, TBatchPreResult>
     {
         TBatchPreResult PreprocessImageChannel(string imagePath);
         TBatchPreResult PreprocessImageChannel(Mat img, string imagePath);

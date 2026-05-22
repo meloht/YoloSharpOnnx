@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class SegPostprocessBase
+    internal class SegPostprocessBase
     {
         protected readonly LabelModel[] _labels;
         protected readonly YoloConfig _yoloConfig;

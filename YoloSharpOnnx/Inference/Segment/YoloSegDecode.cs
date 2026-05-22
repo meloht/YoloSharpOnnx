@@ -10,7 +10,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class YoloSegDecode : IDisposable
+    internal class YoloSegDecode : IDisposable
     {
         private readonly int _maskDim;
         private readonly int _protoH;

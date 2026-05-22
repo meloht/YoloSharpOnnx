@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference.Classify.Models
 {
-    public struct ClsItem
+    internal struct ClsItem
     {
         public int Index; 
         public float Value;

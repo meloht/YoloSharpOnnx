@@ -8,7 +8,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public interface IDetPreprocess
+    internal interface IDetPreprocess
     {
         PreDetectResult PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer);
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public interface IClsPreprocess
+    internal interface IClsPreprocess
     {
         void PreprocessImage(Mat inputImage, Mat resizedImg, FixedBuffer buffer);
     }

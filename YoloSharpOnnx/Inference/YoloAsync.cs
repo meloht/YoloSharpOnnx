@@ -14,7 +14,7 @@ using YoloSharpOnnx.Inference.Segment;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloAsync : IYoloAsync
+    internal class YoloAsync : IYoloAsync
     {
         private Lazy<IYoloTaskAsync<DetectionResult>> _yoloDetectAsync;
         private Lazy<IYoloTaskAsync<ClsResult>> _yoloClsAsync;
