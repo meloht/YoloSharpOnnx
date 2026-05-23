@@ -164,7 +164,10 @@ namespace YoloSharpOnnx.Inference.Segment
             Mat[] finalChannels = Cv2.Split(mat8u);
             for (int i = 0; i < count; i++)
             {
-                list[i].Mask = new Mat(finalChannels[i], list[i].Box);
+                using Mat srcRoi = new Mat(finalChannels[i], list[i].Box);
+                byte[] maskBytes = new byte[srcRoi.Height * srcRoi.Width];
+                YoloUtils.MatToBytes(srcRoi, maskBytes);
+                list[i].MaskBytes = maskBytes;
             }
 
             for (int i = 0; i < channels.Length; i++)

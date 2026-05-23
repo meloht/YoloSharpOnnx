@@ -14,7 +14,7 @@ namespace YoloSharpOnnx.DataResult
         public int ClassId { get; set; }
         public float Confidence { get; set; }
 
-        public Mat Mask { get; set; }
+        public byte[] MaskBytes { get; set; }
 
 
         static string IYoloSummary<SegResult>.Describe(List<SegResult> predictResults)

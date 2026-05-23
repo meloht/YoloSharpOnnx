@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
+using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
@@ -146,6 +147,40 @@ namespace YoloSharpOnnx
             using var overlay = new Mat(roi.Size(), roi.Type(), color);
 
             Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
+        }
+
+
+
+        public static unsafe void MatToBytes(Mat mat, byte[] buffer)
+        {
+            int width = mat.Cols;
+            int height = mat.Rows;
+            int channels = mat.Channels();
+
+            byte* ptr = (byte*)mat.DataPointer;
+            fixed (byte* data = buffer)
+            {
+                int hw = width * height;
+
+                long step = mat.Step();
+                for (int y = 0; y < height; y++)
+                {
+                    byte* rowPtr = ptr + y * step;
+                    int rowOffset = y * width;
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        byte* pixel = rowPtr + x * channels;
+                        for (int c = 0; c < channels; c++)
+                        {
+                            int offset = hw * c + rowOffset + x;
+                            data[offset] = pixel[c];
+                        }
+
+                    }
+                }
+            }
+
         }
 
     }

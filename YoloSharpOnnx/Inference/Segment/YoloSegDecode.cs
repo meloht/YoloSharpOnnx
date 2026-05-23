@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -126,8 +128,10 @@ namespace YoloSharpOnnx.Inference.Segment
                 // =================================================
                 // 10. ROI mask (ZERO COPY FINAL)
                 // =================================================
-
-                list[i].Mask = new Mat(cropped, list[i].Box);
+                using Mat maskBox = new Mat(cropped, list[i].Box);
+                byte[] maskBytes = new byte[maskBox.Height * maskBox.Width];
+                YoloUtils.MatToBytes(maskBox, maskBytes);
+                list[i].MaskBytes = maskBytes;
             }
         }
 

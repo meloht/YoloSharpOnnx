@@ -226,7 +226,7 @@ namespace YoloSharpOnnx.Inference.Segment
             foreach (var item in list)
             {
                 YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
-                DrawTransparentMask(inputImage, item.Mask, item.Box, _onnxModel.ColorPalette[item.ClassId]);
+                DrawTransparentMask(inputImage, item.MaskBytes, item.Box, _onnxModel.ColorPalette[item.ClassId]);
             }
         }
 
@@ -237,7 +237,7 @@ namespace YoloSharpOnnx.Inference.Segment
         /// <param name="binaryMask">二值mask（CV_8UC1，0/255）</param>
         /// <param name="color">显示颜色（BGR）</param>
         /// <param name="alpha">透明度：0~1，推荐 0.3~0.6</param>
-        public static void DrawTransparentMask(Mat image, Mat binaryMask, Rect box, Scalar color, double alpha = 0.4)
+        public static void DrawTransparentMask(Mat image, byte[] binaryMask, Rect box, Scalar color, double alpha = 0.4)
         {
             Rect validRect = new Rect(
                 Math.Max(0, box.X),
@@ -252,7 +252,9 @@ namespace YoloSharpOnnx.Inference.Segment
             using Mat blended = new Mat();
             Cv2.AddWeighted(roi, alpha, colorMat, alpha, 0, blended);
 
-            blended.CopyTo(roi, binaryMask);
+            using Mat binaryMaskMat = new Mat(box.Size, MatType.CV_8UC1);
+            binaryMaskMat.SetArray(binaryMask);
+            blended.CopyTo(roi, binaryMaskMat);
 
         }
 
