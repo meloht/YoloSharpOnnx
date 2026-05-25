@@ -21,7 +21,7 @@
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
- - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO26](https://docs.ultralytics.com/models/yolo26)
+ - **YOLO Versions** Includes support for: [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLOv9](https://docs.ultralytics.com/models/yolov9), [YOLOv10](https://docs.ultralytics.com/models/yolov10), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO12](https://docs.ultralytics.com/models/yolo12), [YOLO26](https://docs.ultralytics.com/models/yolo26)
 
 
 ## Example Images:
