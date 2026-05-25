@@ -333,6 +333,7 @@ private static async Task TestBatchForeachInfer()
 
 |  Feature | Time |
 | ------------- | ------------- |
+| RT-DETR | TBD |
 | YoloE | TBD  |
 | Yolo-World | TBD  |
 | SAM | TBD  |
