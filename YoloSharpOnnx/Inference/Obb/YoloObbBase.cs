@@ -236,12 +236,13 @@ namespace YoloSharpOnnx.Inference.Obb
                 {
                     vertices[i] = new Point((int)Math.Round(verticesF[i].X), (int)Math.Round(verticesF[i].Y));
                 }
-
+                int thickness = Math.Clamp((int)Math.Min(pred.Width, pred.Height) / 50, 1, 2);
                 // 3. 绘制多边形闭合线圈
-                Cv2.Polylines(image, [vertices], isClosed: true, color: color, thickness: 2, lineType: LineTypes.AntiAlias);
+                Cv2.Polylines(image, [vertices], isClosed: true, color: color, thickness: thickness, lineType: LineTypes.AntiAlias);
+
 
                 // 4. 绘制文本标签（选在第一个顶点附近）
-                YoloUtils.DrawLabel(image, pred.Confidence, pred.ClassName, vertices[0], color);
+                YoloUtils.DrawLabel(image, pred.Confidence, pred.ClassName, vertices[0], (int)pred.Width, (int)pred.Height, color);
             }
         }
     }

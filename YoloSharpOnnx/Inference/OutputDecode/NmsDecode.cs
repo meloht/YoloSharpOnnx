@@ -195,27 +195,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
         private static RotatedRect ToCvRect(ObbResult box)
         {
-            float deg = box.Angle; // 已经是角度制
-
-            float w = box.Width;
-            float h = box.Height;
-
-            // OpenCV RotatedRect 兼容
-            if (w < h)
-            {
-                (w, h) = (h, w);
-                deg += 90f;
-            }
-
-            // OpenCV angle范围修正
-            while (deg >= 90f)
-                deg -= 180f;
-
-            while (deg < -90f)
-                deg += 180f;
-
-            box.Angle = deg;
-            return new RotatedRect(box.Center, new Size2f(w, h), deg);
+            return new RotatedRect(box.Center, new Size2f(box.Width, box.Height), box.Angle);
         }
 
     }
