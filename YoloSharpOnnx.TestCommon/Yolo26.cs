@@ -18,7 +18,7 @@ namespace YoloSharpOnnx.TestCommon
         public const string Pose01 = "1 person [0.92]";
         public const string Pose02 = "2 person [0.91, 0.85]";
 
-        public const string Obb01 = "1 person [0.9]";
-        public const string Obb02 = "2 person [0.9, 0.85]";
+        public const string Obb01 = "6 plane [0.96, 0.95, 0.94, 0.94, 0.87, 0.53]";
+        public const string Obb02 = "3 plane [0.96, 0.96, 0.94]";
     }
 }
