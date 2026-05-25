@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public abstract class YoloPoseBase : OnnxInferenceCore<PoseResult, PreDetectResultBatch, PoseBatchResult>, IYoloProcessAsync<PreDetectResultBatch, PoseResult>
+    internal abstract class YoloPoseBase : OnnxInferenceCore<PoseResult, PreDetectResultBatch, PoseBatchResult>, IYoloProcessAsync<PreDetectResultBatch, PoseResult>
     {
 
         protected readonly IPosePostprocess _postprocess;

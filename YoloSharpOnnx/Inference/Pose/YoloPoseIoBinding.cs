@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public class YoloPoseIoBinding : YoloPoseBase, IYoloPose
+    internal class YoloPoseIoBinding : YoloPoseBase, IYoloPose
     {
         private readonly OrtIoBinding _binding;
         private readonly OrtValue _outputOrtValue;

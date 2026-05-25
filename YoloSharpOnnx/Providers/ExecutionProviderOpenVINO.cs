@@ -6,13 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public class ExecutionProviderOpenVINO : ExecutionProvider, IExecutionProvider
+    public class ExecutionProviderOpenVINO : ExecutionProvider
     {
         private const string CPU = "CPU";
         private const string GPU = "GPU";
@@ -26,7 +27,7 @@ namespace YoloSharpOnnx.Providers
             _intelDeviceType = intelDeviceType;
         }
 
-        protected override DeviceType GetDeviceType()
+        internal override DeviceType GetDeviceType()
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -39,7 +40,7 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.GPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -70,7 +71,7 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -82,7 +83,7 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        protected override SessionOptions BuildSessionOptions()
+        internal override SessionOptions BuildSessionOptions()
         {
             SessionOptions options = new SessionOptions();
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
@@ -91,7 +92,7 @@ namespace YoloSharpOnnx.Providers
             return options;
         }
 
-        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -103,7 +104,7 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        protected override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
@@ -112,6 +113,18 @@ namespace YoloSharpOnnx.Providers
             else
             {
                 return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+        }
+
+        internal override IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloObbOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+            else
+            {
+                return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
     }

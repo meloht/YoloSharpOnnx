@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public sealed class ObjectPool<T> : IDisposable where T : IDisposable
+    internal sealed class ObjectPool<T> : IDisposable where T : IDisposable
     {
         /// <summary>
         /// 创建对象的方法

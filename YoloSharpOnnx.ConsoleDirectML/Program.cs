@@ -11,7 +11,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 {
     internal class Program
     {
-        static int _deviceId = 0;
+        static int _deviceId = 1;
         static string modelPath = @"D:\code\model\best.onnx";
         static string dir = @"D:\code\model\TestImages";
         static void Main(string[] args)
@@ -20,7 +20,8 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-            TestBatchInfer();
+            //TestBatchInfer();
+            TestBatchInferObb();
             //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
@@ -166,6 +167,30 @@ namespace YoloSharpOnnx.ConsoleDirectML
             Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms");
 
         }
+        private static void TestBatchInferObb()
+        {
+            string modelPath = @"D:\code\model\yolo11n-obb.onnx";
+            string dirObb = @"D:\code\model\dota128\images\train";
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
+            {
+
+                yolo.YoloConfiguration.BatchPoolSize = 80;
+                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+                _stopwatch.Start();
+                var list = yolo.RunBatchObbDetect(dirObb, receiveAction: ReceiveProcess);
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
         private static void TestBatchInfer()
         {
 
@@ -258,6 +283,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
 
         private static void ReceiveProcess(DetectionBatchResult e)
+        {
+
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = e.Results.Summary();
+            Console.WriteLine($"{e.ImagePath} {ans} time:{cost}ms");
+
+        }
+        private static void ReceiveProcess(ObbBatchResult e)
         {
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;

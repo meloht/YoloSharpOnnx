@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public interface IYoloSegment : IDisposable
+    internal interface IYoloSegment : IDisposable
     {
         List<SegResult> Run(Mat inputImage);
 

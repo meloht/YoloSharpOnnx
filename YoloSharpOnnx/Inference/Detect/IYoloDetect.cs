@@ -7,7 +7,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public interface IYoloDetect : IDisposable
+    internal interface IYoloDetect : IDisposable
     {
         List<DetectionResult> Run(Mat inputImage);
 

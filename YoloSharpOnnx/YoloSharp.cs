@@ -7,9 +7,11 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Providers;
 
 
 namespace YoloSharpOnnx
@@ -20,6 +22,7 @@ namespace YoloSharpOnnx
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
         private IYoloPose _yoloPose;
+        private IYoloObb _yoloObb;
         private ModelType _currentModelType;
 
         private bool disposedValue;
@@ -31,11 +34,11 @@ namespace YoloSharpOnnx
         #region Constructor
 
 
-        public YoloSharp(IExecutionProvider executionProvider) : this(new YoloConfig(), executionProvider)
+        public YoloSharp(ExecutionProvider executionProvider) : this(new YoloConfig(), executionProvider)
         {
 
         }
-        public YoloSharp(YoloConfig yoloConfig, IExecutionProvider executionProvider)
+        public YoloSharp(YoloConfig yoloConfig, ExecutionProvider executionProvider)
         {
             YoloConfiguration = yoloConfig;
             executionProvider.SetYoloConfiguration(yoloConfig);
@@ -43,17 +46,18 @@ namespace YoloSharpOnnx
             _yoloClassify = executionProvider.CreateYoloClassify();
             _yoloSegment = executionProvider.CreateYoloSegment();
             _yoloPose = executionProvider.CreateYoloPose();
+            _yoloObb = executionProvider.CreateYoloObb();
             _currentModelType = executionProvider.CurrentModelType;
 
         }
 
-        public YoloSharp(float confidence, float iou, IExecutionProvider executionProvider)
+        public YoloSharp(float confidence, float iou, ExecutionProvider executionProvider)
             : this(confidence, iou, InterpolationFlags.Linear, executionProvider)
         {
 
         }
 
-        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, IExecutionProvider executionProvider)
+        public YoloSharp(float confidence, float iou, InterpolationFlags resizeAlgorithm, ExecutionProvider executionProvider)
             : this(new YoloConfig(confidence, iou, resizeAlgorithm), executionProvider)
         {
 
@@ -98,6 +102,38 @@ namespace YoloSharpOnnx
 
         #endregion
 
+        #region Synchronous obb
+        public List<ObbResult> RunObbDetect(string imagePath)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloObb.Run(img);
+            }
+        }
+
+        public List<ObbResult> RunObbDetect(Mat img)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            return _yoloObb.Run(img);
+        }
+
+        public YoloResult<ObbResult> RunObbDetectWithTime(string imagePath)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            YoloValidation.ValidationImagePath(imagePath, YoloConfiguration);
+            using (Mat img = Cv2.ImRead(imagePath))
+            {
+                return _yoloObb.RunWithTime(img);
+            }
+        }
+        public YoloResult<ObbResult> RunObbDetectWithTime(Mat img)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            return _yoloObb.RunWithTime(img);
+        }
+        #endregion
 
         #region Synchronous classify
 
@@ -202,10 +238,9 @@ namespace YoloSharpOnnx
 
         public IYoloAsync CreateAsyncChannel()
         {
-            return new YoloAsync(_yoloDetect, _yoloClassify, _yoloSegment, _yoloPose, YoloConfiguration, _currentModelType);
+            return new YoloAsync(_yoloDetect, _yoloClassify, _yoloSegment, _yoloPose, _yoloObb, YoloConfiguration, _currentModelType);
         }
         #endregion
-
 
         #region BatchDetect
 
@@ -252,7 +287,6 @@ namespace YoloSharpOnnx
 
 
         #endregion
-
 
         #region BatchCls
 
@@ -341,7 +375,6 @@ namespace YoloSharpOnnx
 
         #endregion
 
-
         #region BatchPose
         public PoseBatchResult[] RunBatchPose(string imgDir, IBatchProcessCallback<PoseBatchResult> processCallback = null, Action<PoseBatchResult> receiveAction = null)
         {
@@ -384,10 +417,49 @@ namespace YoloSharpOnnx
 
         #endregion
 
+        #region BatchObb
+        public ObbBatchResult[] RunBatchObbDetect(string imgDir, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
+
+            return _yoloObb.BatchRun(files, processCallback, receiveAction);
+        }
+        public ObbBatchResult[] RunBatchObbDetect(List<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return _yoloObb.BatchRun(files, processCallback, receiveAction);
+        }
+
+        public async Task<ObbBatchResult[]> RunBatchObbDetectAsync(string imgDir, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
+
+            return await _yoloObb.BatchRunAsync(files, processCallback, receiveAction);
+        }
+
+        public async Task<ObbBatchResult[]> RunBatchObbDetectAsync(List<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return await _yoloObb.BatchRunAsync(files, processCallback, receiveAction);
+        }
+        public IAsyncEnumerable<ObbBatchResult> BatchObbDetectForeachAsync(List<string> images)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            var files = YoloUtils.GetFilesFromListPaths(images, YoloConfiguration.ImageExtsBatch);
+            YoloValidation.ValidationImageListPath(files, YoloConfiguration);
+            return _yoloObb.BatchRunForeachAsync(files);
+        }
+        #endregion
+
+        #region DrawResults
 
         #region DrawDetections
-
-
         public void DrawDetections(Mat inputImage, List<DetectionResult> list)
         {
             _yoloDetect.DrawDetections(inputImage, list);
@@ -412,8 +484,9 @@ namespace YoloSharpOnnx
             _yoloDetect.DrawDetections(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
+        #endregion
 
-
+        #region DrawClassification
         public void DrawClassification(Mat inputImage, List<ClsResult> list)
         {
             _yoloClassify.DrawClassification(inputImage, list);
@@ -438,8 +511,9 @@ namespace YoloSharpOnnx
             _yoloClassify.DrawClassification(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
+        #endregion
 
-
+        #region DrawSegment
         public void DrawSegment(Mat inputImage, List<SegResult> list)
         {
             _yoloSegment.DrawSegments(inputImage, list);
@@ -463,8 +537,9 @@ namespace YoloSharpOnnx
             _yoloSegment.DrawSegments(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
+        #endregion
 
-
+        #region DrawPose
         public void DrawPose(Mat inputImage, List<PoseResult> list)
         {
             _yoloPose.DrawPoses(inputImage, list);
@@ -489,9 +564,38 @@ namespace YoloSharpOnnx
             _yoloPose.DrawPoses(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
+        #endregion
+
+        #region DrawObb
+
+        public void DrawObb(Mat inputImage, List<ObbResult> list)
+        {
+            _yoloObb.DrawObbs(inputImage, list);
+        }
+
+        public void DrawObbAndSave(Mat inputImage, List<ObbResult> list, string saveFileName)
+        {
+            _yoloObb.DrawObbs(inputImage, list);
+            Cv2.ImWrite(saveFileName, inputImage);
+        }
+
+        public void DrawObb(string inputImage, List<ObbResult> list)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloObb.DrawObbs(img, list);
+        }
+        public void DrawObbAndSave(string inputImage, List<ObbResult> list, string saveFileName)
+        {
+            YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
+            using Mat img = Cv2.ImRead(inputImage);
+            _yoloObb.DrawObbs(img, list);
+            Cv2.ImWrite(saveFileName, img);
+        }
 
         #endregion
 
+        #endregion
 
         protected virtual void Dispose(bool disposing)
         {
@@ -509,6 +613,7 @@ namespace YoloSharpOnnx
                 _yoloClassify?.Dispose();
                 _yoloSegment?.Dispose();
                 _yoloPose?.Dispose();
+                _yoloObb?.Dispose();
                 disposedValue = true;
             }
         }

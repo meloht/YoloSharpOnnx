@@ -1,16 +1,19 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class YoloSegDecode : IDisposable
+    internal class YoloSegDecode : IDisposable
     {
         private readonly int _maskDim;
         private readonly int _protoH;
@@ -126,8 +129,17 @@ namespace YoloSharpOnnx.Inference.Segment
                 // =================================================
                 // 10. ROI mask (ZERO COPY FINAL)
                 // =================================================
-
-                list[i].Mask = new Mat(cropped, list[i].Box);
+                using Mat maskBox = new Mat(cropped, list[i].Box);
+                byte[] maskBytes = ArrayPool<byte>.Shared.Rent(maskBox.Height * maskBox.Width);
+                try
+                {
+                    YoloUtils.MatToBytes(maskBox, maskBytes);
+                    list[i].PackMask = YoloUtils.PackMask(maskBytes);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(maskBytes);
+                }
             }
         }
 

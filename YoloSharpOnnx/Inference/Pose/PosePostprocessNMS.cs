@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public class PosePostprocessNMS : IPosePostprocess
+    internal class PosePostprocessNMS : IPosePostprocess
     {
         private readonly LabelModel[] _labels;
         private readonly NmsDecode _nmsDecode;

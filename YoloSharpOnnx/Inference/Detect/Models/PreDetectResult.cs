@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.Inference.Detect.Models
 {
-    public struct PreDetectResult
+    internal struct PreDetectResult
     {
         public int ImageHeight { get; set; }
         public int ImageWidth { get; set; }

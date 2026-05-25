@@ -12,7 +12,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class ClsPreprocess : PreprocessBase, IClsPreprocess
+    internal class ClsPreprocess : PreprocessBase, IClsPreprocess
     {
         private readonly OnnxModel _onnxModel;
         private readonly YoloConfig _yoloConfig;

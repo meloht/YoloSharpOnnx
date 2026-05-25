@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloTaskAsync<TResult> where TPreChannelData : class, IGuidValue<TBatchPreResult>, IBatchPreChannelResult<TBatchPreResult>, new()
+    internal class YoloChannelAsync<TResult, TBatchPreResult, TPreChannelData> : IYoloTaskAsync<TResult> where TPreChannelData : class, IGuidValue<TBatchPreResult>, IBatchPreChannelResult<TBatchPreResult>, new()
     {
         // Producer/consumer
         private readonly Channel<TPreChannelData> _channel;

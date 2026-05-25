@@ -12,7 +12,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class YoloSegOrtVal : YoloSegBase, IYoloSegment
+    internal class YoloSegOrtVal : YoloSegBase, IYoloSegment
     {
         public YoloSegOrtVal(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, postprocess, preprocess, onnxModel, config)

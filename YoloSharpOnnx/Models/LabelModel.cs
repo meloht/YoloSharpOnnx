@@ -4,7 +4,7 @@ using System.Text;
 
 namespace YoloSharpOnnx.Models
 {
-    public struct LabelModel
+    public class LabelModel
     {
         public int Index { get; set; }
 

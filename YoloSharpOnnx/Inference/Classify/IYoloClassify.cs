@@ -10,7 +10,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public interface IYoloClassify: IDisposable
+    internal interface IYoloClassify: IDisposable
     {
         List<ClsResult> Run(Mat inputImage);
 

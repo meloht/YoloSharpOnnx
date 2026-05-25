@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public class DetPostprocessNMS : IDetPostprocess
+    internal class DetPostprocessNMS : IDetPostprocess
     {
         private readonly LabelModel[] _labels;
         private readonly NmsDecode _nmsDecode;

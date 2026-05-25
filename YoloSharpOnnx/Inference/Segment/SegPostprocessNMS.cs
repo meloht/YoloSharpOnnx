@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
-    public class SegPostprocessNMS : SegPostprocessBase, ISegPostprocess
+    internal class SegPostprocessNMS : SegPostprocessBase, ISegPostprocess
     {
         private readonly int _numAnchors;
         private readonly int _classAtts;

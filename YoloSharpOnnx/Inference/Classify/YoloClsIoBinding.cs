@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public class YoloClsIoBinding : YoloClsBase, IYoloClassify
+    internal class YoloClsIoBinding : YoloClsBase, IYoloClassify
     {
         private readonly OrtIoBinding _binding;
         private readonly OrtValue _outputOrtValue;

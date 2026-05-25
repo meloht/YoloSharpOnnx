@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference
 {
-    public abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult> where TBatchPreResult : PreResultBatchBase, IDisposable, new()
+    internal abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult> where TBatchPreResult : PreResultBatchBase, IDisposable, new()
     {
         protected readonly InferenceSession _session;
         protected readonly SessionOptions _options;

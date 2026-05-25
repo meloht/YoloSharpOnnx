@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public class ExecutionProviderDirectML : ExecutionProvider, IExecutionProvider
+    public class ExecutionProviderDirectML : ExecutionProvider
     {
         private int _deviceId;
         public ExecutionProviderDirectML(string modelPath) : this(modelPath, 0)
@@ -22,23 +23,23 @@ namespace YoloSharpOnnx.Providers
             this._deviceId = deviceId;
         }
 
-        protected override DeviceType GetDeviceType()
+        internal override DeviceType GetDeviceType()
         {
             return DeviceType.GPU;
         }
 
-        protected override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
 
-        protected override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloClsIoBinding(session, options,  onnxModel, YoloConfiguration, postprocess, preprocess);
         }
 
-        protected override SessionOptions BuildSessionOptions()
+        internal override SessionOptions BuildSessionOptions()
         {
             SessionOptions sessionOptions = new SessionOptions();
             sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
@@ -48,14 +49,19 @@ namespace YoloSharpOnnx.Providers
             return sessionOptions;
         }
 
-        protected override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        protected override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+        }
+
+        internal override IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }

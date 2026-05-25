@@ -13,8 +13,10 @@ namespace YoloSharpOnnx.DataResult
         public string ClassName { get; set; }
         public int ClassId { get; set; }
         public float Confidence { get; set; }
-
-        public Mat Mask { get; set; }
+        /// <summary>
+        /// packed bytes
+        /// </summary>
+        public byte[] PackMask { get; set; }
 
 
         static string IYoloSummary<SegResult>.Describe(List<SegResult> predictResults)

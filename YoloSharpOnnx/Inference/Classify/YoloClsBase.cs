@@ -13,7 +13,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Classify
 {
-    public abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch, ClsResult>
+    internal abstract class YoloClsBase : OnnxInferenceCore<ClsResult, PreClsResultBatch, ClsBatchResult>, IYoloProcessAsync<PreClsResultBatch, ClsResult>
     {
         protected readonly IClsPostprocess _postprocess;
         protected readonly IClsPreprocess _preprocess;
@@ -222,7 +222,7 @@ namespace YoloSharpOnnx.Inference.Classify
                 totalHeight + 10
             );
 
-            DrawTransparentRect(img, rect, Scalar.Black, 0.5);
+            YoloUtils.DrawTransparentRect(img, rect, Scalar.Black, 0.5);
 
             // ===== 4. 逐行绘制文本 =====
             int y = yStart;
@@ -240,17 +240,6 @@ namespace YoloSharpOnnx.Inference.Classify
 
                 y += size.Height + lineGap;
             }
-        }
-
-        private static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
-        {
-            rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
-            if (rect.Width <= 0 || rect.Height <= 0) return;
-
-            using var roi = new Mat(img, rect);
-            using var overlay = new Mat(roi.Size(), roi.Type(), color);
-
-            Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
         }
 
         protected virtual void Dispose(bool disposing)

@@ -7,7 +7,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    public interface IDetPostprocess : IDisposable
+    internal interface IDetPostprocess : IDisposable
     {
         List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult);
         List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult);

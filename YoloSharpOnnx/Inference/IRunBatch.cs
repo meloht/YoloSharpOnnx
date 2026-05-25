@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    public interface IRunBatch<TResult, TBatchPreResult>
+    internal interface IRunBatch<TResult, TBatchPreResult>
     {
         List<TResult> RunBatch(TBatchPreResult preResult);
         void ReturnBatchPreResult(TBatchPreResult preResult);

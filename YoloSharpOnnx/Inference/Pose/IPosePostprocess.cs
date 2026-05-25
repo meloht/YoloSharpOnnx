@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public interface IPosePostprocess: IDisposable
+    internal interface IPosePostprocess: IDisposable
     {
         List<PoseResult> PostProcessSync(OrtValue outputValue0, PreDetectResult preResult);
         List<PoseResult> PostProcessAsync(OrtValue outputValue0, PreDetectResult preResult);

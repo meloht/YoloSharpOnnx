@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Text;
-using static OpenCvSharp.FileStorage;
 
 namespace YoloSharpOnnx.DataResult
 {
@@ -34,6 +33,13 @@ namespace YoloSharpOnnx.DataResult
         }
 
         public static string Summary(this List<PoseResult> list)
+        {
+            if (list == null || list.Count == 0)
+                return string.Empty;
+            return YoloResultToString(list);
+        }
+
+        public static string Summary(this List<ObbResult> list)
         {
             if (list == null || list.Count == 0)
                 return string.Empty;

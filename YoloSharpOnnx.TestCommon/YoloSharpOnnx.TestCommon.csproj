@@ -26,6 +26,12 @@
     <None Update="TestData\Images\Detect\zidane.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\Images\Obb\P1174__1024__2096___2620.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Images\Obb\P1374__682__3490___1396.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Images\Pose\000000000036.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -47,6 +53,9 @@
     <None Update="TestData\Models\yolo11n-cls.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\Models\yolo11n-obb.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Models\yolo11n-pose.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -57,6 +66,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\Models\yolo26n-cls.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\Models\yolo26n-obb.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestData\Models\yolo26n-pose.onnx">
@@ -71,6 +83,9 @@
     <None Update="TestData\Models\yolov8n-cls.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\Models\yolov8n-obb.onnx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\Models\yolov8n-pose.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -83,6 +98,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="TestData\Images\Obb\" />
     <Folder Include="TestData\Images\Pose\" />
     <Folder Include="TestData\Images\Segment\" />
   </ItemGroup>

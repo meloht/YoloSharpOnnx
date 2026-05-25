@@ -14,7 +14,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    public class YoloPoseOrtVal : YoloPoseBase, IYoloPose
+    internal class YoloPoseOrtVal : YoloPoseBase, IYoloPose
     {
         public YoloPoseOrtVal(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config) 
             : base(session, options, postprocess, preprocess, onnxModel, config)
