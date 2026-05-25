@@ -335,6 +335,7 @@ private static async Task TestBatchForeachInfer()
 | ------------- | ------------- |
 | YoloE | TBD  |
 | Yolo-World | TBD  |
+| SAM | TBD  |
 
 # Model Licensing & Responsibility
 
