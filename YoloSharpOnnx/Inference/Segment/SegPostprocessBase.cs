@@ -162,12 +162,20 @@ namespace YoloSharpOnnx.Inference.Segment
             binary.ConvertTo(mat8u, MatType.CV_8UC1);
 
             Mat[] finalChannels = Cv2.Split(mat8u);
+
             for (int i = 0; i < count; i++)
             {
                 using Mat srcRoi = new Mat(finalChannels[i], list[i].Box);
-                byte[] maskBytes = new byte[srcRoi.Height * srcRoi.Width];
-                YoloUtils.MatToBytes(srcRoi, maskBytes);
-                list[i].MaskBytes = maskBytes;
+                byte[] maskBytes = ArrayPool<byte>.Shared.Rent(srcRoi.Height * srcRoi.Width);
+                try
+                {
+                    YoloUtils.MatToBytes(srcRoi, maskBytes);
+                    list[i].PackMask = YoloUtils.PackMask(maskBytes);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(maskBytes);
+                }
             }
 
             for (int i = 0; i < channels.Length; i++)

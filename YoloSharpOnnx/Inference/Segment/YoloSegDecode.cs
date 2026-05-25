@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -129,9 +130,16 @@ namespace YoloSharpOnnx.Inference.Segment
                 // 10. ROI mask (ZERO COPY FINAL)
                 // =================================================
                 using Mat maskBox = new Mat(cropped, list[i].Box);
-                byte[] maskBytes = new byte[maskBox.Height * maskBox.Width];
-                YoloUtils.MatToBytes(maskBox, maskBytes);
-                list[i].MaskBytes = maskBytes;
+                byte[] maskBytes = ArrayPool<byte>.Shared.Rent(maskBox.Height * maskBox.Width);
+                try
+                {
+                    YoloUtils.MatToBytes(maskBox, maskBytes);
+                    list[i].PackMask = YoloUtils.PackMask(maskBytes);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(maskBytes);
+                }
             }
         }
 

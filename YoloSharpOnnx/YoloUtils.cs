@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
@@ -181,6 +182,49 @@ namespace YoloSharpOnnx
                 }
             }
 
+        }
+
+        public static byte[] PackMask(byte[] src)
+        {
+            int packedLength = (src.Length + 7) >> 3;
+
+            byte[] packed = new byte[packedLength];
+
+            for (int i = 0; i < src.Length; i++)
+            {
+                if (src[i] != 0)
+                {
+                    packed[i >> 3] |= (byte)(1 << (i & 7));
+                }
+            }
+
+            return packed;
+        }
+
+        public static byte[] UnpackMask(byte[] packed, int pixelCount)
+        {
+            byte[] dst = new byte[pixelCount];
+
+            for (int i = 0; i < pixelCount; i++)
+            {
+                dst[i] =
+                    (packed[i >> 3] & (1 << (i & 7))) != 0
+                    ? (byte)255
+                    : (byte)0;
+            }
+
+            return dst;
+        }
+
+        public static void UnpackMask(byte[] packed, byte[] dst, int pixelCount)
+        {
+            for (int i = 0; i < pixelCount; i++)
+            {
+                dst[i] =
+                    (packed[i >> 3] & (1 << (i & 7))) != 0
+                    ? (byte)255
+                    : (byte)0;
+            }
         }
 
     }
