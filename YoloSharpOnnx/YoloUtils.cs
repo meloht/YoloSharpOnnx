@@ -137,7 +137,7 @@ namespace YoloSharpOnnx
                 labelRect.Y = Math.Max(0, img.Height - labelRect.Height);
             }
 
-            DrawTransparentRect(img, labelRect, color, 0.5);
+            DrawTransparentRect(img, labelRect, color, 0.6);
 
             // 标签文本
             Cv2.PutText(img, label, new OpenCvSharp.Point(labelRect.X + padding, labelRect.Y + textSize.Height + padding), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);

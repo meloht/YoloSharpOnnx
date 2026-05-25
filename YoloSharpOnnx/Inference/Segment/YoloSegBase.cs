@@ -239,7 +239,7 @@ namespace YoloSharpOnnx.Inference.Segment
         /// <param name="binaryMask">二值mask（CV_8UC1，0/255）</param>
         /// <param name="color">显示颜色（BGR）</param>
         /// <param name="alpha">透明度：0~1，推荐 0.3~0.6</param>
-        public static void DrawTransparentMask1(Mat image, byte[] binaryMask, Rect box, Scalar color, double alpha = 0.4)
+        public static void DrawTransparentMask1(Mat image, byte[] binaryMask, Rect box, Scalar color, double alpha = 0.5)
         {
             Rect validRect = new Rect(
                 Math.Max(0, box.X),
