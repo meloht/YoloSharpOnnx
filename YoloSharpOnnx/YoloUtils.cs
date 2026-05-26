@@ -137,21 +137,53 @@ namespace YoloSharpOnnx
                 labelRect.Y = Math.Max(0, img.Height - labelRect.Height);
             }
 
-            DrawTransparentRect(img, labelRect, color, 0.6);
+            DrawTransparentRectFast(img, labelRect, color, 0.6f);
 
             // 标签文本
             Cv2.PutText(img, label, new OpenCvSharp.Point(labelRect.X + padding, labelRect.Y + textSize.Height + padding), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
 
-        public static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
+        //public static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
+        //{
+        //    rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
+        //    if (rect.Width <= 0 || rect.Height <= 0) return;
+
+        //    using var roi = new Mat(img, rect);
+        //    using var overlay = new Mat(roi.Size(), roi.Type(), color);
+
+        //    Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
+        //}
+
+        public static unsafe void DrawTransparentRectFast(Mat img, Rect rect, Scalar color, float alpha)
         {
             rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
-            if (rect.Width <= 0 || rect.Height <= 0) return;
 
-            using var roi = new Mat(img, rect);
-            using var overlay = new Mat(roi.Size(), roi.Type(), color);
+            if (rect.Width <= 0 || rect.Height <= 0)
+                return;
 
-            Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
+            int channels = img.Channels();
+
+            byte b = (byte)color.Val0;
+            byte g = (byte)color.Val1;
+            byte r = (byte)color.Val2;
+
+            float inv = 1f - alpha;
+
+            byte* ptr = (byte*)img.DataPointer;
+
+            for (int y = rect.Y; y < rect.Bottom; y++)
+            {
+                byte* row = ptr + y * img.Step();
+
+                for (int x = rect.X; x < rect.Right; x++)
+                {
+                    byte* p = row + x * channels;
+
+                    p[0] = (byte)(p[0] * inv + b * alpha);
+                    p[1] = (byte)(p[1] * inv + g * alpha);
+                    p[2] = (byte)(p[2] * inv + r * alpha);
+                }
+            }
         }
         public static void DrawLabel(Mat img, float score, string className, OpenCvSharp.Point box, Scalar color)
         {
@@ -180,7 +212,7 @@ namespace YoloSharpOnnx
             //    new OpenCvSharp.Point(x + textSize.Width, y + baseline),
             //    color, -1);
 
-            DrawTransparentRect(img, new Rect(x - 1, y - 8 - textSize.Height, textSize.Width + 2, textSize.Height + baseline + 8), color, 0.5);
+            DrawTransparentRectFast(img, new Rect(x - 1, y - 8 - textSize.Height, textSize.Width + 2, textSize.Height + baseline + 8), color, 0.5f);
 
             // 标签文本
             Cv2.PutText(img, label, new OpenCvSharp.Point(x + 1, y), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);

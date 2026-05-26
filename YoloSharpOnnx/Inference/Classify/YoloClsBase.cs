@@ -222,7 +222,7 @@ namespace YoloSharpOnnx.Inference.Classify
                 totalHeight + 10
             );
 
-            YoloUtils.DrawTransparentRect(img, rect, Scalar.Black, 0.5);
+            YoloUtils.DrawTransparentRectFast(img, rect, Scalar.Black, 0.5f);
 
             // ===== 4. 逐行绘制文本 =====
             int y = yStart;

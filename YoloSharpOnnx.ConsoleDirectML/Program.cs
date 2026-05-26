@@ -1,4 +1,5 @@
 ﻿using OpenCvSharp;
+using System.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
@@ -21,11 +22,11 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestChannel();
 
             //TestBatchInfer();
-            TestBatchInferObb();
+            //TestBatchInferObb();
             //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            //TestInferPerf();
+            TestInferPerf();
             //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());
@@ -122,6 +123,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             long totalInfer = 0;
             int count = 0;
+            Stopwatch stopwatch = new Stopwatch();
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId)))
             {
                 foreach (var item in files)
@@ -130,9 +132,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     if (filePath.EndsWith(".jpg") || filePath.EndsWith(".png"))
                     {
                         count++;
-                        var res = yolo.RunDetectWithTime(item.FullName);
+                        using Mat img = Cv2.ImRead(item.FullName);
+                        var res = yolo.RunDetectWithTime(img);
                         totalInfer += res.SpeedResult.Inference;
-                        Console.WriteLine($"{item.Name} {res.ToString()}, {res.SpeedResult.ToString()}");
+                        stopwatch.Restart();
+                        yolo.DrawDetections(img, res.Items);
+                        stopwatch.Stop();
+                        Console.WriteLine($"{item.Name} {res.ToString()}, {res.SpeedResult.ToString()}, draw time: {stopwatch.ElapsedMilliseconds} ms");
                     }
                 }
             }
@@ -208,6 +214,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
                 _stopwatch.Stop();
 
+    
             }
 
 
@@ -284,6 +291,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
         private static void ReceiveProcess(DetectionBatchResult e)
         {
+            
 
             long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
             string ans = e.Results.Summary();
