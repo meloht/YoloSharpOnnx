@@ -1,7 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -127,6 +126,54 @@ namespace YoloSharpOnnx
 
                 // 4. 绘制文本标签（选在第一个顶点附近）
                 DrawLabel(image, pred.Confidence, pred.ClassName, vertices[0], (int)pred.Width, (int)pred.Height, color);
+            }
+        }
+
+        public static void DrawPoses(Mat image, List<PoseResult> results, Scalar[] colorPalette, YoloConfig config)
+        {
+            foreach (var det in results)
+            {
+                YoloUtils.DrawDetections(image, det.Box, det.Confidence, det.ClassName, colorPalette[det.ClassId]);
+
+                foreach (var kp in det.KeyPoints)
+                {
+                    if (kp.Confidence < config.KeypointConfidence)
+                        continue;
+                    int x = (int)Math.Round(kp.X);
+                    int y = (int)Math.Round(kp.Y);
+                    if (kp.X <= 0 || kp.Y <= 0 || kp.X >= image.Width || kp.Y >= image.Height)
+                    {
+                        continue;
+                    }
+                    Cv2.Circle(image, new Point(x, y), config.KeypointRadius, config.Skeleton.GetKeypointColor(kp.Index), -1, lineType: LineTypes.AntiAlias);
+
+                }
+
+                for (int i = 0; i < config.Skeleton.ConnectionCount; i++)
+                {
+                    var p1 = config.Skeleton.GetKeypoint1(i, det.KeyPoints);
+                    var p2 = config.Skeleton.GetKeypoint2(i, det.KeyPoints);
+
+                    if (p1.Confidence < config.KeypointConfidence || p2.Confidence < config.KeypointConfidence)
+                        continue;
+
+                    int x1 = (int)Math.Round(p1.X);
+                    int y1 = (int)Math.Round(p1.Y);
+                    int x2 = (int)Math.Round(p2.X);
+                    int y2 = (int)Math.Round(p2.Y);
+
+                    if (x1 <= 0 || y1 <= 0 || x1 >= image.Width || y1 >= image.Height)
+                    {
+                        continue;
+                    }
+                    if (x2 <= 0 || y2 <= 0 || x2 >= image.Width || y2 >= image.Height)
+                    {
+                        continue;
+                    }
+
+                    Cv2.Line(image, new OpenCvSharp.Point(x1, y1), new Point(x2, y2), config.Skeleton.GetLineColor(i), config.KeypointLineThickness, lineType: LineTypes.AntiAlias);
+                }
+
             }
         }
 

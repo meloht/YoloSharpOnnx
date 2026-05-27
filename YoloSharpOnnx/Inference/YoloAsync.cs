@@ -27,13 +27,13 @@ namespace YoloSharpOnnx.Inference
         private IYoloDetectCore<DetectionResult, DetectionBatchResult> _yoloDetect;
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
-        private IYoloPose _yoloPose;
+        private IYoloDetectCore<PoseResult, PoseBatchResult> _yoloPose;
         private IYoloDetectCore<ObbResult, ObbBatchResult> _yoloObb;
 
         private YoloConfig _yoloConfig;
         private ModelType _currentModelType;
 
-        public YoloAsync(IYoloDetectCore<DetectionResult, DetectionBatchResult> yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloPose yoloPose, IYoloDetectCore<ObbResult, ObbBatchResult> yoloObb, YoloConfig yoloConfig, ModelType modelType)
+        public YoloAsync(IYoloDetectCore<DetectionResult, DetectionBatchResult> yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloDetectCore<PoseResult, PoseBatchResult> yoloPose, IYoloDetectCore<ObbResult, ObbBatchResult> yoloObb, YoloConfig yoloConfig, ModelType modelType)
         {
             _currentModelType = modelType;
             _yoloDetect = yoloDetect;

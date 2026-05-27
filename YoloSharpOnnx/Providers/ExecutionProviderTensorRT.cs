@@ -76,7 +76,7 @@ namespace YoloSharpOnnx.Providers
             return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
