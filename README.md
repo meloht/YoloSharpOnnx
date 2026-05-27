@@ -184,12 +184,34 @@ private static async Task TestInferAsync()
             var res = await yoloAsync.RunDetectAsync(files[i]);
             Console.WriteLine($"{i + 1} {res.Summary()}");
         }
+        await yoloAsync.CompleteAndCloseAsyncChannel();// important
     }
     _stopwatchTotal.Stop();
     var avg = _stopwatchTotal.ElapsedMilliseconds / files.Length;
     Console.WriteLine($"total time:{_stopwatchTotal.Elapsed}, count:{files.Length} Infer avg time:{avg}ms");
 }
 
+private static async Task TestInferBatchAsync()
+{
+     using var yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, _deviceId));
+     using var yoloAsync = yolo.CreateAsyncChannel();
+     var files = Directory.GetFiles(dir);
+     count = 1;
+    for (int i = 0; i < files.Length; i++)
+    {
+         using Mat img = Cv2.ImRead(files[i]);
+         await yoloAsync.RunDetectAsync(img, Guid.NewGuid(), null, ReceiveProcess);
+
+    }
+    await yoloAsync.CompleteAndCloseAsyncChannel();// important
+}
+static int count = 1;
+private static void ReceiveProcess(DetectAsyncResult e)
+{
+    long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+    string ans = e.Results.Summary();
+    Console.WriteLine($"{count++} {ans} time:{cost}ms");
+}
 ```
 
 #### Batch processing images
