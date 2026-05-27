@@ -191,7 +191,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
                     var res = await yoloAsync.RunDetectAsync(files[i]);
                     Console.WriteLine($"{i + 1} {YoloUtils.GetDetectResult(res)}");
                 }
-
+                await yoloAsync.CompleteAndCloseAsyncChannel();
             }
 
             _stopwatchTotal.Stop();
