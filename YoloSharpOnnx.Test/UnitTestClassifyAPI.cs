@@ -1,5 +1,6 @@
 ﻿using OpenCvSharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
@@ -67,6 +68,32 @@ namespace YoloSharpOnnx.Test
             var res2 = await yoloAsync.RunClassifyAsync(img);
             string ans2 = res2.Summary();
             Assert.Equal(Yolo11.Cls01, ans2);
+
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+        }
+
+        [Fact]
+        public async Task TestAsyncBatchChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgClsPaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                using Mat img = Cv2.ImRead(item);
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictCls[item]);
+                await yoloAsync.RunClassifyAsync(img, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+         
         }
 
         [Fact]
@@ -143,6 +170,8 @@ namespace YoloSharpOnnx.Test
                 Assert.Equal(_dictCls[item.ImagePath], item.Results.Summary());
             }
         }
+
+
 
 
         [Fact]

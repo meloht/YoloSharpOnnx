@@ -311,10 +311,7 @@ namespace YoloSharpOnnx.Inference
             }
         }
 
-        public void ReturnBatchPreResult(TBatchPreResult preResult)
-        {
-            _preResultPool.Value.Return(preResult);
-        }
+
 
         public void DisposeCore()
         {

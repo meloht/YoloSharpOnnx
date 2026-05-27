@@ -13,22 +13,31 @@ namespace YoloSharpOnnx
         Task<List<DetectionResult>> RunDetectAsync(string inputImage);
 
         Task<List<DetectionResult>> RunDetectAsync(Mat img);
+        Task RunDetectAsync(Mat img, Guid guid, IBatchProcessCallback<DetectAsyncResult> callback, Action<DetectAsyncResult> receiveAction);
 
         Task<List<ClsResult>> RunClassifyAsync(string inputImage);
 
         Task<List<ClsResult>> RunClassifyAsync(Mat img);
+        Task RunClassifyAsync(Mat img, Guid guid, IBatchProcessCallback<ClsAsyncResult> callback, Action<ClsAsyncResult> receiveAction);
 
         Task<List<SegResult>> RunSegmentAsync(string inputImage);
 
         Task<List<SegResult>> RunSegmentAsync(Mat img);
 
+        Task RunSegmentAsync(Mat img, Guid guid, IBatchProcessCallback<SegAsyncResult> callback, Action<SegAsyncResult> receiveAction);
+
         Task<List<PoseResult>> RunPoseAsync(string inputImage);
 
         Task<List<PoseResult>> RunPoseAsync(Mat img);
+        Task RunPoseAsync(Mat img, Guid guid, IBatchProcessCallback<PoseAsyncResult> callback, Action<PoseAsyncResult> receiveAction);
 
         Task<List<ObbResult>> RunObbDetectAsync(string inputImage);
 
         Task<List<ObbResult>> RunObbDetectAsync(Mat img);
+
+        Task RunObbDetectAsync(Mat img, Guid guid, IBatchProcessCallback<ObbAsyncResult> callback, Action<ObbAsyncResult> receiveAction);
+
+        Task CompleteAndCloseAsyncChannel();
 
     }
 }

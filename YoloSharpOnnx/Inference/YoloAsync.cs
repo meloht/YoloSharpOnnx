@@ -17,11 +17,11 @@ namespace YoloSharpOnnx.Inference
 {
     internal class YoloAsync : IYoloAsync
     {
-        private Lazy<IYoloTaskAsync<DetectionResult>> _yoloDetectAsync;
-        private Lazy<IYoloTaskAsync<ClsResult>> _yoloClsAsync;
-        private Lazy<IYoloTaskAsync<SegResult>> _yoloSegAsync;
-        private Lazy<IYoloTaskAsync<PoseResult>> _yoloPoseAsync;
-        private Lazy<IYoloTaskAsync<ObbResult>> _yoloObbAsync;
+        private Lazy<IYoloTaskAsync<DetectionResult, DetectAsyncResult>> _yoloDetectAsync;
+        private Lazy<IYoloTaskAsync<ClsResult, ClsAsyncResult>> _yoloClsAsync;
+        private Lazy<IYoloTaskAsync<SegResult, SegAsyncResult>> _yoloSegAsync;
+        private Lazy<IYoloTaskAsync<PoseResult, PoseAsyncResult>> _yoloPoseAsync;
+        private Lazy<IYoloTaskAsync<ObbResult, ObbAsyncResult>> _yoloObbAsync;
 
         private IYoloDetect _yoloDetect;
         private IYoloClassify _yoloClassify;
@@ -45,23 +45,23 @@ namespace YoloSharpOnnx.Inference
 
             if (_yoloDetect != null)
             {
-                _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult>>(() => new YoloChannelAsync<DetectionResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloDetect.GetYoloProcessAsync()));
+                _yoloDetectAsync = new Lazy<IYoloTaskAsync<DetectionResult, DetectAsyncResult>>(() => new YoloChannelAsync<DetectionResult, PreDetectResultBatch, DetectAsyncResult>(_yoloConfig, _yoloDetect.GetYoloProcessAsync()));
             }
             if (_yoloClassify != null)
             {
-                _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult>>(() => new YoloChannelAsync<ClsResult, PreClsResultBatch, PreClsChannelData>(_yoloConfig, _yoloClassify.GetYoloProcessAsync()));
+                _yoloClsAsync = new Lazy<IYoloTaskAsync<ClsResult, ClsAsyncResult>>(() => new YoloChannelAsync<ClsResult, PreClsResultBatch, ClsAsyncResult>(_yoloConfig, _yoloClassify.GetYoloProcessAsync()));
             }
             if (_yoloSegment != null)
             {
-                _yoloSegAsync = new Lazy<IYoloTaskAsync<SegResult>>(() => new YoloChannelAsync<SegResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloSegment.GetYoloProcessAsync()));
+                _yoloSegAsync = new Lazy<IYoloTaskAsync<SegResult, SegAsyncResult>>(() => new YoloChannelAsync<SegResult, PreDetectResultBatch, SegAsyncResult>(_yoloConfig, _yoloSegment.GetYoloProcessAsync()));
             }
             if (_yoloPose != null)
             {
-                _yoloPoseAsync = new Lazy<IYoloTaskAsync<PoseResult>>(() => new YoloChannelAsync<PoseResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloPose.GetYoloProcessAsync()));
+                _yoloPoseAsync = new Lazy<IYoloTaskAsync<PoseResult, PoseAsyncResult>>(() => new YoloChannelAsync<PoseResult, PreDetectResultBatch, PoseAsyncResult>(_yoloConfig, _yoloPose.GetYoloProcessAsync()));
             }
             if (_yoloObb != null)
             {
-                _yoloObbAsync = new Lazy<IYoloTaskAsync<ObbResult>>(() => new YoloChannelAsync<ObbResult, PreDetectResultBatch, PreDetectChannelData>(_yoloConfig, _yoloObb.GetYoloProcessAsync()));
+                _yoloObbAsync = new Lazy<IYoloTaskAsync<ObbResult, ObbAsyncResult>>(() => new YoloChannelAsync<ObbResult, PreDetectResultBatch, ObbAsyncResult>(_yoloConfig, _yoloObb.GetYoloProcessAsync()));
             }
 
         }
@@ -100,6 +100,11 @@ namespace YoloSharpOnnx.Inference
             YoloValidation.ValidationDetectModelType(_currentModelType);
             return _yoloDetectAsync.Value.RunAsync(img);
         }
+        public Task RunDetectAsync(Mat img, Guid guid, IBatchProcessCallback<DetectAsyncResult> callback, Action<DetectAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationDetectModelType(_currentModelType);
+            return _yoloDetectAsync.Value.RunAsync(img, guid, callback, receiveAction);
+        }
 
         public Task<List<ClsResult>> RunClassifyAsync(string inputImage)
         {
@@ -111,6 +116,12 @@ namespace YoloSharpOnnx.Inference
         {
             YoloValidation.ValidationClsModelType(_currentModelType);
             return _yoloClsAsync.Value.RunAsync(img);
+        }
+
+        public Task RunClassifyAsync(Mat img, Guid guid, IBatchProcessCallback<ClsAsyncResult> callback, Action<ClsAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationClsModelType(_currentModelType);
+            return _yoloClsAsync.Value.RunAsync(img, guid, callback, receiveAction);
         }
 
         public Task<List<SegResult>> RunSegmentAsync(string inputImage)
@@ -125,6 +136,12 @@ namespace YoloSharpOnnx.Inference
             return _yoloSegAsync.Value.RunAsync(img);
         }
 
+        public Task RunSegmentAsync(Mat img, Guid guid, IBatchProcessCallback<SegAsyncResult> callback, Action<SegAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationSegModelType(_currentModelType);
+            return _yoloSegAsync.Value.RunAsync(img, guid, callback, receiveAction);
+        }
+
         public Task<List<PoseResult>> RunPoseAsync(string inputImage)
         {
             YoloValidation.ValidationPoseModelType(_currentModelType);
@@ -137,6 +154,12 @@ namespace YoloSharpOnnx.Inference
             return _yoloPoseAsync.Value.RunAsync(img);
         }
 
+        public Task RunPoseAsync(Mat img, Guid guid, IBatchProcessCallback<PoseAsyncResult> callback, Action<PoseAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationPoseModelType(_currentModelType);
+            return _yoloPoseAsync.Value.RunAsync(img, guid, callback, receiveAction);
+        }
+
         public Task<List<ObbResult>> RunObbDetectAsync(string inputImage)
         {
             YoloValidation.ValidationObbModelType(_currentModelType);
@@ -147,6 +170,37 @@ namespace YoloSharpOnnx.Inference
         {
             YoloValidation.ValidationObbModelType(_currentModelType);
             return _yoloObbAsync.Value.RunAsync(img);
+        }
+
+        public Task RunObbDetectAsync(Mat img, Guid guid, IBatchProcessCallback<ObbAsyncResult> callback, Action<ObbAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationObbModelType(_currentModelType);
+            return _yoloObbAsync.Value.RunAsync(img, guid, callback, receiveAction);
+        }
+
+        public Task CompleteAndCloseAsyncChannel()
+        {
+           if(_yoloDetectAsync != null)
+           {
+               return _yoloDetectAsync.Value.CompleteAndCloseAsyncChannel();
+           }
+           else if(_yoloClsAsync != null)
+           {
+               return _yoloClsAsync.Value.CompleteAndCloseAsyncChannel();
+           }
+           else if(_yoloSegAsync != null)
+           {
+               return _yoloSegAsync.Value.CompleteAndCloseAsyncChannel();
+           }
+           else if(_yoloPoseAsync != null)
+           {
+               return _yoloPoseAsync.Value.CompleteAndCloseAsyncChannel();
+           }
+           else if(_yoloObbAsync != null)
+           {
+               return _yoloObbAsync.Value.CompleteAndCloseAsyncChannel();
+           }
+           throw new NotImplementedException();
         }
     }
 }

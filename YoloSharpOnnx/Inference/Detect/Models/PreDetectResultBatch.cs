@@ -5,7 +5,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect.Models
 {
-    internal class PreDetectResultBatch : PreResultBatchBase,IDisposable
+    internal class PreDetectResultBatch : PreResultBatchBase, IDisposable
     {
         public void Initialize(PreDetectResult preResult, string imagePath, ImageBatchData data)
         {

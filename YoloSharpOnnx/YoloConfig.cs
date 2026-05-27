@@ -32,7 +32,7 @@ namespace YoloSharpOnnx
             get { return _clsTopK; }
             set
             {
-                if (value < 0 && value > 5)
+                if (value < 1 || value > 5)
                 {
                     throw new ArgumentException("The ClassifyTopK must be between 1 and 5");
                 }
@@ -44,7 +44,7 @@ namespace YoloSharpOnnx
             get { return _confidence; }
             set
             {
-                if (value < 0 && value > 1)
+                if (value < 0 || value > 1)
                 {
                     throw new ArgumentException("The Confidence must be between 0 and 1");
                 }
@@ -58,7 +58,7 @@ namespace YoloSharpOnnx
             get { return _iou; }
             set
             {
-                if (value < 0 && value > 1)
+                if (value < 0 || value > 1)
                 {
                     throw new ArgumentException("The IoU must be between 0 and 1");
                 }
@@ -90,7 +90,7 @@ namespace YoloSharpOnnx
             get { return _batchPoolSize; }
             set
             {
-                if (value < 1 && value > 100)
+                if (value < 1 || value > 100)
                 {
                     throw new ArgumentException("The BatchPoolSize must be between 1 and 100");
                 }

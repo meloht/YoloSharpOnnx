@@ -6,7 +6,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
 
-namespace YoloSharpOnnx.Test
+namespace YoloSharpOnnx.TestIoBinding
 {
     public class UnitTestObbAPI : IDisposable
     {
@@ -18,7 +18,8 @@ namespace YoloSharpOnnx.Test
         {
             _dictObb = TestDataUtils.GetYolo26ObbDict();
             model = TestDataUtils.GetModelPath("yolo26n-obb.onnx");
-            yolo = new YoloSharp(new ExecutionProviderCPU(model));
+            int deviceId = Utils.GetMainGPU();
+            yolo = new YoloSharp(new ExecutionProviderDirectML(model, deviceId));
         }
         [Fact]
         public void TestRunObb()

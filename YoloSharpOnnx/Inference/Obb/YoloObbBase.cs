@@ -12,7 +12,6 @@ using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.Obb
 {
