@@ -23,7 +23,7 @@ namespace YoloSharpOnnx.Inference.Pose
 
         protected override void DrawResults(Mat inputImage, List<PoseResult> results)
         {
-            YoloUtils.DrawPoses(inputImage, results, _onnxModel.ColorPalette, _config);
+            YoloDrawResultUtils.DrawPoses(inputImage, results, _onnxModel.ColorPalette, _config);
         }
     }
 }

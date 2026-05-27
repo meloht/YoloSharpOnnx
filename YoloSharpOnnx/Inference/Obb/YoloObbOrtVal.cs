@@ -22,7 +22,7 @@ namespace YoloSharpOnnx.Inference.Obb
 
         protected override void DrawResults(Mat inputImage, List<ObbResult> results)
         {
-            YoloUtils.DrawObbs(inputImage, results, _onnxModel.ColorPalette);
+            YoloDrawResultUtils.DrawObbs(inputImage, results, _onnxModel.ColorPalette);
         }
     }
 }

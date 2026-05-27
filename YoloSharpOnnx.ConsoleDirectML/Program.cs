@@ -7,7 +7,7 @@ using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
-using static System.Net.WebRequestMethods;
+
 
 namespace YoloSharpOnnx.ConsoleDirectML
 {
@@ -22,13 +22,13 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-           // TestBatchInfer();
+            TestBatchInfer();
             //TestBatchInferObb();
             //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
             //TestInferPerf();
-            _ = TestInferBatchAsync();
+           // _ = TestInferBatchAsync();
             //TestInferCls();
             //TestInfer();
             //_ = Task.Run(async () => await TestInferAsync());

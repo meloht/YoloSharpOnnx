@@ -24,7 +24,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
         protected override void DrawResults(Mat inputImage, List<DetectionResult> results)
         {
-            YoloUtils.DrawDetections(inputImage, results, _onnxModel.ColorPalette);
+            YoloDrawResultUtils.DrawDetections(inputImage, results, _onnxModel.ColorPalette);
         }
 
     }

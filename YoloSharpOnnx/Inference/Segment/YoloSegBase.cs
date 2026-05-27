@@ -225,11 +225,7 @@ namespace YoloSharpOnnx.Inference.Segment
 
         public void DrawSegments(Mat inputImage, List<SegResult> list)
         {
-            foreach (var item in list)
-            {
-                YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
-                DrawTransparentMask(inputImage, item.PackMask, item.Box, _onnxModel.ColorPalette[item.ClassId]);
-            }
+            YoloDrawResultUtils.DrawSegments(inputImage, list, _onnxModel.ColorPalette);
         }
 
         /// <summary>
@@ -317,61 +313,7 @@ namespace YoloSharpOnnx.Inference.Segment
             }
         }
 
-        /// <summary>
-        /// 直接绘制 PackedMask
-        /// </summary>
-        /// <param name="image"></param>
-        /// <param name="packedMask"></param>
-        /// <param name="box"></param>
-        /// <param name="color"></param>
-        /// <param name="alpha"></param>
-        public static unsafe void DrawTransparentMask(Mat image, byte[] packedMask, Rect box, Scalar color, float alpha = 0.4f)
-        {
-            Rect imageRect = new Rect(0, 0, image.Width, image.Height);
 
-            Rect roiRect = box & imageRect;
-
-            if (roiRect.Width <= 0 ||
-                roiRect.Height <= 0)
-                return;
-
-            using Mat roi = new Mat(image, roiRect);
-
-            int width = roiRect.Width;
-            int height = roiRect.Height;
-
-            long step = roi.Step();
-            byte* ptr = (byte*)roi.DataPointer;
-            int channels = roi.Channels();
-
-            fixed (byte* maskPtr = packedMask)
-            {
-                byte* mask = maskPtr;
-
-                for (int y = 0; y < height; y++)
-                {
-                    byte* rowPtr = ptr + y * step;
-
-                    int offset = y * width;
-
-                    for (int x = 0; x < width; x++)
-                    {
-                        int pixelIndex = offset + x;
-                        byte packed = mask[pixelIndex >> 3];
-                     
-                        if ((packed & (1 << (pixelIndex & 7))) == 0)
-                            continue;
-
-                        byte* pixel = rowPtr + x * channels;
-
-                        pixel[0] = (byte)(pixel[0] * (1f - alpha) + color.Val0 * alpha);
-                        pixel[1] = (byte)(pixel[1] * (1f - alpha) + color.Val1 * alpha);
-                        pixel[2] = (byte)(pixel[2] * (1f - alpha) + color.Val2 * alpha);
-
-                    }
-                }
-            }
-        }
 
         public IYoloProcessAsync<PreDetectResultBatch, SegResult> GetYoloProcessAsync()
         {
