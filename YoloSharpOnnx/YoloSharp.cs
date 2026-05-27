@@ -23,7 +23,7 @@ namespace YoloSharpOnnx
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
         private IYoloPose _yoloPose;
-        private IYoloObb _yoloObb;
+        private IYoloDetectCore<ObbResult, ObbBatchResult> _yoloObb;
         private ModelType _currentModelType;
 
         private bool disposedValue;
@@ -571,12 +571,12 @@ namespace YoloSharpOnnx
 
         public void DrawObb(Mat inputImage, List<ObbResult> list)
         {
-            _yoloObb.DrawObbs(inputImage, list);
+            _yoloObb.DrawDetections(inputImage, list);
         }
 
         public void DrawObbAndSave(Mat inputImage, List<ObbResult> list, string saveFileName)
         {
-            _yoloObb.DrawObbs(inputImage, list);
+            _yoloObb.DrawDetections(inputImage, list);
             Cv2.ImWrite(saveFileName, inputImage);
         }
 
@@ -584,13 +584,13 @@ namespace YoloSharpOnnx
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloObb.DrawObbs(img, list);
+            _yoloObb.DrawDetections(img, list);
         }
         public void DrawObbAndSave(string inputImage, List<ObbResult> list, string saveFileName)
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloObb.DrawObbs(img, list);
+            _yoloObb.DrawDetections(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
 

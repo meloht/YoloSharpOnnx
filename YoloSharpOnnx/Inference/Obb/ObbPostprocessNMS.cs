@@ -7,13 +7,14 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Obb.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Obb
 {
-    internal class ObbPostprocessNMS : IObbPostprocess
+    internal class ObbPostprocessNMS : IDetCorePostprocess<ObbResult>
     {
         private readonly LabelModel[] _labels;
         private readonly NmsDecode _nmsDecode;

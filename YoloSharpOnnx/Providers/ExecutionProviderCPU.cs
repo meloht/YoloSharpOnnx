@@ -53,7 +53,7 @@ namespace YoloSharpOnnx.Providers
             return new YoloPoseOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloObbOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }

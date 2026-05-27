@@ -90,7 +90,7 @@ namespace YoloSharpOnnx.Providers
             return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
         }

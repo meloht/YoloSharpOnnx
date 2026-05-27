@@ -37,7 +37,7 @@ namespace YoloSharpOnnx.Providers
 
         internal abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         internal abstract IYoloPose GetYoloPose(InferenceSession session, SessionOptions options, IPosePostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
-        internal abstract IYoloObb GetYoloObb(InferenceSession session, SessionOptions options, IObbPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
 
         internal abstract DeviceType GetDeviceType();
         private readonly Random _rand;
@@ -125,7 +125,7 @@ namespace YoloSharpOnnx.Providers
             return GetYoloPose(session, options, postprocess, preprocess, onnxModel);
         }
 
-        internal IYoloObb CreateYoloObb()
+        internal IYoloDetectCore<ObbResult, ObbBatchResult> CreateYoloObb()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -170,7 +170,7 @@ namespace YoloSharpOnnx.Providers
             return new PosePostprocessNMS(onnxModel, YoloConfiguration);
         }
 
-        private IObbPostprocess GetObbPostprocessor(OnnxModel onnxModel)
+        private IDetCorePostprocess<ObbResult> GetObbPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {

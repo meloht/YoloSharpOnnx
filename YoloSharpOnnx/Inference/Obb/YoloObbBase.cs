@@ -63,7 +63,8 @@ namespace YoloSharpOnnx.Inference.Obb
 
         private static ObbBatchResult BuildBatchResult(string imagePath, List<ObbResult> results, long timestamp)
         {
-            return new ObbBatchResult(imagePath, results, timestamp);
+            // return new ObbBatchResult(imagePath, results, timestamp);
+            return null;
         }
 
         protected override PreDetectResultBatch GetPreprocessImageBatchData(Mat inputImage, ImageBatchData imageBatchData, string imagePath)

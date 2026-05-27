@@ -21,7 +21,13 @@ namespace YoloSharpOnnx.Inference.DetectCore
 
         Task<TBatchResult[]> BatchRunAsyncPostSync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
+        TBatchResult[] BatchRun(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
+
+        Task<TBatchResult[]> BatchRunAsync(List<string> listImg, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
+
         IAsyncEnumerable<TBatchResult> BatchRunForeachSync(List<string> listImg);
+
+        IAsyncEnumerable<TBatchResult> BatchRunForeachAsync(List<string> listImg);
 
 
         IYoloProcessAsync<PreDetectResultBatch, TResult> GetYoloProcessAsync();
