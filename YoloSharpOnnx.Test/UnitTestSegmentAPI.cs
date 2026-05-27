@@ -66,7 +66,33 @@ namespace YoloSharpOnnx.Test
             var res2 = await yoloAsync.RunSegmentAsync(img);
             string ans2 = res2.Summary();
             Assert.Equal(Yolo26.Seg01, ans2);
+
+            await yoloAsync.CompleteAndCloseAsyncChannel();
         }
+
+        [Fact]
+        public async Task TestAsyncBatchChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgSegPaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                using Mat img = Cv2.ImRead(item);
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictSeg[item]);
+                await yoloAsync.RunSegmentAsync(img, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+        }
+
 
         [Fact]
         public void TestRunBatchSegDir()

@@ -83,9 +83,6 @@ namespace YoloSharpOnnx.Inference
                 return;
             }
 
-            // 如果你有 Clear() / Reset() 方法，建议这里调用
-            // item.Reset();
-
             Interlocked.Decrement(ref _usedCount);
 
             // 超过池容量 -> 直接销毁

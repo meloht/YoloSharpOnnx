@@ -8,12 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
-    internal class PosePostprocessNMS : IPosePostprocess
+    internal class PosePostprocessNMS : IDetCorePostprocess<PoseResult>
     {
         private readonly LabelModel[] _labels;
         private readonly NmsDecode _nmsDecode;

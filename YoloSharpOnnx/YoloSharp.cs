@@ -7,6 +7,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
@@ -18,11 +19,11 @@ namespace YoloSharpOnnx
 {
     public class YoloSharp : IDisposable
     {
-        private IYoloDetect _yoloDetect;
+        private IYoloDetectCore<DetectionResult, DetectionBatchResult> _yoloDetect;
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
-        private IYoloPose _yoloPose;
-        private IYoloObb _yoloObb;
+        private IYoloDetectCore<PoseResult, PoseBatchResult> _yoloPose;
+        private IYoloDetectCore<ObbResult, ObbBatchResult> _yoloObb;
         private ModelType _currentModelType;
 
         private bool disposedValue;
@@ -542,12 +543,12 @@ namespace YoloSharpOnnx
         #region DrawPose
         public void DrawPose(Mat inputImage, List<PoseResult> list)
         {
-            _yoloPose.DrawPoses(inputImage, list);
+            _yoloPose.DrawDetections(inputImage, list);
         }
 
         public void DrawPoseAndSave(Mat inputImage, List<PoseResult> list, string saveFileName)
         {
-            _yoloPose.DrawPoses(inputImage, list);
+            _yoloPose.DrawDetections(inputImage, list);
             Cv2.ImWrite(saveFileName, inputImage);
         }
 
@@ -555,13 +556,13 @@ namespace YoloSharpOnnx
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloPose.DrawPoses(img, list);
+            _yoloPose.DrawDetections(img, list);
         }
         public void DrawPoseAndSave(string inputImage, List<PoseResult> list, string saveFileName)
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloPose.DrawPoses(img, list);
+            _yoloPose.DrawDetections(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
         #endregion
@@ -570,12 +571,12 @@ namespace YoloSharpOnnx
 
         public void DrawObb(Mat inputImage, List<ObbResult> list)
         {
-            _yoloObb.DrawObbs(inputImage, list);
+            _yoloObb.DrawDetections(inputImage, list);
         }
 
         public void DrawObbAndSave(Mat inputImage, List<ObbResult> list, string saveFileName)
         {
-            _yoloObb.DrawObbs(inputImage, list);
+            _yoloObb.DrawDetections(inputImage, list);
             Cv2.ImWrite(saveFileName, inputImage);
         }
 
@@ -583,13 +584,13 @@ namespace YoloSharpOnnx
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloObb.DrawObbs(img, list);
+            _yoloObb.DrawDetections(img, list);
         }
         public void DrawObbAndSave(string inputImage, List<ObbResult> list, string saveFileName)
         {
             YoloValidation.ValidationImagePath(inputImage, YoloConfiguration);
             using Mat img = Cv2.ImRead(inputImage);
-            _yoloObb.DrawObbs(img, list);
+            _yoloObb.DrawDetections(img, list);
             Cv2.ImWrite(saveFileName, img);
         }
 

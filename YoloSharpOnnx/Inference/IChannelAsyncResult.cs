@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace YoloSharpOnnx.Inference
 {
-    internal interface IRunBatch<TResult, TBatchPreResult>
+    internal interface IChannelAsyncResult<T>
     {
-        List<TResult> RunBatch(TBatchPreResult preResult);
+        void Initialize(Guid guid, List<T> result, long timestamp);
     }
 }

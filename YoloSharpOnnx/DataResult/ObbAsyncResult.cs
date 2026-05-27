@@ -3,30 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using YoloSharpOnnx.Inference.DetectCore;
+using YoloSharpOnnx.Inference;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public class PoseBatchResult: IBatchResultInit<PoseResult>, IBatchResultItems<PoseResult>
+    public class ObbAsyncResult : IChannelAsyncResult<ObbResult>
     {
-        public string ImagePath { get; set; }
+        public Guid Guid { get; set; }
 
-        public List<PoseResult> Results { get; set; }
+        public List<ObbResult> Results { get; set; }
 
         /// <summary>
         /// DateTimeOffset.UtcNow.ToUnixTimeMilliseconds
         /// </summary>
         public long StartTimestamp { get; set; }
 
-
         public override string ToString()
         {
-            return $"Image:{Path.GetFileName(ImagePath)} Result:{Results.Summary()}";
+            return $"Guid:{Guid} Result:{Results.Summary()}";
         }
 
-        public void Initialize(string imagePath, List<PoseResult> results, long timestamp)
+        public void Initialize(Guid guid, List<ObbResult> results, long timestamp)
         {
-            this.ImagePath = imagePath;
+            this.Guid = guid;
             this.Results = results;
             this.StartTimestamp = timestamp;
         }

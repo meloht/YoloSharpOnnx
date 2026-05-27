@@ -163,15 +163,13 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
                     var c2 = candidates[j];
 
-                    // 如果需要多类别混合 NMS，可以注释掉下面这行（类内 NMS 则保留）
                     if (c1.ClassId != c2.ClassId) continue;
 
                     RotatedRect rect2 = ToCvRect(c2);
                     double area2 = (double)c2.Width * c2.Height;
 
                     // 计算两个旋转矩形的交集顶点
-                    Point2f[] intersectPoints;
-                    var intersectType = Cv2.RotatedRectangleIntersection(rect1, rect2, out intersectPoints);
+                    var intersectType = Cv2.RotatedRectangleIntersection(rect1, rect2, out Point2f[] intersectPoints);
 
                     if (intersectType == RectanglesIntersectTypes.None || intersectPoints == null || intersectPoints.Length < 3)
                     {
