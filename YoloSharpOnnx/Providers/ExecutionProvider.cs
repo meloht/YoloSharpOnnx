@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection.Emit;
 using System.Text;
+using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
@@ -30,7 +32,7 @@ namespace YoloSharpOnnx.Providers
 
         internal abstract SessionOptions BuildSessionOptions();
 
-        internal abstract IYoloDetect GetYoloDetector(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloDetectCore<DetectionResult,DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         internal abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
 
         internal abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
@@ -50,7 +52,7 @@ namespace YoloSharpOnnx.Providers
             YoloConfiguration = yoloConfig;
         }
 
-        internal IYoloDetect CreateYoloDetect()
+        internal IYoloDetectCore<DetectionResult, DetectionBatchResult> CreateYoloDetect()
         {
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
@@ -141,7 +143,7 @@ namespace YoloSharpOnnx.Providers
             return GetYoloObb(session, options, postprocess, preprocess, onnxModel);
         }
 
-        private IDetPostprocess GetDetPostprocessor(OnnxModel onnxModel)
+        private IDetCorePostprocess<DetectionResult> GetDetPostprocessor(OnnxModel onnxModel)
         {
             if (onnxModel.IsEndToEnd)
             {

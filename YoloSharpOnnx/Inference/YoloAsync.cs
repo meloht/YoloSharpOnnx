@@ -9,6 +9,7 @@ using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
@@ -23,7 +24,7 @@ namespace YoloSharpOnnx.Inference
         private Lazy<IYoloTaskAsync<PoseResult, PoseAsyncResult>> _yoloPoseAsync;
         private Lazy<IYoloTaskAsync<ObbResult, ObbAsyncResult>> _yoloObbAsync;
 
-        private IYoloDetect _yoloDetect;
+        private IYoloDetectCore<DetectionResult, DetectionBatchResult> _yoloDetect;
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
         private IYoloPose _yoloPose;
@@ -32,7 +33,7 @@ namespace YoloSharpOnnx.Inference
         private YoloConfig _yoloConfig;
         private ModelType _currentModelType;
 
-        public YoloAsync(IYoloDetect yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloPose yoloPose, IYoloObb yoloObb, YoloConfig yoloConfig, ModelType modelType)
+        public YoloAsync(IYoloDetectCore<DetectionResult, DetectionBatchResult> yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloPose yoloPose, IYoloObb yoloObb, YoloConfig yoloConfig, ModelType modelType)
         {
             _currentModelType = modelType;
             _yoloDetect = yoloDetect;

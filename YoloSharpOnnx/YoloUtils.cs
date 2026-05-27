@@ -10,7 +10,6 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace YoloSharpOnnx
 {
@@ -99,6 +98,37 @@ namespace YoloSharpOnnx
                 GetFiles(list, subDir, extSet);
             }
         }
+        public static void DrawDetections(Mat inputImage, List<DetectionResult> list, Scalar[] colorPalette)
+        {
+            foreach (var item in list)
+            {
+                DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, colorPalette[item.ClassId]);
+            }
+        }
+
+        public static void DrawObbs(Mat image, List<ObbResult> results, Scalar[] colorPalette)
+        {
+            foreach (var pred in results)
+            {
+                // 1. 实例化 OpenCV 旋转矩形
+                var color = colorPalette[pred.ClassId];
+                RotatedRect rotatedRect = new RotatedRect(pred.Center, new Size2f(pred.Width, pred.Height), pred.Angle);
+
+                // 2. 极其方便：直接获取旋转矩形的 4 个 Point2f 顶点
+                Point2f[] verticesF = rotatedRect.Points();
+                OpenCvSharp.Point[] vertices = new OpenCvSharp.Point[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    vertices[i] = new OpenCvSharp.Point((int)Math.Round(verticesF[i].X), (int)Math.Round(verticesF[i].Y));
+                }
+                int thickness = Math.Clamp((int)Math.Min(pred.Width, pred.Height) / 50, 1, 2);
+                // 3. 绘制多边形闭合线圈
+                Cv2.Polylines(image, [vertices], isClosed: true, color: color, thickness: thickness, lineType: LineTypes.AntiAlias);
+
+                // 4. 绘制文本标签（选在第一个顶点附近）
+                DrawLabel(image, pred.Confidence, pred.ClassName, vertices[0], (int)pred.Width, (int)pred.Height, color);
+            }
+        }
 
         public static void DrawDetections(Mat img, Rect box, float score, string className, Scalar color)
         {
@@ -143,16 +173,16 @@ namespace YoloSharpOnnx
             Cv2.PutText(img, label, new OpenCvSharp.Point(labelRect.X + padding, labelRect.Y + textSize.Height + padding), HersheyFonts.HersheySimplex, fontScale, Scalar.White, fontThick, LineTypes.AntiAlias);
         }
 
-        //public static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
-        //{
-        //    rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
-        //    if (rect.Width <= 0 || rect.Height <= 0) return;
+        public static void DrawTransparentRect(Mat img, Rect rect, Scalar color, double alpha)
+        {
+            rect = rect.Intersect(new Rect(0, 0, img.Width, img.Height));
+            if (rect.Width <= 0 || rect.Height <= 0) return;
 
-        //    using var roi = new Mat(img, rect);
-        //    using var overlay = new Mat(roi.Size(), roi.Type(), color);
+            using var roi = new Mat(img, rect);
+            using var overlay = new Mat(roi.Size(), roi.Type(), color);
 
-        //    Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
-        //}
+            Cv2.AddWeighted(overlay, alpha, roi, 1 - alpha, 0, roi);
+        }
 
         public static unsafe void DrawTransparentRectFast(Mat img, Rect rect, Scalar color, float alpha)
         {

@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    internal class DetPostprocessEndToEnd : IDetPostprocess
+    internal class DetPostprocessEndToEnd : IDetCorePostprocess<DetectionResult>
     {
         private readonly LabelModel[] _labels;
         private readonly YoloConfig _yoloConfig;

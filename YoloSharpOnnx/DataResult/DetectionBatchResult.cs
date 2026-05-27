@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YoloSharpOnnx.Inference.DetectCore;
 
 namespace YoloSharpOnnx.DataResult
 {
-    public class DetectionBatchResult 
+    public class DetectionBatchResult : IBatchResultInit<DetectionResult>, IBatchResultItems<DetectionResult>
     {
         public string ImagePath { get; set; }
 
@@ -15,19 +16,18 @@ namespace YoloSharpOnnx.DataResult
         /// </summary>
         public long StartTimestamp { get; set; }
 
-        public DetectionBatchResult(string imagePath, List<DetectionResult> results, long timestamp)
-        {
-            this.ImagePath = imagePath;
-            this.Results = results;
-            this.StartTimestamp = timestamp;
-        }
 
         public override string ToString()
         {
             return $"Image:{Path.GetFileName(ImagePath)} Result:{Results.Summary()}";
         }
 
-
+        public void Initialize(string imagePath, List<DetectionResult> results, long timestamp)
+        {
+            this.ImagePath = imagePath;
+            this.Results = results;
+            this.StartTimestamp = timestamp;
+        }
     }
 
 

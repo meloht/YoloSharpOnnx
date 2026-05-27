@@ -1,33 +1,32 @@
 ﻿using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
-using OpenCvSharp.Dnn;
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection.Emit;
+using System.Linq;
 using System.Text;
-using System.Threading.Channels;
+using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference.Classify.Models;
+using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 
-
-namespace YoloSharpOnnx.Inference.Detect
+namespace YoloSharpOnnx.Inference.DetectCore
 {
-    internal abstract class YoloDetectBase : OnnxInferenceCore<DetectionResult, PreDetectResultBatch, DetectionBatchResult>, IYoloProcessAsync<PreDetectResultBatch, DetectionResult>
+    internal abstract class YoloDetectCoreBase<TDetectionResult, TDetectionBatchResult> : OnnxInferenceCore<TDetectionResult, PreDetectResultBatch, TDetectionBatchResult>,
+        IYoloProcessAsync<PreDetectResultBatch, TDetectionResult>
+        where TDetectionBatchResult : class, IBatchResultInit<TDetectionResult>, IBatchResultItems<TDetectionResult>, new()
+
     {
-        protected readonly IDetPostprocess _postprocess;
+        protected readonly IDetCorePostprocess<TDetectionResult> _postprocess;
         protected readonly IDetPreprocess _preprocess;
         private bool disposedValue;
 
         protected abstract void DisposedSub();
         protected abstract OrtValue RunInferenceBatch(PreDetectResultBatch preResult);
+        protected abstract void DrawResults(Mat inputImage, List<TDetectionResult> results);
 
-        public YoloDetectBase(InferenceSession session, SessionOptions options, IDetPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+        public YoloDetectCoreBase(InferenceSession session, SessionOptions options, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
             : base(session, options, onnxModel, config)
         {
             _postprocess = postprocess;
@@ -48,7 +47,7 @@ namespace YoloSharpOnnx.Inference.Detect
         }
 
 
-        protected List<DetectionResult> PostProcessTime(OrtValue output0, PreDetectResult preDetect, SpeedResult speed)
+        protected List<TDetectionResult> PostProcessTime(OrtValue output0, PreDetectResult preDetect, SpeedResult speed)
         {
             _stopwatch.Restart();
             // 后处理
@@ -60,22 +59,22 @@ namespace YoloSharpOnnx.Inference.Detect
 
             return res;
         }
-        protected Task BatchPostProcess(DetectionBatchResult[] batchResults, int idx, OrtValue output0, string imagePath, long startTime, PreDetectResult preDetect,
-            IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        protected Task BatchPostProcess(TDetectionBatchResult[] batchResults, int idx, OrtValue output0, string imagePath, long startTime, PreDetectResult preDetect,
+            IBatchProcessCallback<TDetectionBatchResult> processCallback, Action<TDetectionBatchResult> receiveAction)
         {
             return Task.Run(() =>
-             {
-                 using (output0)
-                 {
-                     var result = _postprocess.PostProcessAsync(output0, preDetect);
-                     batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
-                 }
+            {
+                using (output0)
+                {
+                    var result = _postprocess.PostProcessAsync(output0, preDetect);
+                    batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
+                }
 
-                 _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
-             });
+                _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+            });
 
         }
-        protected override DetectionBatchResult PostprocessChannel(InferModel inferModel)
+        protected override TDetectionBatchResult PostprocessChannel(InferModel inferModel)
         {
             try
             {
@@ -91,7 +90,7 @@ namespace YoloSharpOnnx.Inference.Detect
             }
         }
 
-        protected override List<DetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
+        protected override List<TDetectionResult> RunBatchInfer(PreDetectResultBatch preResult)
         {
             bool isReturn = false;
             try
@@ -113,8 +112,8 @@ namespace YoloSharpOnnx.Inference.Detect
             }
 
         }
-        protected override Task RunBatchInfer(DetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime,
-            IBatchProcessCallback<DetectionBatchResult> processCallback, Action<DetectionBatchResult> receiveAction)
+        protected override Task RunBatchInfer(TDetectionBatchResult[] batchResults, int idx, PreDetectResultBatch item, long startTime,
+            IBatchProcessCallback<TDetectionBatchResult> processCallback, Action<TDetectionBatchResult> receiveAction)
         {
             bool isReturn = false;
             try
@@ -166,33 +165,31 @@ namespace YoloSharpOnnx.Inference.Detect
             return batchData;
         }
 
-        private static DetectionBatchResult BuildBatchResult(string imagePath, List<DetectionResult> results, long timestamp)
+        private static TDetectionBatchResult BuildBatchResult(string imagePath, List<TDetectionResult> results, long timestamp)
         {
-            return new DetectionBatchResult(imagePath, results, timestamp);
+            TDetectionBatchResult result = new TDetectionBatchResult();
+            result.Initialize(imagePath, results, timestamp);
+            return result;
         }
 
-        public List<DetectionResult> RunBatch(PreDetectResultBatch preResult)
+        public List<TDetectionResult> RunBatch(PreDetectResultBatch preResult)
         {
             return RunBatchInfer(preResult);
         }
-        protected override DetectionBatchResult PostprocessModel(PreDetectResultBatch preResult, long startTime)
+        protected override TDetectionBatchResult PostprocessModel(PreDetectResultBatch preResult, long startTime)
         {
             var res = BuildBatchResult(preResult.ImagePath, null, startTime);
             res.Results = RunBatchInfer(preResult);
             return res;
         }
 
-        public IYoloProcessAsync<PreDetectResultBatch, DetectionResult> GetYoloProcessAsync()
+        public IYoloProcessAsync<PreDetectResultBatch, TDetectionResult> GetYoloProcessAsync()
         {
             return this;
         }
-
-        public void DrawDetections(Mat inputImage, List<DetectionResult> list)
+        public void DrawDetections(Mat inputImage, List<TDetectionResult> list)
         {
-            foreach (var item in list)
-            {
-                YoloUtils.DrawDetections(inputImage, item.Box, item.Confidence, item.ClassName, _onnxModel.ColorPalette[item.ClassId]);
-            }
+            DrawResults(inputImage, list);
         }
 
         protected virtual void Dispose(bool disposing)

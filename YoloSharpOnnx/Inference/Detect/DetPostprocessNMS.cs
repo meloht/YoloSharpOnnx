@@ -7,13 +7,14 @@ using System.Reflection.Emit;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Detect
 {
-    internal class DetPostprocessNMS : IDetPostprocess
+    internal class DetPostprocessNMS : IDetCorePostprocess<DetectionResult>
     {
         private readonly LabelModel[] _labels;
         private readonly NmsDecode _nmsDecode;

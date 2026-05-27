@@ -7,6 +7,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Inference.Classify;
 using YoloSharpOnnx.Inference.Detect;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
@@ -18,7 +19,7 @@ namespace YoloSharpOnnx
 {
     public class YoloSharp : IDisposable
     {
-        private IYoloDetect _yoloDetect;
+        private IYoloDetectCore<DetectionResult, DetectionBatchResult> _yoloDetect;
         private IYoloClassify _yoloClassify;
         private IYoloSegment _yoloSegment;
         private IYoloPose _yoloPose;
