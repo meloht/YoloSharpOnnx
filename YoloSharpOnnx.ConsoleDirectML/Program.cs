@@ -212,7 +212,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
 
                 yolo.YoloConfiguration.BatchPoolSize = 80;
-                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+        
                 _stopwatch.Start();
                 var list = yolo.RunBatchObbDetect(dirObb, receiveAction: ReceiveProcess);
                 _stopwatch.Stop();
@@ -235,7 +235,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             {
 
                 yolo.YoloConfiguration.BatchPoolSize = 80;
-                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+  
                 _stopwatch.Start();
                 var list = yolo.RunBatchDetect(dir, receiveAction: ReceiveProcess);
                 _stopwatch.Stop();
@@ -280,7 +280,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(@"C:\code\model\yolo26n-seg.onnx", _deviceId)))
             {
                 yolo.YoloConfiguration.BatchPoolSize = 30;
-                //yolo.BatchDetectItemCompleted += Yolo_BatchDetectCompleted;
+     
                 _stopwatch.Start();
                 var list = yolo.RunBatchSegment(@"C:\code\model\coco128-seg\images\train2017", receiveAction: ReceiveProcess);
                 num = list.Length;
