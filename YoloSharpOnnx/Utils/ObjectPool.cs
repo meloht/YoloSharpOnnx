@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Utils
 {
     internal sealed class ObjectPool<T> : IDisposable where T : IDisposable
     {

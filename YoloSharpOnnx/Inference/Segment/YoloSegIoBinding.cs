@@ -11,6 +11,7 @@ using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Segment
 {

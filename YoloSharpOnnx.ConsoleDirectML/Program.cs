@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
+using YoloSharpOnnx.Utils;
 
 
 namespace YoloSharpOnnx.ConsoleDirectML

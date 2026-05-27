@@ -11,6 +11,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Pose
 {
@@ -22,7 +23,7 @@ namespace YoloSharpOnnx.Inference.Pose
         private readonly List<float> _scores = new List<float>();
         private readonly List<int> _classIds = new List<int>();
         private readonly List<int> _ids = new List<int>();
-        private readonly Lazy<ObjectPool<PostResultArray>> _postResultPool;
+        private readonly Lazy<ObjectPoolArr<PostResultArray>> _postResultPool;
 
         private readonly int _numAnchors;
         private readonly int _kCount;
@@ -35,7 +36,7 @@ namespace YoloSharpOnnx.Inference.Pose
             _kCount = onnx.KPTShape[0];//[17, 3]
             _kDim = onnx.KPTShape[1];
             _numAnchors = (int)onnx.OutputShape0[2];//[1,56,8400]
-            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForSegment, yoloConfig.BatchPoolSize, YoloUtils.ClearList));
+            _postResultPool = new Lazy<ObjectPoolArr<PostResultArray>>(() => new ObjectPoolArr<PostResultArray>(PostResultArray.CreateForSegment, yoloConfig.BatchPoolSize, YoloUtils.ClearList));
         }
 
         private List<PoseResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids)

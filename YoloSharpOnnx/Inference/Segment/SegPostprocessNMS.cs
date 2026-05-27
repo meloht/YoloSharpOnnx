@@ -10,6 +10,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 
 namespace YoloSharpOnnx.Inference.Segment
@@ -25,7 +26,7 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly List<int> _classIds = new List<int>();
         private readonly List<int> _ids = new List<int>();
 
-        private readonly Lazy<ObjectPool<PostResultArray>> _postResultPool;
+        private readonly Lazy<ObjectPoolArr<PostResultArray>> _postResultPool;
 
 
         public SegPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
@@ -33,7 +34,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _numAnchors = (int)onnx.OutputShape0[2];
             _classAtts = (int)onnx.OutputShape0[1] - _maskDim;//[1,116,8400] 116-32=84
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
-            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
+            _postResultPool = new Lazy<ObjectPoolArr<PostResultArray>>(() => new ObjectPoolArr<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
 
         }
 

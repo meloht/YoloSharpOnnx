@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Utils
 {
     public sealed class MatBufferPoolArr
     {
@@ -152,7 +152,7 @@ namespace YoloSharpOnnx.Inference
         }
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(_disposed, nameof(MatBufferPool));
+            ObjectDisposedException.ThrowIf(_disposed, nameof(MatBufferPoolArr));
         }
         public void Dispose()
         {

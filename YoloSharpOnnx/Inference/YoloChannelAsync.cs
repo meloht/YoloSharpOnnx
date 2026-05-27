@@ -10,6 +10,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference
 {
@@ -24,7 +25,7 @@ namespace YoloSharpOnnx.Inference
 
         private ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>> _concurrentDict;
 
-        protected readonly Lazy<ObjectPool<PreDetectChannelData<TAsyncResult, TBatchPreResult>>> _preChannelPool;
+        protected readonly Lazy<ObjectPoolArr<PreDetectChannelData<TAsyncResult, TBatchPreResult>>> _preChannelPool;
 
         private ValueTask _inferTask;
         private volatile bool _channelClosed = false;
@@ -36,7 +37,7 @@ namespace YoloSharpOnnx.Inference
             _yoloProcessAsync = yoloProcessAsync;
             _yoloProcessAsync.InitBufferPool(yoloConfig.BatchPoolSize);
 
-            _preChannelPool = new Lazy<ObjectPool<PreDetectChannelData<TAsyncResult, TBatchPreResult>>>(() => new ObjectPool<PreDetectChannelData<TAsyncResult, TBatchPreResult>>(() => new PreDetectChannelData<TAsyncResult, TBatchPreResult>(), yoloConfig.BatchPoolSize));
+            _preChannelPool = new Lazy<ObjectPoolArr<PreDetectChannelData<TAsyncResult, TBatchPreResult>>>(() => new ObjectPoolArr<PreDetectChannelData<TAsyncResult, TBatchPreResult>>(() => new PreDetectChannelData<TAsyncResult, TBatchPreResult>(), yoloConfig.BatchPoolSize));
 
             _concurrentDict = new ConcurrentDictionary<Guid, TaskCompletionSource<List<TResult>>>();
             var ChannelOptions = YoloUtils.GetChannelOptions(yoloConfig.BatchPoolSize);

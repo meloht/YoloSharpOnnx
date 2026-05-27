@@ -10,6 +10,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Classify
 {

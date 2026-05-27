@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -19,7 +20,7 @@ namespace YoloSharpOnnx.Inference.Segment
         protected readonly LabelModel[] _labels;
         protected readonly YoloConfig _yoloConfig;
         protected readonly YoloSegDecode _yoloSegDecode;
-        protected readonly Lazy<ObjectPool<YoloSegDecode>> _segDecodePool;
+        protected readonly Lazy<ObjectPoolArr<YoloSegDecode>> _segDecodePool;
         protected const float _threshold = 0.5f;
         protected int _inputSizeW;
         protected int _inputSizeH;
@@ -42,7 +43,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _hw = _protoH * _protoW;
 
             _yoloSegDecode = new YoloSegDecode(onnx, yoloConfig);
-            _segDecodePool = new Lazy<ObjectPool<YoloSegDecode>>(() => new ObjectPool<YoloSegDecode>(() => new YoloSegDecode(onnx, yoloConfig), yoloConfig.BatchPoolSize));
+            _segDecodePool = new Lazy<ObjectPoolArr<YoloSegDecode>>(() => new ObjectPoolArr<YoloSegDecode>(() => new YoloSegDecode(onnx, yoloConfig), yoloConfig.BatchPoolSize));
         }
 
         protected Mat GetMaskFromProto(ReadOnlySpan<float> output1)

@@ -10,6 +10,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.DetectCore
 {
