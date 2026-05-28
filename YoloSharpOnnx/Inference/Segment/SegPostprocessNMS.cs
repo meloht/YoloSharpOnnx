@@ -4,6 +4,7 @@ using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -37,7 +38,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _postResultPool = new Lazy<ObjectPoolArr<PostResultArray>>(() => new ObjectPoolArr<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
 
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult,
             List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids, YoloSegDecode segDecode)
         {
@@ -76,7 +77,7 @@ namespace YoloSharpOnnx.Inference.Segment
             segDecode.Decode(results, coeffMatList, output1, preResult);
             return results;
         }
-
+   
         public List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
 

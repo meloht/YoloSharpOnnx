@@ -4,6 +4,7 @@ using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
@@ -30,7 +31,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
             _postResultPool = new Lazy<ObjectPoolArr<PostResultArray>>(() => new ObjectPoolArr<PostResultArray>(PostResultArray.CreateForDetect, yoloConfig.BatchPoolSize, YoloUtils.ClearList));
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<DetectionResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds)
         {
 
@@ -71,6 +72,7 @@ namespace YoloSharpOnnx.Inference.Detect
                 _postResultPool.Value.Return(arr);
             }
         }
+
         public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
         {
             _boxes.Clear();

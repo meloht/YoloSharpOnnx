@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -24,6 +25,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _paddingColor = new Scalar(114, 114, 114);
             _yoloConfig = yoloConfig;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PreDetectResult PreprocessImage(Mat inputImage,Mat resizedImg, FixedBuffer buffer)
         {
 

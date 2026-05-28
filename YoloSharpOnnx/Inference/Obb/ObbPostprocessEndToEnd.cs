@@ -3,6 +3,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -31,6 +32,7 @@ namespace YoloSharpOnnx.Inference.Obb
         {
 
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<ObbResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
             var detections = new List<ObbResult>();

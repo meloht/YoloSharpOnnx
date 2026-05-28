@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -34,8 +35,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
             _classCount = onnx.Labels.Length;
             _yoloConfig = yoloConfig;
         }
-
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int[] Decode(ReadOnlySpan<float> output0, PreDetectResult preResult, List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids = null)
         {
             for (int i = 0; i < _numAnchors; i++)
@@ -91,7 +91,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
             }
             return indices;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
         public List<ObbResult> Decode(ReadOnlySpan<float> output0, PreDetectResult preResult, List<ObbResult> obbResults, LabelModel[] labels)
         {
@@ -136,7 +136,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
             return ApplyRotatedNms(obbResults);
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<ObbResult> ApplyRotatedNms(List<ObbResult> candidates)
         {
             // 按照得分降序排列
@@ -190,7 +190,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
             return results;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static RotatedRect ToCvRect(ObbResult box)
         {
             return new RotatedRect(box.Center, new Size2f(box.Width, box.Height), box.Angle);

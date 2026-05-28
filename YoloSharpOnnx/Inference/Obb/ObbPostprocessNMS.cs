@@ -3,6 +3,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -43,7 +44,7 @@ namespace YoloSharpOnnx.Inference.Obb
         {
             obbList.Results?.Clear();
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<ObbResult> PostProcessBase(OrtValue outputValue, PreDetectResult preResult, List<ObbResult> boxes)
         {
             var ortSpan = outputValue.GetTensorDataAsSpan<float>();//[1,56,8400]

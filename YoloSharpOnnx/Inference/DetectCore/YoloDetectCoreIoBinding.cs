@@ -4,6 +4,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -41,7 +42,7 @@ namespace YoloSharpOnnx.Inference.DetectCore
             _outputFixedBuffer.Dispose();
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);
@@ -61,7 +62,7 @@ namespace YoloSharpOnnx.Inference.DetectCore
             //using var output = results[0];
 
         }
-
+      
         public List<TDetectionResult> Run(Mat inputImage)
         {
             // 预处理图像

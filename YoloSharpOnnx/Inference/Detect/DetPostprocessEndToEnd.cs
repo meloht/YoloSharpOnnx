@@ -2,6 +2,7 @@
 using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
@@ -24,6 +25,7 @@ namespace YoloSharpOnnx.Inference.Detect
             _rowCount = (int)onnx.OutputShape0[1];//[1,300,6]
             _colCount = (int)onnx.OutputShape0[2];//[1,300,6]
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
             var detections = new List<DetectionResult>();
@@ -59,7 +61,7 @@ namespace YoloSharpOnnx.Inference.Detect
 
             return detections;
         }
-
+      
         public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
         {
             return PostProcess(outputValue, preResult);
