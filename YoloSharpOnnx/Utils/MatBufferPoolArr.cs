@@ -149,6 +149,7 @@ namespace YoloSharpOnnx.Utils
                 _pool[i]?.Dispose();
                 _pool[i] = null;
             }
+            _usedCount = 0;
         }
         private void ThrowIfDisposed()
         {
