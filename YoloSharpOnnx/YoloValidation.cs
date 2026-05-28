@@ -61,40 +61,40 @@ namespace YoloSharpOnnx
 
         }
 
-        public static void ValidationDetectModelType(ModelType currentModelType)
+        public static void ValidationDetectModelType(YoloTaskType currentModelType)
         {
-            if (currentModelType != ModelType.ObjectDetection)
+            if (currentModelType != YoloTaskType.ObjectDetection)
             {
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run detect task");
             }
         }
 
-        public static void ValidationClsModelType(ModelType currentModelType)
+        public static void ValidationClsModelType(YoloTaskType currentModelType)
         {
-            if (currentModelType != ModelType.Classification)
+            if (currentModelType != YoloTaskType.Classification)
             {
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run classify task");
             }
         }
 
-        public static void ValidationSegModelType(ModelType currentModelType)
+        public static void ValidationSegModelType(YoloTaskType currentModelType)
         {
-            if (currentModelType != ModelType.Segmentation)
+            if (currentModelType != YoloTaskType.Segmentation)
             {
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run segment task");
             }
         }
 
-        public static void ValidationPoseModelType(ModelType currentModelType)
+        public static void ValidationPoseModelType(YoloTaskType currentModelType)
         {
-            if (currentModelType != ModelType.PoseEstimation)
+            if (currentModelType != YoloTaskType.PoseEstimation)
             {
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run pose task");
             }
         }
-        public static void ValidationObbModelType(ModelType currentModelType)
+        public static void ValidationObbModelType(YoloTaskType currentModelType)
         {
-            if (currentModelType != ModelType.ObbDetection)
+            if (currentModelType != YoloTaskType.ObbDetection)
             {
                 throw new InvalidOperationException($"Current YOLO Model Task is {currentModelType.GetDescription()}, cannot run obb task");
             }

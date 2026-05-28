@@ -9,7 +9,7 @@ namespace YoloSharpOnnx
     {
         private const float _defaultConfidence = 0.3f;
         private const float _defaultIoU = 0.4f;
-        private int _batchPoolSize = 30;
+        private int _batchPoolSize = 60;
         private float _confidence = _defaultConfidence;
         private float _iou = _defaultIoU;
         private int _asyncChannelTimeout = 5000;

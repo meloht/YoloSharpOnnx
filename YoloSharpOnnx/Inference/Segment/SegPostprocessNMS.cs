@@ -4,12 +4,14 @@ using OpenCvSharp.Dnn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 
 namespace YoloSharpOnnx.Inference.Segment
@@ -25,7 +27,7 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly List<int> _classIds = new List<int>();
         private readonly List<int> _ids = new List<int>();
 
-        private readonly Lazy<ObjectPool<PostResultArray>> _postResultPool;
+        private readonly Lazy<ObjectPoolArr<PostResultArray>> _postResultPool;
 
 
         public SegPostprocessNMS(OnnxModel onnx, YoloConfig yoloConfig) : base(onnx, yoloConfig)
@@ -33,10 +35,10 @@ namespace YoloSharpOnnx.Inference.Segment
             _numAnchors = (int)onnx.OutputShape0[2];
             _classAtts = (int)onnx.OutputShape0[1] - _maskDim;//[1,116,8400] 116-32=84
             _nmsDecode = new NmsDecode(onnx, yoloConfig);
-            _postResultPool = new Lazy<ObjectPool<PostResultArray>>(() => new ObjectPool<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
+            _postResultPool = new Lazy<ObjectPoolArr<PostResultArray>>(() => new ObjectPoolArr<PostResultArray>(PostResultArray.CreateForSegment,yoloConfig.BatchPoolSize, YoloUtils.ClearList));
 
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<SegResult> PostProcessBase(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult,
             List<Rect> boxes, List<float> scores, List<int> classIds, List<int> ids, YoloSegDecode segDecode)
         {
@@ -75,7 +77,7 @@ namespace YoloSharpOnnx.Inference.Segment
             segDecode.Decode(results, coeffMatList, output1, preResult);
             return results;
         }
-
+   
         public List<SegResult> PostProcessAsync(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult)
         {
 

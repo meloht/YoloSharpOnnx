@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Utils
 {
     public class DisposableList<T> : List<T>, IDisposableReadOnlyCollection<T> where T : IDisposable
     {

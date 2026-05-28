@@ -34,10 +34,13 @@ namespace YoloSharpOnnx.Models
 
         public DeviceType DeviceType { get; set; }
 
-        public ModelType ModelType { get; set; }
+        public YoloTaskType TaskType { get; set; }
 
         public int[] KPTShape { get; set; }
 
         public string[][] KPTNames { get; set; }
+
+        public ModelType ModelType { get; set; }
+
     }
 }

@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Channels;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Providers;
 using YoloSharpOnnx.TestCommon;
+using YoloSharpOnnx.Utils;
 
 
 namespace YoloSharpOnnx.ConsoleDirectML
@@ -22,12 +22,12 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-            TestBatchInfer();
+            //TestBatchInfer();
             //TestBatchInferObb();
             //TestBatchInferSeg();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            //TestInferPerf();
+            TestInferPerf();
            // _ = TestInferBatchAsync();
             //TestInferCls();
             //TestInfer();
@@ -47,7 +47,7 @@ namespace YoloSharpOnnx.ConsoleDirectML
             model.InputSizeInBytes = 1280 * 1280 * 3 * sizeof(float);
             model.InputShape = [1, 3, 1280, 1280];
 
-            MatBufferPool bufferPool = new MatBufferPool(10, model);
+            MatBufferPoolArr bufferPool = new MatBufferPoolArr(10, model);
             ImageBatchData[] arr = new ImageBatchData[20];
             for (int i = 0; i < 20; i++)
             {

@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Utils
 {
-    public sealed class MatBufferPool : IDisposable
+    public sealed class MatBufferPool: IDisposable
     {
         /// <summary>
         /// 实际缓存池

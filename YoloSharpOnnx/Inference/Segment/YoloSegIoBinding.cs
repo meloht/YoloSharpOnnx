@@ -4,6 +4,7 @@ using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
@@ -11,6 +12,7 @@ using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -47,7 +49,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _outputFixedBuffer0.Dispose();
             _outputFixedBuffer1.Dispose();
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RunInference()
         {
             _binding.BindInput(_onnxModel.InputName, _inputOrtValue);

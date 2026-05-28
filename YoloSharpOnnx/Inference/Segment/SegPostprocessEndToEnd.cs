@@ -11,6 +11,7 @@ using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.Segment
 {
@@ -27,7 +28,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _boxAttrs = _classAtts - _maskDim;//38-32=6
            
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<SegResult> PostProcess(OrtValue outputValue0, OrtValue outputValue1, PreDetectResult preResult, YoloSegDecode segDecode)
         {
             List<SegResult> results = new List<SegResult>();

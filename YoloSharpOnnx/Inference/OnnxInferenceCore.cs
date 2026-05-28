@@ -11,6 +11,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
+using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference
 {
@@ -27,13 +28,13 @@ namespace YoloSharpOnnx.Inference
         protected readonly Stopwatch _stopwatch;
 
         private readonly object _detectLock = new();
-        protected MatBufferPool _matPool;
+        protected MatBufferPoolArr _matPool;
         protected readonly Mat _resizedImg;
         private int _batchPoolSize = 0;
         protected YoloConfig _config;
 
-        protected readonly Lazy<ObjectPool<TBatchPreResult>> _preResultPool;
-        protected readonly Lazy<ObjectPool<InferModel>> _inferModelPool;
+        protected readonly Lazy<ObjectPoolArr<TBatchPreResult>> _preResultPool;
+        protected readonly Lazy<ObjectPoolArr<InferModel>> _inferModelPool;
 
         protected abstract List<TResult> RunBatchInfer(TBatchPreResult preResult);
 
@@ -61,8 +62,8 @@ namespace YoloSharpOnnx.Inference
             _inputOrtValue = OrtValue.CreateTensorValueWithData(OrtMemoryInfo.DefaultInstance, TensorElementType.Float,
                _onnxModel.InputShape, _inputFixedBuffer.Address, _onnxModel.InputSizeInBytes);
 
-            _preResultPool = new Lazy<ObjectPool<TBatchPreResult>>(() => new ObjectPool<TBatchPreResult>(() => new TBatchPreResult(), _config.BatchPoolSize));
-            _inferModelPool = new Lazy<ObjectPool<InferModel>>(() => new ObjectPool<InferModel>(() => new InferModel(), _config.BatchPoolSize));
+            _preResultPool = new Lazy<ObjectPoolArr<TBatchPreResult>>(() => new ObjectPoolArr<TBatchPreResult>(() => new TBatchPreResult(), _config.BatchPoolSize));
+            _inferModelPool = new Lazy<ObjectPoolArr<InferModel>>(() => new ObjectPoolArr<InferModel>(() => new InferModel(), _config.BatchPoolSize));
         }
 
       
@@ -87,7 +88,7 @@ namespace YoloSharpOnnx.Inference
                 {
                     if (_matPool == null)
                     {
-                        _matPool = new MatBufferPool(batchPoolSize, _onnxModel);
+                        _matPool = new MatBufferPoolArr(batchPoolSize, _onnxModel);
                     }
                 }
             }

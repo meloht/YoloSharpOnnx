@@ -12,30 +12,27 @@ using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.OutputDecode;
 using YoloSharpOnnx.Models;
 
-namespace YoloSharpOnnx.Inference.Obb
+namespace YoloSharpOnnx.Inference.Detect
 {
-    internal class ObbPostprocessEndToEnd : IDetCorePostprocess<ObbResult>
+    internal class DetPostprocessRTDETR: IDetCorePostprocess<DetectionResult>
     {
         private readonly LabelModel[] _labels;
         private readonly YoloConfig _yoloConfig;
         private readonly int _rowCount;
         private readonly int _colCount;
-        public ObbPostprocessEndToEnd(OnnxModel onnx, YoloConfig yoloConfig)
+        private readonly OnnxModel _onnx;
+        public DetPostprocessRTDETR(OnnxModel onnx, YoloConfig yoloConfig)
         {
             _labels = onnx.Labels;
             _yoloConfig = yoloConfig;
-            _rowCount = (int)onnx.OutputShape0[1];//[1,300,7]
-            _colCount = (int)onnx.OutputShape0[2];//[1,300,7]
-        }
-
-        public void Dispose()
-        {
-
+            _rowCount = (int)onnx.OutputShape0[1];//[1,300,6]
+            _colCount = (int)onnx.OutputShape0[2];//[1,300,6]
+            _onnx = onnx;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private List<ObbResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
+        private List<DetectionResult> PostProcess(OrtValue outputValue, PreDetectResult preResult)
         {
-            var detections = new List<ObbResult>();
+            var detections = new List<DetectionResult>();
 
             // 2. 使用 Span 直接访问内存，避免产生垃圾回收
             ReadOnlySpan<float> data = outputValue.GetTensorDataAsSpan<float>();
@@ -52,21 +49,14 @@ namespace YoloSharpOnnx.Inference.Obb
 
                 // 3. 提取坐标并还原到原始图像尺寸
 
-                // 读取7个基础属性
-                float cx = (data[offset + 0] - preResult.PadX) / preResult.Scale;
-                float cy = (data[offset + 1] - preResult.PadY) / preResult.Scale;
-                float w = data[offset + 2] / preResult.Scale;
-                float h = data[offset + 3] / preResult.Scale;
+                // 读取6个基础属性
+                Rect box = EndToEndDecode.RTDETRDecode(data, offset, _onnx.InputWidth, _onnx.InputHeight, preResult);
 
                 int labelId = (int)data[offset + 5];
-                float angle = data[offset + 6];
 
-                detections.Add(new ObbResult()
+                detections.Add(new DetectionResult()
                 {
-                    Center = new Point2f(cx, cy),
-                    Width = w,
-                    Height = h,
-                    Angle = YoloUtils.ToDegree(angle),
+                    Box = box,
                     Confidence = confidence,
                     ClassId = labelId,
                     ClassName = _labels[labelId].Name
@@ -75,14 +65,20 @@ namespace YoloSharpOnnx.Inference.Obb
 
             return detections;
         }
-        public List<ObbResult> PostProcessAsync(OrtValue output, PreDetectResult preResult)
+
+        public List<DetectionResult> PostProcessAsync(OrtValue outputValue, PreDetectResult preResult)
         {
-            return PostProcess(output, preResult);
+            return PostProcess(outputValue, preResult);
         }
 
-        public List<ObbResult> PostProcessSync(OrtValue output, PreDetectResult preResult)
+        public List<DetectionResult> PostProcessSync(OrtValue outputValue, PreDetectResult preResult)
         {
-            return PostProcess(output, preResult);
+            return PostProcess(outputValue, preResult);
+        }
+
+        public void Dispose()
+        {
+
         }
     }
 }

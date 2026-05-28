@@ -9,7 +9,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 
 namespace YoloSharpOnnx.Inference.OutputDecode
 {
-    internal class EndToEndDecode
+    internal static class EndToEndDecode
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Rect Decode(ReadOnlySpan<float> output0, int offset, PreDetectResult preResult)
@@ -31,6 +31,22 @@ namespace YoloSharpOnnx.Inference.OutputDecode
 
             return box;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Rect RTDETRDecode(ReadOnlySpan<float> output0, int offset, int inputWidth, int inputHeight, PreDetectResult preResult)
+        {
+            float cx = output0[offset + 0] * inputWidth;
+            float cy = output0[offset + 1] * inputHeight;
+            float w = output0[offset + 2] * inputWidth;
+            float h = output0[offset + 3] * inputHeight;
 
+            int x = (int)((cx - w * 0.5f - preResult.PadX) / preResult.Scale);
+            int y = (int)((cy - h * 0.5f - preResult.PadY) / preResult.Scale);
+            int width = (int)(w / preResult.Scale);
+            int height = (int)(h / preResult.Scale);
+
+            Rect box = new Rect(x, y, width, height);
+
+            return box;
+        }
     }
 }

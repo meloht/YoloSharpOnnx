@@ -7,7 +7,7 @@ using System.Text;
 
 namespace YoloSharpOnnx
 {
-    public enum ModelType
+    public enum YoloTaskType
     {
         [EnumMember(Value = "classify")]
         Classification,

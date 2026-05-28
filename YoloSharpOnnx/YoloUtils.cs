@@ -99,7 +99,28 @@ namespace YoloSharpOnnx
         }
 
 
+        public static float[] Xywh2Xyxy(float[] x)
+        {
+            if (x.Length != 4)
+                throw new ArgumentException($"input length expected 4 but got {x.Length}");
 
+            float[] y = new float[4];
+
+            float cx = x[0];
+            float cy = x[1];
+            float halfW = x[2] / 2f;
+            float halfH = x[3] / 2f;
+
+            // x1, y1
+            y[0] = cx - halfW;
+            y[1] = cy - halfH;
+
+            // x2, y2
+            y[2] = cx + halfW;
+            y[3] = cy + halfH;
+
+            return y;
+        }
         public static unsafe void MatToBytes(Mat mat, byte[] buffer)
         {
             int width = mat.Cols;

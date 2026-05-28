@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YoloSharpOnnx.Inference
+namespace YoloSharpOnnx.Utils
 {
     public unsafe sealed class FixedBuffer : IDisposable
     {

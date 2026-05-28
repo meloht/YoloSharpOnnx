@@ -31,9 +31,9 @@ namespace YoloSharpOnnx.Inference
         private IYoloDetectCore<ObbResult, ObbBatchResult> _yoloObb;
 
         private YoloConfig _yoloConfig;
-        private ModelType _currentModelType;
+        private YoloTaskType _currentModelType;
 
-        public YoloAsync(IYoloDetectCore<DetectionResult, DetectionBatchResult> yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloDetectCore<PoseResult, PoseBatchResult> yoloPose, IYoloDetectCore<ObbResult, ObbBatchResult> yoloObb, YoloConfig yoloConfig, ModelType modelType)
+        public YoloAsync(IYoloDetectCore<DetectionResult, DetectionBatchResult> yoloDetect, IYoloClassify yoloClassify, IYoloSegment yoloSegment, IYoloDetectCore<PoseResult, PoseBatchResult> yoloPose, IYoloDetectCore<ObbResult, ObbBatchResult> yoloObb, YoloConfig yoloConfig, YoloTaskType modelType)
         {
             _currentModelType = modelType;
             _yoloDetect = yoloDetect;
