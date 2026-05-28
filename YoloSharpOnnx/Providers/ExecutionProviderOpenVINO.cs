@@ -90,6 +90,7 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = new SessionOptions();
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
+            options.EnableMemoryPattern = true;
             options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
             return options;
         }

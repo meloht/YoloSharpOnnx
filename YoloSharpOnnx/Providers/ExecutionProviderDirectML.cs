@@ -47,6 +47,7 @@ namespace YoloSharpOnnx.Providers
             sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             sessionOptions.AppendExecutionProvider_DML(this._deviceId);
             sessionOptions.EnableCpuMemArena = true;
+            sessionOptions.EnableMemoryPattern = true;
 
             return sessionOptions;
         }
