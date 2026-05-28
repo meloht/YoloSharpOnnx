@@ -61,8 +61,8 @@ namespace YoloSharpOnnx.Inference.OutputDecode
                 float w = output0[_numAnchors2 + i];
                 float h = output0[_numAnchors3 + i];
 
-                int x = (int)((cx - w / 2f) / preResult.Scale);
-                int y = (int)((cy - h / 2f) / preResult.Scale);
+                int x = (int)((cx - w * 0.5f) / preResult.Scale);
+                int y = (int)((cy - h * 0.5f) / preResult.Scale);
                 int width = (int)(w / preResult.Scale);
                 int height = (int)(h / preResult.Scale);
 

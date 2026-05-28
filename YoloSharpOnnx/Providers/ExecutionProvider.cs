@@ -18,21 +18,24 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Providers
 {
-    public abstract class ExecutionProvider 
+    public abstract class ExecutionProvider
     {
         private const string End2End = "end2end";
         private const string OnnxNames = "names";
         private const string ModelTask = "task";
         private const string kpt_shape = "kpt_shape";
         private const string kpt_names = "kpt_names";
+        private const string md_description = "description";
+        private const string md_yolo_model = "yolo";
+        private const string md_rtdetr_model = "rt-detr";
 
         public string ModelPath { get; set; }
         protected YoloConfig YoloConfiguration { get; private set; }
-        internal ModelType CurrentModelType { get; private set; }
+        internal YoloTaskType CurrentTaskType { get; private set; }
 
         internal abstract SessionOptions BuildSessionOptions();
 
-        internal abstract IYoloDetectCore<DetectionResult,DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
         internal abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
 
         internal abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
@@ -57,8 +60,8 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentModelType = onnxModel.ModelType;
-            if (CurrentModelType != ModelType.ObjectDetection)
+            CurrentTaskType = onnxModel.TaskType;
+            if (CurrentTaskType != YoloTaskType.ObjectDetection)
             {
                 session.Dispose();
                 options.Dispose();
@@ -76,8 +79,8 @@ namespace YoloSharpOnnx.Providers
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
 
-            CurrentModelType = onnxModel.ModelType;
-            if (CurrentModelType != ModelType.Classification)
+            CurrentTaskType = onnxModel.TaskType;
+            if (CurrentTaskType != YoloTaskType.Classification)
             {
                 session.Dispose();
                 options.Dispose();
@@ -94,8 +97,8 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentModelType = onnxModel.ModelType;
-            if (CurrentModelType != ModelType.Segmentation)
+            CurrentTaskType = onnxModel.TaskType;
+            if (CurrentTaskType != YoloTaskType.Segmentation)
             {
                 session.Dispose();
                 options.Dispose();
@@ -112,8 +115,8 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentModelType = onnxModel.ModelType;
-            if (CurrentModelType != ModelType.PoseEstimation)
+            CurrentTaskType = onnxModel.TaskType;
+            if (CurrentTaskType != YoloTaskType.PoseEstimation)
             {
                 session.Dispose();
                 options.Dispose();
@@ -130,8 +133,8 @@ namespace YoloSharpOnnx.Providers
             SessionOptions options = BuildSessionOptions();
             InferenceSession session = new InferenceSession(ModelPath, options);
             OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentModelType = onnxModel.ModelType;
-            if (CurrentModelType != ModelType.ObbDetection)
+            CurrentTaskType = onnxModel.TaskType;
+            if (CurrentTaskType != YoloTaskType.ObbDetection)
             {
                 session.Dispose();
                 options.Dispose();
@@ -145,6 +148,10 @@ namespace YoloSharpOnnx.Providers
 
         private IDetCorePostprocess<DetectionResult> GetDetPostprocessor(OnnxModel onnxModel)
         {
+            if(onnxModel.ModelType == ModelType.RTDETR)
+            {
+                return new DetPostprocessRTDETR(onnxModel, YoloConfiguration);
+            }
             if (onnxModel.IsEndToEnd)
             {
                 return new DetPostprocessEndToEnd(onnxModel, YoloConfiguration);
@@ -233,13 +240,17 @@ namespace YoloSharpOnnx.Providers
             {
                 isEndToEnd = bool.Parse(metaData[End2End]);
             }
+            model.IsEndToEnd = isEndToEnd;
             if (metaData.ContainsKey(ModelTask))
             {
-                model.ModelType = GetModelType(metaData[ModelTask].Trim());
+                model.TaskType = GetYoloTaskType(metaData[ModelTask].Trim());
             }
-            model.IsEndToEnd = isEndToEnd;
+            if (metaData.ContainsKey(md_description))
+            {
+                model.ModelType = GetModelType(metaData[md_description]);
+            }
 
-            if (model.ModelType != ModelType.Classification)
+            if (model.TaskType != YoloTaskType.Classification)
             {
                 model.ColorPalette = GenerateColorPalette(model.Labels.Length);
             }
@@ -256,27 +267,27 @@ namespace YoloSharpOnnx.Providers
             return model;
         }
 
-        private ModelType GetModelType(string task)
+        private static YoloTaskType GetYoloTaskType(string task)
         {
-            if (ModelType.ObjectDetection.GetDescription() == task)
+            if (YoloTaskType.ObjectDetection.GetDescription() == task)
             {
-                return ModelType.ObjectDetection;
+                return YoloTaskType.ObjectDetection;
             }
-            else if (ModelType.Classification.GetDescription() == task)
+            else if (YoloTaskType.Classification.GetDescription() == task)
             {
-                return ModelType.Classification;
+                return YoloTaskType.Classification;
             }
-            else if (ModelType.ObbDetection.GetDescription() == task)
+            else if (YoloTaskType.ObbDetection.GetDescription() == task)
             {
-                return ModelType.ObbDetection;
+                return YoloTaskType.ObbDetection;
             }
-            else if (ModelType.Segmentation.GetDescription() == task)
+            else if (YoloTaskType.Segmentation.GetDescription() == task)
             {
-                return ModelType.Segmentation;
+                return YoloTaskType.Segmentation;
             }
-            else if (ModelType.PoseEstimation.GetDescription() == task)
+            else if (YoloTaskType.PoseEstimation.GetDescription() == task)
             {
-                return ModelType.PoseEstimation;
+                return YoloTaskType.PoseEstimation;
             }
             else
             {
@@ -284,7 +295,20 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        private LabelModel[] GetModelLabels(InferenceSession session)
+        private static ModelType GetModelType(string des)
+        {
+            if (des.Contains(md_yolo_model))
+            {
+                return ModelType.YOLO;
+            }
+            else if (des.Contains(md_rtdetr_model))
+            {
+                return ModelType.RTDETR;
+            }
+            return ModelType.YOLO; // default to YOLO if not specified
+        }
+
+        private static LabelModel[] GetModelLabels(InferenceSession session)
         {
             var metaData = session.ModelMetadata.CustomMetadataMap;
             var onnxLabelData = metaData[OnnxNames];
@@ -303,7 +327,7 @@ namespace YoloSharpOnnx.Providers
         /// </summary>
         /// <param name="kptNamesData"></param>
         /// <returns></returns>
-        private string[][] GetKptNames(string kptNamesData)
+        private static string[][] GetKptNames(string kptNamesData)
         {
             List<string[]> kptNamesList = new List<string[]>();
             string text = kptNamesData.Trim('{', '}');

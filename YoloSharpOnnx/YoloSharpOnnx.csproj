@@ -9,14 +9,14 @@
 		<Title>YoloSharpOnnx</Title>
 		<PackageProjectUrl>https://github.com/meloht/YoloSharpOnnx</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/meloht/YoloSharpOnnx</RepositoryUrl>
-		<PackageTags>yolov8;yolo8;yolo11;yolo26;yolo;object-detection;image-classification;instance-segmentation;pose-estimation;obb-detection;opencv;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;computer-vision</PackageTags>
+		<PackageTags>yolo5;yolo8;yolo9;yolo10;yolo11;yolo12;yolo26;yolo;yoloe;yolo-world;rt-detr;object-detection;image-classification;instance-segmentation;pose-estimation;obb-detection;opencv;csharp;onnx;onnx-runtime;cross-platform;cpu;cuda;gpu;tensorrt;coreml;directml;computer-vision</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
-		<Version>3.1.0</Version>
+		<Version>3.2.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.1.0 yolo async channel api update, detect code refactoring, bug fixes</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.2.0 RTDETR detect</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 

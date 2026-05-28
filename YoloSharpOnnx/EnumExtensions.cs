@@ -11,8 +11,8 @@ namespace YoloSharpOnnx
 {
     public static class EnumExtensions
     {
-        private static readonly ConcurrentDictionary<ModelType, string> _cache = new();
-        public static string GetDescription(this ModelType value)
+        private static readonly ConcurrentDictionary<YoloTaskType, string> _cache = new();
+        public static string GetDescription(this YoloTaskType value)
         {
             if(_cache.ContainsKey(value))
                 return _cache[value];
@@ -32,7 +32,7 @@ namespace YoloSharpOnnx
             return val;
         }
 
-        private static void AddEnumCache(ModelType enumType, string val)
+        private static void AddEnumCache(YoloTaskType enumType, string val)
         {
             if (string.IsNullOrEmpty(val))
                 return;

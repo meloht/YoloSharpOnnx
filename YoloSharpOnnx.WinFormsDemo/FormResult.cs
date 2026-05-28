@@ -33,8 +33,8 @@ namespace YoloSharpOnnx.WinFormsDemo
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(_model, deviceId));
             string res = string.Empty;
             _resultImage = Cv2.ImRead(_image);
-            _modelType = yolo.CurrentModelType.GetDescription();
-            if (yolo.CurrentModelType == ModelType.ObjectDetection)
+            _modelType = yolo.CurrentTaskType.GetDescription();
+            if (yolo.CurrentTaskType == YoloTaskType.ObjectDetection)
             {
                 var result = yolo.RunDetectWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
@@ -42,7 +42,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawDetections(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
-            else if (yolo.CurrentModelType == ModelType.Classification)
+            else if (yolo.CurrentTaskType == YoloTaskType.Classification)
             {
                 var result = yolo.RunClassifyWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
@@ -50,7 +50,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawClassification(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
-            else if (yolo.CurrentModelType == ModelType.Segmentation)
+            else if (yolo.CurrentTaskType == YoloTaskType.Segmentation)
             {
                 var result = yolo.RunSegmentWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
@@ -58,7 +58,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawSegment(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
-            else if (yolo.CurrentModelType == ModelType.PoseEstimation)
+            else if (yolo.CurrentTaskType == YoloTaskType.PoseEstimation)
             {
                 var result = yolo.RunPoseWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
@@ -66,7 +66,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 yolo.DrawPose(_resultImage, result.Items);
                 ShowImageForm(_image, _resultImage.ToBytes());
             }
-            else if (yolo.CurrentModelType == ModelType.ObbDetection)
+            else if (yolo.CurrentTaskType == YoloTaskType.ObbDetection)
             {
                 var result = yolo.RunObbDetectWithTime(_image);
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";

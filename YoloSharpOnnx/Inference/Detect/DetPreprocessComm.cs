@@ -61,9 +61,9 @@ namespace YoloSharpOnnx.Inference.Detect
             src: resizedImg,
             dst: resizedImg,
             top: top,        // 顶部填充
-            bottom: bottom, // 底部填充（补全到 1280）
+            bottom: bottom, // 底部填充（补全到inputHeight）
             left: left,       // 左侧填充
-            right: right,  // 右侧填充（补全到 1280）
+            right: right,  // 右侧填充（补全到inputWidth）
             borderType: BorderTypes.Constant,
             value: _paddingColor);
 
