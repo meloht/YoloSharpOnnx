@@ -21,7 +21,7 @@
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
  - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
- - **YOLO Versions** Includes support for: [YOLOv5u](https://docs.ultralytics.com/models/yolov5), [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLOv9](https://docs.ultralytics.com/models/yolov9), [YOLOv10](https://docs.ultralytics.com/models/yolov10), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO12](https://docs.ultralytics.com/models/yolo12), [YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLOv8-worldv2](https://docs.ultralytics.com/zh/models/yolo-world), [YOLOE](https://docs.ultralytics.com/zh/models/yoloe)
+ - **YOLO Versions** Includes support for: [YOLOv5u](https://docs.ultralytics.com/models/yolov5), [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLOv9](https://docs.ultralytics.com/models/yolov9), [YOLOv10](https://docs.ultralytics.com/models/yolov10), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO12](https://docs.ultralytics.com/models/yolo12), [YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO-World](https://docs.ultralytics.com/zh/models/yolo-world), [YOLOE](https://docs.ultralytics.com/zh/models/yoloe), [RT-DETR](https://docs.ultralytics.com/zh/models/rtdetr)
 
 
 ## Example Images:
@@ -355,7 +355,6 @@ private static async Task TestBatchForeachInfer()
 
 |  Feature | Time |
 | ------------- | ------------- |
-| RT-DETR | TBD |
 | SAM | TBD  |
 
 # Model Licensing & Responsibility
