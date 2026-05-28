@@ -228,7 +228,7 @@ private static void TestBatchInfer()
     int num=files.Length;
     using (YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML(modelPath, 0)))
     {
-        var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess, 30)
+        var list = yolo.RunBatchDetect(dir,new ProcessCallback(), ReceiveProcess)
     }
     _stopwatch.Stop()
     Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
