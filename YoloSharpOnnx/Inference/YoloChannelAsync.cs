@@ -89,14 +89,22 @@ namespace YoloSharpOnnx.Inference
         {
             await WritePreprocessAsync(img, guid, callback, receiveAction);
         }
-
+        public async Task RunAsync(string inputImage, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction)
+        {
+            YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
+            await WritePreprocessAsync(inputImage, guid, callback, receiveAction);
+        }
 
         private async ValueTask WritePreprocessAsync(string inputImage, Guid guid)
         {
             var preResult = _yoloProcessAsync.PreprocessImageChannel(inputImage);
             await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid, null, null));
         }
-
+        private async ValueTask WritePreprocessAsync(string inputImage, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction)
+        {
+            var preResult = _yoloProcessAsync.PreprocessImageChannel(inputImage);
+            await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid, callback, receiveAction));
+        }
         private async ValueTask WritePreprocessAsync(Mat img, Guid guid)
         {
             var preResult = _yoloProcessAsync.PreprocessImageChannel(img, null);

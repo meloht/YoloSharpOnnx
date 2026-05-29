@@ -93,6 +93,30 @@ namespace YoloSharpOnnx.Test
             await yoloAsync.CompleteAndCloseAsyncChannel();
             Assert.Equal(imgs.Count, count);
         }
+
+        [Fact]
+        public async Task TestAsyncBatchImagePathChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgObbPaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictObb[item]);
+                await yoloAsync.RunObbDetectAsync(item, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+        }
+
         [Fact]
         public void TestRunBatchObbDir()
         {
@@ -179,6 +203,26 @@ namespace YoloSharpOnnx.Test
 
             int idx = 0;
             await foreach (var item in yolo.BatchObbDetectForeachAsync(imgs))
+            {
+                idx++;
+                Assert.True(_dictObb.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictObb[item.ImagePath], item.Results.Summary());
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
+
+        [Fact]
+        public async Task BatchObbForeachDirAsync()
+        {
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+            var processCallback = new ProcessCallbackObb(_dictObb);
+
+            List<string> imgs = TestDataUtils.GetImgObbPaths();
+            string dir = TestDataUtils.GetImageDirObb();
+
+            int idx = 0;
+            await foreach (var item in yolo.BatchObbDetectForeachAsync(dir))
             {
                 idx++;
                 Assert.True(_dictObb.ContainsKey(item.ImagePath));
