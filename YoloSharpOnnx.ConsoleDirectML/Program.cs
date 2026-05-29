@@ -26,10 +26,10 @@ namespace YoloSharpOnnx.ConsoleDirectML
             //TestBatchInferObb();
             // _=TestBatchInferForeachObb();
             //TestBatchInferSeg();
-            _ = TestBatchInferForeachSegAsync();
+            //_ = TestBatchInferForeachSegAsync();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            //TestInferPerf();
+            TestInferPerf();
             // _ = TestInferBatchAsync();
             //TestInferCls();
             //TestInfer();
