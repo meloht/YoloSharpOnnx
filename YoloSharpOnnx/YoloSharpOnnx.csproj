@@ -16,7 +16,7 @@
 		<Version>3.2.2</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.2.2 ThrowIfDisposed improvements</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.2.2 ThrowIfDisposed improvements upgrade onnxruntime to 1.26.0</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
