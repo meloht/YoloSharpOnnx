@@ -6,8 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Segment

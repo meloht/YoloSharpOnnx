@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
-using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Utils;
