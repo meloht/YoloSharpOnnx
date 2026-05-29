@@ -8,7 +8,7 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Utils
 {
-    public sealed class MatBufferPoolArr
+    public sealed class MatBufferPoolArr: IDisposable
     {
         /// <summary>
         /// 实际缓存池
