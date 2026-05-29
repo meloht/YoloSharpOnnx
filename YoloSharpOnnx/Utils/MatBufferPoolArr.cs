@@ -153,7 +153,7 @@ namespace YoloSharpOnnx.Utils
         }
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(_disposed, nameof(MatBufferPoolArr));
+            ObjectDisposedException.ThrowIf(_disposed, this);
         }
         public void Dispose()
         {

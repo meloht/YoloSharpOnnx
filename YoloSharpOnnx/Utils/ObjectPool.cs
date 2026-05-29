@@ -38,7 +38,7 @@ namespace YoloSharpOnnx.Utils
 
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(_disposed, instance: nameof(ObjectPool<T>));
+            ObjectDisposedException.ThrowIf(_disposed, instance: this);
         }
         public void Dispose()
         {
