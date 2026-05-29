@@ -11,7 +11,7 @@ using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
 using YoloSharpOnnx.Utils;
 
-namespace YoloSharpOnnx.Inference.Detect
+namespace YoloSharpOnnx.Inference.DetectCore
 {
     internal class DetPreprocessComm : PreprocessBase, IDetPreprocess
     {

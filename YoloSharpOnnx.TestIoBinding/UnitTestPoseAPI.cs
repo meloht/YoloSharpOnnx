@@ -97,6 +97,30 @@ namespace YoloSharpOnnx.TestIoBinding
         }
 
         [Fact]
+        public async Task TestAsyncBatchImagePathChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgPosePaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictPose[item]);
+                await yoloAsync.RunPoseAsync(item, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+
+        }
+
+        [Fact]
         public void TestRunBatchPoseDir()
         {
             yolo.YoloConfiguration.BatchPoolSize = 4;
@@ -191,6 +215,25 @@ namespace YoloSharpOnnx.TestIoBinding
             Assert.Equal(imgs.Count, idx);
         }
 
+        [Fact]
+        public async Task BatchPoseForeachDirAsync()
+        {
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+            var processCallback = new ProcessCallbackPose(_dictPose);
+
+            string dir = TestDataUtils.GetImageDirPose();
+            List<string> imgs = TestDataUtils.GetImgPosePaths();
+
+            int idx = 0;
+            await foreach (var item in yolo.BatchPoseForeachAsync(dir))
+            {
+                idx++;
+                Assert.True(_dictPose.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictPose[item.ImagePath], item.Results.Summary());
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
 
         private void ReceiveProcess(PoseBatchResult e)
         {

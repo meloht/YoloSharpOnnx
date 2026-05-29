@@ -15,7 +15,7 @@ namespace YoloSharpOnnx.ConsoleCPU
             //TestInfer();
             //TestBatchInfer();
             //TestInferCls();
-            //TestInferPerf();
+            TestInferPerf();
             //string img = @"D:\code\model\COCO2017\train2017\train2017\000000253890.jpg";
             //using Mat image = Cv2.ImRead(img);
             //using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU(@"D:\code\YoloSharpOnnx\YoloSharpOnnx.TestCommon\TestData\Models\yolo11n.onnx"));

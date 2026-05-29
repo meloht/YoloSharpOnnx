@@ -95,6 +95,28 @@ namespace YoloSharpOnnx.TestIoBinding
         }
 
         [Fact]
+        public async Task TestAsyncBatchImagePathChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgSegPaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictSeg[item]);
+                await yoloAsync.RunSegmentAsync(item, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+        }
+
+        [Fact]
         public void TestRunBatchSegDir()
         {
             yolo.YoloConfiguration.BatchPoolSize = 4;
@@ -188,7 +210,24 @@ namespace YoloSharpOnnx.TestIoBinding
 
             Assert.Equal(imgs.Count, idx);
         }
+        [Fact]
+        public async Task BatchSegmentForeachDirAsync()
+        {
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+            var processCallback = new ProcessCallbackSeg(_dictSeg);
 
+            List<string> imgs = TestDataUtils.GetImgSegPaths();
+            string dir = TestDataUtils.GetImageDirSeg();
+            int idx = 0;
+            await foreach (var item in yolo.BatchSegmentForeachAsync(dir))
+            {
+                idx++;
+                Assert.True(_dictSeg.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictSeg[item.ImagePath], item.Results.Summary());
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
 
         private void ReceiveProcess(SegBatchResult e)
         {

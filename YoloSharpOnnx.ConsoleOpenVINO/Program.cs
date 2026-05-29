@@ -10,7 +10,9 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
         {
             Console.WriteLine("Hello, World!");
             //TestInferPerf();
-            _ = TestInferBatchAsync();
+            TestBatchInferPose();
+            //_=TestBatchInferForeachPose();
+          //  _ = TestInferBatchAsync();
             Console.ReadKey();
 
         }
@@ -71,6 +73,66 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
             string ans = e.Results.Summary();
             Console.WriteLine($"{count++} {ans} time:{cost}ms");
 
+        }
+        private static void ReceiveProcess(PoseBatchResult e)
+        {
+            long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+            string ans = e.Results.Summary();
+            Console.WriteLine($"{count++} {ans} time:{cost}ms");
+
+        }
+
+        private static void TestBatchInferPose()
+        {
+            string modelPath = @"D:\code\model\yolo26n-pose.onnx";
+            string dir = @"D:\code\model\coco8-pose";
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.CPU)))
+            {
+
+                yolo.YoloConfiguration.BatchPoolSize = 60;
+
+                _stopwatch.Start();
+                var list = yolo.RunBatchPose(dir, receiveAction: ReceiveProcess);
+                _stopwatch.Stop();
+
+            }
+
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
+        }
+
+        private static async Task TestBatchInferForeachPose()
+        {
+            string modelPath = @"D:\code\model\yolo26n-pose.onnx";
+            string dir = @"D:\code\model\coco8-pose";
+            DirectoryInfo directory = new DirectoryInfo(dir);
+            var files = directory.GetFiles();
+
+            System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+            int num = files.Length;
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.CPU)))
+            {
+
+                yolo.YoloConfiguration.BatchPoolSize = 60;
+
+                _stopwatch.Start();
+
+                await foreach (var e in yolo.BatchPoseForeachAsync(dir))
+                {
+                    long cost = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - e.StartTimestamp;
+                    string ans = e.Results.Summary();
+                    Console.WriteLine($"{e.ImagePath} {ans} time:{cost}ms");
+                }
+                _stopwatch.Stop();
+
+            }
+
+            Console.WriteLine($"detect {num} images, time:{_stopwatch.Elapsed}");
         }
     }
 }

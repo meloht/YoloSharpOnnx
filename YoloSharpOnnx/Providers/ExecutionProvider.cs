@@ -247,7 +247,7 @@ namespace YoloSharpOnnx.Providers
             }
             if (metaData.ContainsKey(md_description))
             {
-                model.ModelType = GetModelType(metaData[md_description]);
+                model.ModelType = GetModelType(metaData[md_description].ToLower());
             }
 
             if (model.TaskType != YoloTaskType.Classification)

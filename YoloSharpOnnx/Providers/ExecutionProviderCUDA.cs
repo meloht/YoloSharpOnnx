@@ -76,6 +76,7 @@ namespace YoloSharpOnnx.Providers
 
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
             options.EnableCpuMemArena = true;
+            options.EnableMemoryPattern = true;
 
             return options;
         }

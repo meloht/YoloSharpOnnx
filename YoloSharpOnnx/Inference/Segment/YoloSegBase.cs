@@ -10,8 +10,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Classify.Models;
-using YoloSharpOnnx.Inference.Detect;
 using YoloSharpOnnx.Inference.Detect.Models;
+using YoloSharpOnnx.Inference.DetectCore;
 using YoloSharpOnnx.Inference.Segment.Models;
 using YoloSharpOnnx.Models;
 

@@ -96,6 +96,29 @@ namespace YoloSharpOnnx.TestIoBinding
         }
 
         [Fact]
+        public async Task TestAsyncBatchImagePathChannel()
+        {
+            using IYoloAsync yoloAsync = yolo.CreateAsyncChannel();
+            List<string> imgs = TestDataUtils.GetImgClsPaths();
+            Dictionary<Guid, string> guidDict = new Dictionary<Guid, string>();
+            int count = 0;
+            foreach (var item in imgs)
+            {
+                Guid guid = Guid.NewGuid();
+                guidDict.Add(guid, _dictCls[item]);
+                await yoloAsync.RunClassifyAsync(item, guid, null, (result) =>
+                {
+                    Assert.True(guidDict.ContainsKey(result.Guid));
+                    Assert.Equal(guidDict[result.Guid], result.Results.Summary());
+                    count++;
+                });
+            }
+            await yoloAsync.CompleteAndCloseAsyncChannel();
+            Assert.Equal(imgs.Count, count);
+
+        }
+
+        [Fact]
         public void TestRunBatchClsDir()
         {
             yolo.YoloConfiguration.BatchPoolSize = 4;
@@ -189,7 +212,25 @@ namespace YoloSharpOnnx.TestIoBinding
 
             Assert.Equal(imgs.Count, idx);
         }
+        [Fact]
+        public async Task BatchClsForeachDirAsync()
+        {
+            yolo.YoloConfiguration.BatchPoolSize = 4;
+            var processCallback = new ProcessCallbackCls(_dictCls);
 
+            string dir = TestDataUtils.GetImageDirCls();
+            List<string> imgs = TestDataUtils.GetImgClsPaths();
+
+            int idx = 0;
+            await foreach (var item in yolo.BatchClsForeachAsync(dir))
+            {
+                idx++;
+                Assert.True(_dictCls.ContainsKey(item.ImagePath));
+                Assert.Equal(_dictCls[item.ImagePath], item.Results.Summary());
+            }
+
+            Assert.Equal(imgs.Count, idx);
+        }
 
         private void ReceiveProcess(ClsBatchResult e)
         {

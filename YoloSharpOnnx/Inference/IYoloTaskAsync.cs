@@ -13,6 +13,7 @@ namespace YoloSharpOnnx.Inference
 
         Task<List<TResult>> RunAsync(Mat img);
         Task RunAsync(Mat img, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction);
+        Task RunAsync(string inputImage, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction);
 
         Task CompleteAndCloseAsyncChannel();
     }
