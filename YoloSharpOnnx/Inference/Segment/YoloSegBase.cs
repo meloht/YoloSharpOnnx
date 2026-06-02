@@ -129,7 +129,7 @@ namespace YoloSharpOnnx.Inference.Segment
                       var result = _postprocess.PostProcessAsync(output0, output1, preDetect);
                       batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
                   }
-                  _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+                  InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
               });
 
         }

@@ -58,14 +58,7 @@ namespace YoloSharpOnnx.Inference
             YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
             var guid = Guid.NewGuid();
 
-            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
-            {
-                await WritePreprocessAsync(inputImage, guid);
-            }
-            else
-            {
-                _ = WritePreprocessAsync(inputImage, guid);
-            }
+            await WritePreprocessAsync(inputImage, guid);
 
             return await CreateTaskCompletionSource(guid);
         }
@@ -73,14 +66,7 @@ namespace YoloSharpOnnx.Inference
         public async Task<List<TResult>> RunAsync(Mat img)
         {
             var guid = Guid.NewGuid();
-            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
-            {
-                await WritePreprocessAsync(img, guid);
-            }
-            else
-            {
-                _ = WritePreprocessAsync(img, guid);
-            }
+            await WritePreprocessAsync(img, guid);
 
             return await CreateTaskCompletionSource(guid);
         }
@@ -150,7 +136,7 @@ namespace YoloSharpOnnx.Inference
                     }
                     TAsyncResult asyncResult = new();
                     asyncResult.Initialize(item.Guid, result, startTime);
-                    _ = InferCompleteAsync(asyncResult, item.Callback, item.ReceiveAction);
+                    InferCompleteAsync(asyncResult, item.Callback, item.ReceiveAction);
                 }
                 finally
                 {
@@ -158,21 +144,21 @@ namespace YoloSharpOnnx.Inference
                 }
             }
         }
-        private async Task InferCompleteAsync(TAsyncResult result, IBatchProcessCallback<TAsyncResult> processCallback, Action<TAsyncResult> receiveAction)
+        private static void InferCompleteAsync(TAsyncResult result, IBatchProcessCallback<TAsyncResult> processCallback, Action<TAsyncResult> receiveAction)
         {
             if (processCallback != null)
             {
-                await Task.Run(() =>
-                {
-                    processCallback.ReceiveProcessResult(result);
-                });
+                Task.Run(() =>
+               {
+                   processCallback.ReceiveProcessResult(result);
+               });
             }
             if (receiveAction != null)
             {
-                await Task.Run(() =>
-                {
-                    receiveAction(result);
-                });
+                Task.Run(() =>
+               {
+                   receiveAction(result);
+               });
             }
         }
         public void Dispose()
