@@ -82,7 +82,7 @@ namespace YoloSharpOnnx
         }
         public InterpolationFlags ResizeAlgorithm { get; set; }
 
-        public string[] ImageExtsBatch { get; set; } = [".jpg", ".png"];
+        public HashSet<string> ImageExtsBatch { get; set; } = [".jpg", ".png"];
 
 
         public int BatchPoolSize

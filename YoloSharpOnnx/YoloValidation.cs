@@ -14,16 +14,18 @@ namespace YoloSharpOnnx
             {
                 throw new ArgumentNullException($"imagePath is null or empty");
             }
-            if (!File.Exists(imagePath))
-            {
-                throw new DirectoryNotFoundException($"{imagePath} file is not found");
-            }
+            //if (!File.Exists(imagePath))
+            //{
+            //    throw new DirectoryNotFoundException($"{imagePath} file is not found");
+            //}
             string ext = Path.GetExtension(imagePath);
-            if (yoloConfig.ImageExtsBatch.AsSpan().IndexOf(ext) == -1)
+            if (!yoloConfig.ImageExtsBatch.Contains(ext))
             {
                 throw new ArgumentNullException($"imagePath is not a image for ext({string.Join(',', yoloConfig.ImageExtsBatch)})");
             }
         }
+
+       
 
         public static List<string> ValidationImageBatch(string imgDir, YoloConfig yoloConfig)
         {
