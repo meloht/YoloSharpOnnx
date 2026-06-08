@@ -41,12 +41,7 @@ namespace YoloSharpOnnx.Utils
             _maxSize = maxSize;
             _onnxModel = onnxModel ?? throw new ArgumentNullException(nameof(onnxModel));
             _pool = new ImageBatchData[maxSize];
-            // 预热池
-            for (int i = 0; i < _maxSize; i++)
-            {
-                _pool[i] = new ImageBatchData(_onnxModel);
-            }
-            _currentIndex = _pool.Length - 1; 
+           
         }
 
         /// <summary>
@@ -72,11 +67,12 @@ namespace YoloSharpOnnx.Utils
                     {
                         _currentIndex = 0;
                     }
-                   
+                  
                     return res;
                 }
                 else
                 {
+                    
                     // 池空了，临时创建
                     return new ImageBatchData(_onnxModel);
                 }
@@ -134,7 +130,7 @@ namespace YoloSharpOnnx.Utils
                 {
                     _pool[_currentIndex] = item;
                 }
-
+               
             }
               
         }
