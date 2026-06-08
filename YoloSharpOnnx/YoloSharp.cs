@@ -275,7 +275,7 @@ namespace YoloSharpOnnx
 
             return _yoloDetect.BatchRunPostSync(files, processCallback, receiveAction);
         }
-        public DetectionBatchResult[] RunBatchDetect(List<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
+        public DetectionBatchResult[] RunBatchDetect(IReadOnlyList<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationDetectModelType(_currentTaskType);
@@ -295,7 +295,7 @@ namespace YoloSharpOnnx
         }
 
 
-        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(List<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
+        public async Task<DetectionBatchResult[]> RunBatchDetectAsync(IReadOnlyList<string> images, IBatchProcessCallback<DetectionBatchResult> processCallback = null, Action<DetectionBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationDetectModelType(_currentTaskType);
@@ -312,7 +312,7 @@ namespace YoloSharpOnnx
             return _yoloDetect.BatchRunForeachSync(files);
         }
 
-        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(List<string> images)
+        public IAsyncEnumerable<DetectionBatchResult> BatchDetectForeachAsync(IReadOnlyList<string> images)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationDetectModelType(_currentTaskType);
@@ -334,7 +334,7 @@ namespace YoloSharpOnnx
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloClassify.BatchRunPostSync(files, processCallback, receiveAction);
         }
-        public ClsBatchResult[] RunBatchCls(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
+        public ClsBatchResult[] RunBatchCls(IReadOnlyList<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationClsModelType(_currentTaskType);
@@ -353,7 +353,7 @@ namespace YoloSharpOnnx
         }
 
 
-        public async Task<ClsBatchResult[]> RunBatchClsAsync(List<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
+        public async Task<ClsBatchResult[]> RunBatchClsAsync(IReadOnlyList<string> images, IBatchProcessCallback<ClsBatchResult> processCallback = null, Action<ClsBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationClsModelType(_currentTaskType);
@@ -368,7 +368,7 @@ namespace YoloSharpOnnx
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloClassify.BatchRunForeachSync(files);
         }
-        public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(List<string> images)
+        public IAsyncEnumerable<ClsBatchResult> BatchClsForeachAsync(IReadOnlyList<string> images)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationClsModelType(_currentTaskType);
@@ -391,7 +391,7 @@ namespace YoloSharpOnnx
 
             return _yoloSegment.BatchRun(files, processCallback, receiveAction);
         }
-        public SegBatchResult[] RunBatchSegment(List<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        public SegBatchResult[] RunBatchSegment(IReadOnlyList<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationSegModelType(_currentTaskType);
@@ -410,7 +410,7 @@ namespace YoloSharpOnnx
             return await _yoloSegment.BatchRunAsync(files, processCallback, receiveAction);
         }
 
-        public async Task<SegBatchResult[]> RunBatchSegmentAsync(List<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
+        public async Task<SegBatchResult[]> RunBatchSegmentAsync(IReadOnlyList<string> images, IBatchProcessCallback<SegBatchResult> processCallback = null, Action<SegBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationSegModelType(_currentTaskType);
@@ -425,7 +425,7 @@ namespace YoloSharpOnnx
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloSegment.BatchRunForeachAsync(files);
         }
-        public IAsyncEnumerable<SegBatchResult> BatchSegmentForeachAsync(List<string> images)
+        public IAsyncEnumerable<SegBatchResult> BatchSegmentForeachAsync(IReadOnlyList<string> images)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationSegModelType(_currentTaskType);
@@ -445,7 +445,7 @@ namespace YoloSharpOnnx
 
             return _yoloPose.BatchRun(files, processCallback, receiveAction);
         }
-        public PoseBatchResult[] RunBatchPose(List<string> images, IBatchProcessCallback<PoseBatchResult> processCallback = null, Action<PoseBatchResult> receiveAction = null)
+        public PoseBatchResult[] RunBatchPose(IReadOnlyList<string> images, IBatchProcessCallback<PoseBatchResult> processCallback = null, Action<PoseBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationPoseModelType(_currentTaskType);
@@ -464,7 +464,7 @@ namespace YoloSharpOnnx
             return await _yoloPose.BatchRunAsync(files, processCallback, receiveAction);
         }
 
-        public async Task<PoseBatchResult[]> RunBatchPoseAsync(List<string> images, IBatchProcessCallback<PoseBatchResult> processCallback = null, Action<PoseBatchResult> receiveAction = null)
+        public async Task<PoseBatchResult[]> RunBatchPoseAsync(IReadOnlyList<string> images, IBatchProcessCallback<PoseBatchResult> processCallback = null, Action<PoseBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationPoseModelType(_currentTaskType);
@@ -479,7 +479,7 @@ namespace YoloSharpOnnx
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloPose.BatchRunForeachAsync(files);
         }
-        public IAsyncEnumerable<PoseBatchResult> BatchPoseForeachAsync(List<string> images)
+        public IAsyncEnumerable<PoseBatchResult> BatchPoseForeachAsync(IReadOnlyList<string> images)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationPoseModelType(_currentTaskType);
@@ -499,7 +499,7 @@ namespace YoloSharpOnnx
 
             return _yoloObb.BatchRun(files, processCallback, receiveAction);
         }
-        public ObbBatchResult[] RunBatchObbDetect(List<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        public ObbBatchResult[] RunBatchObbDetect(IReadOnlyList<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationObbModelType(_currentTaskType);
@@ -517,7 +517,7 @@ namespace YoloSharpOnnx
             return await _yoloObb.BatchRunAsync(files, processCallback, receiveAction);
         }
 
-        public async Task<ObbBatchResult[]> RunBatchObbDetectAsync(List<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
+        public async Task<ObbBatchResult[]> RunBatchObbDetectAsync(IReadOnlyList<string> images, IBatchProcessCallback<ObbBatchResult> processCallback = null, Action<ObbBatchResult> receiveAction = null)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationObbModelType(_currentTaskType);
@@ -532,7 +532,7 @@ namespace YoloSharpOnnx
             var files = YoloValidation.ValidationImageBatch(imgDir, YoloConfiguration);
             return _yoloObb.BatchRunForeachAsync(files);
         }
-        public IAsyncEnumerable<ObbBatchResult> BatchObbDetectForeachAsync(List<string> images)
+        public IAsyncEnumerable<ObbBatchResult> BatchObbDetectForeachAsync(IReadOnlyList<string> images)
         {
             ThrowIfDisposed();
             YoloValidation.ValidationObbModelType(_currentTaskType);

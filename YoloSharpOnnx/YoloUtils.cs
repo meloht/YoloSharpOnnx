@@ -58,7 +58,7 @@ namespace YoloSharpOnnx
             resultArray.Ids?.Clear();
         }
 
-        public static List<string> GetFilesFromListPaths(List<string> images, HashSet<string> exts)
+        public static List<string> GetFilesFromListPaths(IReadOnlyList<string> images, HashSet<string> exts)
         {
 
             List<string> list = new List<string>();
