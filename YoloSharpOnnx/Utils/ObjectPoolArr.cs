@@ -39,11 +39,7 @@ namespace YoloSharpOnnx.Utils
             _resetAction = resetAction;
 
             _items = new T[_maxSize];
-            for (int i = 0; i < _maxSize; i++)
-            {
-                _items[i] = _factory();
-            }
-            _currentIndex = _items.Length - 1;
+           
         }
 
         private void ThrowIfDisposed()

@@ -22,14 +22,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-            //TestBatchInfer();
+            TestBatchInfer();
             //TestBatchInferObb();
             // _=TestBatchInferForeachObb();
             //TestBatchInferSeg();
             //_ = TestBatchInferForeachSegAsync();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            TestInferPerf();
+            //TestInferPerf();
             // _ = TestInferBatchAsync();
             //TestInferCls();
             //TestInfer();
@@ -56,6 +56,15 @@ namespace YoloSharpOnnx.ConsoleDirectML
                 arr[i] = bufferPool.Rent();
             }
             for (int i = 0; i < 20; i++)
+            {
+                bufferPool.Return(arr[i]);
+            }
+
+            for (int i = 0; i < 15; i++)
+            {
+                arr[i] = bufferPool.Rent();
+            }
+            for (int i = 0; i < 15; i++)
             {
                 bufferPool.Return(arr[i]);
             }

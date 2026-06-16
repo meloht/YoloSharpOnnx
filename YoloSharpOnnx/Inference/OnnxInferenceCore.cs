@@ -66,7 +66,7 @@ namespace YoloSharpOnnx.Inference
             _inferModelPool = new Lazy<ObjectPoolArr<InferModel>>(() => new ObjectPoolArr<InferModel>(() => new InferModel(), _config.BatchPoolSize));
         }
 
-      
+
         public void InitBufferPool(int batchPoolSize)
         {
             if (batchPoolSize != _batchPoolSize)
@@ -241,7 +241,7 @@ namespace YoloSharpOnnx.Inference
                     var modelResult = PostprocessModel(item, startTime);
                     batchResults[idx++] = modelResult;
 
-                    _ = InferCompleteAsync(modelResult, processCallback, receiveAction);
+                    InferCompleteAsync(modelResult, processCallback, receiveAction);
                 }
             });
             return (producer, consumer, batchResults);
@@ -294,21 +294,21 @@ namespace YoloSharpOnnx.Inference
         }
 
 
-        protected async Task InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
+        protected static void InferCompleteAsync(TBatchResult result, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction)
         {
             if (processCallback != null)
             {
-                await Task.Run(() =>
-                {
-                    processCallback.ReceiveProcessResult(result);
-                });
+                Task.Run(() =>
+               {
+                   processCallback.ReceiveProcessResult(result);
+               });
             }
             if (receiveAction != null)
             {
-                await Task.Run(() =>
-                {
-                    receiveAction(result);
-                });
+                Task.Run(() =>
+               {
+                   receiveAction(result);
+               });
             }
         }
 

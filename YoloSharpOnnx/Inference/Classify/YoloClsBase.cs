@@ -63,7 +63,7 @@ namespace YoloSharpOnnx.Inference.Classify
                       batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
                   }
 
-                  _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+                  InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
 
               });
 

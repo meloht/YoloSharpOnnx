@@ -58,14 +58,7 @@ namespace YoloSharpOnnx.Inference
             YoloValidation.ValidationImagePath(inputImage, _yoloConfig);
             var guid = Guid.NewGuid();
 
-            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
-            {
-                await WritePreprocessAsync(inputImage, guid);
-            }
-            else
-            {
-                _ = WritePreprocessAsync(inputImage, guid);
-            }
+            await WritePreprocessAsync(inputImage, guid);
 
             return await CreateTaskCompletionSource(guid);
         }
@@ -73,14 +66,7 @@ namespace YoloSharpOnnx.Inference
         public async Task<List<TResult>> RunAsync(Mat img)
         {
             var guid = Guid.NewGuid();
-            if (_yoloProcessAsync.BufferPoolUsedCount >= _yoloConfig.BatchPoolSize)
-            {
-                await WritePreprocessAsync(img, guid);
-            }
-            else
-            {
-                _ = WritePreprocessAsync(img, guid);
-            }
+            await WritePreprocessAsync(img, guid);
 
             return await CreateTaskCompletionSource(guid);
         }
@@ -117,14 +103,15 @@ namespace YoloSharpOnnx.Inference
             await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid, callback, receiveAction));
         }
 
-        private Task<List<TResult>> CreateTaskCompletionSource(Guid guid)
+        private async Task<List<TResult>> CreateTaskCompletionSource(Guid guid)
         {
             var tcs = new TaskCompletionSource<List<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
+            using var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
 
             ct.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
-            return tcs.Task;
+            var res = await tcs.Task;
+            return res;
         }
 
         private PreDetectChannelData<TAsyncResult, TBatchPreResult> BuildPreChannelData(TBatchPreResult preResult, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction)
@@ -143,14 +130,13 @@ namespace YoloSharpOnnx.Inference
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     var result = _yoloProcessAsync.RunBatch(item.PreResult);
 
-                    if (_concurrentDict.TryGetValue(item.Guid, out TaskCompletionSource<List<TResult>> tempTCS))
+                    if (_concurrentDict.TryRemove(item.Guid, out TaskCompletionSource<List<TResult>> tempTCS))
                     {
                         tempTCS.TrySetResult(result);
-                        _concurrentDict.TryRemove(item.Guid, out tempTCS);
                     }
                     TAsyncResult asyncResult = new();
                     asyncResult.Initialize(item.Guid, result, startTime);
-                    _ = InferCompleteAsync(asyncResult, item.Callback, item.ReceiveAction);
+                    InferCompleteAsync(asyncResult, item.Callback, item.ReceiveAction);
                 }
                 finally
                 {
@@ -158,21 +144,21 @@ namespace YoloSharpOnnx.Inference
                 }
             }
         }
-        private async Task InferCompleteAsync(TAsyncResult result, IBatchProcessCallback<TAsyncResult> processCallback, Action<TAsyncResult> receiveAction)
+        private static void InferCompleteAsync(TAsyncResult result, IBatchProcessCallback<TAsyncResult> processCallback, Action<TAsyncResult> receiveAction)
         {
             if (processCallback != null)
             {
-                await Task.Run(() =>
-                {
-                    processCallback.ReceiveProcessResult(result);
-                });
+                Task.Run(() =>
+               {
+                   processCallback.ReceiveProcessResult(result);
+               });
             }
             if (receiveAction != null)
             {
-                await Task.Run(() =>
-                {
-                    receiveAction(result);
-                });
+                Task.Run(() =>
+               {
+                   receiveAction(result);
+               });
             }
         }
         public void Dispose()

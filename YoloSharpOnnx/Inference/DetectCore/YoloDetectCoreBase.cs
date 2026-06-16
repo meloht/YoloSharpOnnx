@@ -69,7 +69,7 @@ namespace YoloSharpOnnx.Inference.DetectCore
                     batchResults[idx] = BuildBatchResult(imagePath, result, startTime);
                 }
 
-                _ = InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
+                InferCompleteAsync(batchResults[idx], processCallback, receiveAction);
             });
 
         }

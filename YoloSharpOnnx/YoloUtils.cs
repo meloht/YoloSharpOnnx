@@ -24,11 +24,10 @@ namespace YoloSharpOnnx
         }
 
 
-        public static List<string> GetFilesFromDirectory(string path, string[] exts)
+        public static List<string> GetFilesFromDirectory(string path, HashSet<string> exts)
         {
             List<string> list = new List<string>();
-            HashSet<string> set = new HashSet<string>(exts);
-            GetFiles(list, path, set);
+            GetFiles(list, path, exts);
             return list;
 
         }
@@ -59,16 +58,15 @@ namespace YoloSharpOnnx
             resultArray.Ids?.Clear();
         }
 
-        public static List<string> GetFilesFromListPaths(List<string> images, string[] exts)
+        public static List<string> GetFilesFromListPaths(IReadOnlyList<string> images, HashSet<string> exts)
         {
 
             List<string> list = new List<string>();
-            HashSet<string> extSet = new HashSet<string>(exts);
             foreach (var item in images)
             {
                 string ext = Path.GetExtension(item);
                 string fileExt = ext.ToLower();
-                if (extSet.Contains(fileExt))
+                if (exts.Contains(fileExt))
                 {
                     list.Add(item);
                 }
