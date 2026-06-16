@@ -103,14 +103,15 @@ namespace YoloSharpOnnx.Inference
             await _channel.Writer.WriteAsync(BuildPreChannelData(preResult, guid, callback, receiveAction));
         }
 
-        private Task<List<TResult>> CreateTaskCompletionSource(Guid guid)
+        private async Task<List<TResult>> CreateTaskCompletionSource(Guid guid)
         {
             var tcs = new TaskCompletionSource<List<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
-            var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
+            using var ct = new CancellationTokenSource(_yoloConfig.AsyncChannelTimeout);
             _concurrentDict.TryAdd(guid, tcs);
 
             ct.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
-            return tcs.Task;
+            var res = await tcs.Task;
+            return res;
         }
 
         private PreDetectChannelData<TAsyncResult, TBatchPreResult> BuildPreChannelData(TBatchPreResult preResult, Guid guid, IBatchProcessCallback<TAsyncResult> callback, Action<TAsyncResult> receiveAction)
@@ -129,10 +130,9 @@ namespace YoloSharpOnnx.Inference
                     long startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                     var result = _yoloProcessAsync.RunBatch(item.PreResult);
 
-                    if (_concurrentDict.TryGetValue(item.Guid, out TaskCompletionSource<List<TResult>> tempTCS))
+                    if (_concurrentDict.TryRemove(item.Guid, out TaskCompletionSource<List<TResult>> tempTCS))
                     {
                         tempTCS.TrySetResult(result);
-                        _concurrentDict.TryRemove(item.Guid, out tempTCS);
                     }
                     TAsyncResult asyncResult = new();
                     asyncResult.Initialize(item.Guid, result, startTime);
