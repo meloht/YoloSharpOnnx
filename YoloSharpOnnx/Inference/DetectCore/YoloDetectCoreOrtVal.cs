@@ -16,8 +16,8 @@ namespace YoloSharpOnnx.Inference.DetectCore
         where TDetectionResult : IYoloSummary<TDetectionResult>
         where TDetectionBatchResult : class, IBatchResultInit<TDetectionResult>, IBatchResultItems<TDetectionResult>, new()
     {
-        public YoloDetectCoreOrtVal(InferenceSession session, SessionOptions options, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-          : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloDetectCoreOrtVal(InferenceSession session, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+          : base(session, postprocess, preprocess, onnxModel, config)
         {
 
             Warmup();

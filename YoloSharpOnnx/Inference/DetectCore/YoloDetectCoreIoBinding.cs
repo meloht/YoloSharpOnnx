@@ -14,7 +14,7 @@ using YoloSharpOnnx.Utils;
 
 namespace YoloSharpOnnx.Inference.DetectCore
 {
-    internal abstract class YoloDetectCoreIoBinding<TDetectionResult, TDetectionBatchResult>: YoloDetectCoreBase<TDetectionResult, TDetectionBatchResult>,
+    internal abstract class YoloDetectCoreIoBinding<TDetectionResult, TDetectionBatchResult> : YoloDetectCoreBase<TDetectionResult, TDetectionBatchResult>,
         IYoloDetectCore<TDetectionResult, TDetectionBatchResult>
         where TDetectionResult : IYoloSummary<TDetectionResult>
         where TDetectionBatchResult : class, IBatchResultInit<TDetectionResult>, IBatchResultItems<TDetectionResult>, new()
@@ -23,8 +23,8 @@ namespace YoloSharpOnnx.Inference.DetectCore
         private readonly OrtValue _outputOrtValue;
         private readonly FixedBuffer _outputFixedBuffer;
 
-        public YoloDetectCoreIoBinding(InferenceSession session, SessionOptions options, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-          : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloDetectCoreIoBinding(InferenceSession session, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+          : base(session, postprocess, preprocess, onnxModel, config)
         {
             _binding = _session.CreateIoBinding();
             _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize0);
@@ -61,7 +61,7 @@ namespace YoloSharpOnnx.Inference.DetectCore
             //using var output = results[0];
 
         }
-      
+
         public List<TDetectionResult> Run(Mat inputImage)
         {
             // 预处理图像

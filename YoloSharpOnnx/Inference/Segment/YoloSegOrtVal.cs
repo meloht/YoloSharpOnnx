@@ -14,8 +14,8 @@ namespace YoloSharpOnnx.Inference.Segment
 {
     internal class YoloSegOrtVal : YoloSegBase, IYoloSegment
     {
-        public YoloSegOrtVal(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloSegOrtVal(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
             Warmup();
         }

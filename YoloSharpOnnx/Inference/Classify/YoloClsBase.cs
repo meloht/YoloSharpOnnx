@@ -22,8 +22,8 @@ namespace YoloSharpOnnx.Inference.Classify
 
         protected abstract void DisposedSub();
         protected abstract OrtValue RunInferenceBatch(PreClsResultBatch preResult);
-        public YoloClsBase(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
-            : base(session, options, onnxModel, config)
+        public YoloClsBase(InferenceSession session, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
+            : base(session, onnxModel, config)
         {
             _postprocess = postprocess;
             _preprocess = preprocess;

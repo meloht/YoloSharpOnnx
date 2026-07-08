@@ -22,14 +22,14 @@ namespace YoloSharpOnnx.ConsoleDirectML
 
             //TestChannel();
 
-            TestBatchInfer();
+            //TestBatchInfer();
             //TestBatchInferObb();
             // _=TestBatchInferForeachObb();
             //TestBatchInferSeg();
             //_ = TestBatchInferForeachSegAsync();
             //TestInferSeg();
             // _ = TestBatchForeachInfer();
-            //TestInferPerf();
+            TestInferPerf();
             // _ = TestInferBatchAsync();
             //TestInferCls();
             //TestInfer();

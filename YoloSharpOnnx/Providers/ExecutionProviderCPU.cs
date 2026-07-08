@@ -15,46 +15,49 @@ namespace YoloSharpOnnx.Providers
 {
     public class ExecutionProviderCPU : ExecutionProvider
     {
-        public ExecutionProviderCPU(string modelPath) : base(modelPath, null)
+        public ExecutionProviderCPU(string modelPath)
+            : this(modelPath, null)
         {
         }
-        public ExecutionProviderCPU(string modelPath, SessionOptions sessionOptions = null) : base(modelPath, sessionOptions)
+        public ExecutionProviderCPU(string modelPath, SessionOptions sessionOptions = null)
+            : base(modelPath, sessionOptions)
         {
+            BuildInferenceSession();
         }
         internal override DeviceType GetDeviceType()
         {
             return DeviceType.CPU;
         }
 
-        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloDetectOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
 
-        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            return new YoloClsOrtVal(session, onnxModel, YoloConfiguration, postprocess, preprocess);
         }
 
-        internal override SessionOptions BuildSessionOptions()
+        internal override InferenceSession BuildSessionOptions(SessionOptions sessionOptions)
         {
-            return BuildSessionOptionsBase();
+            return new InferenceSession(ModelPath, sessionOptions);
         }
 
-        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloSegOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloSegOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloPoseOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloPoseOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloObbOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloObbOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }

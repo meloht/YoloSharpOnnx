@@ -16,8 +16,8 @@ namespace YoloSharpOnnx.Inference.Pose
 {
     internal class YoloPoseOrtVal : YoloDetectCoreOrtVal<PoseResult, PoseBatchResult>
     {
-        public YoloPoseOrtVal(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloPoseOrtVal(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

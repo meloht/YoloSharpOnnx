@@ -28,9 +28,11 @@ namespace YoloSharpOnnx.Providers
             : this(modelPath, intelDeviceType, null)
         {
         }
-        public ExecutionProviderOpenVINO(string modelPath, IntelDeviceType intelDeviceType, SessionOptions sessionOptions) : base(modelPath, sessionOptions)
+        public ExecutionProviderOpenVINO(string modelPath, IntelDeviceType intelDeviceType, SessionOptions sessionOptions)
+            : base(modelPath, sessionOptions)
         {
             _intelDeviceType = intelDeviceType;
+            BuildInferenceSession();
         }
 
         internal override DeviceType GetDeviceType()
@@ -46,15 +48,15 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.GPU;
         }
 
-        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloDetectOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloDetectOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
             else
             {
-                return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloDetectIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
 
@@ -77,58 +79,57 @@ namespace YoloSharpOnnx.Providers
             }
         }
 
-        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloClsOrtVal(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+                return new YoloClsOrtVal(session, onnxModel, YoloConfiguration, postprocess, preprocess);
             }
             else
             {
-                return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+                return new YoloClsIoBinding(session, onnxModel, YoloConfiguration, postprocess, preprocess);
             }
         }
 
-        internal override SessionOptions BuildSessionOptions()
+        internal override InferenceSession BuildSessionOptions(SessionOptions sessionOptions)
         {
-            SessionOptions options = BuildSessionOptionsBase();
-            options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
-            return options;
+            sessionOptions.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
+            return new InferenceSession(ModelPath, sessionOptions);
         }
 
-        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
-        {
-            if (_intelDeviceType == IntelDeviceType.CPU)
-            {
-                return new YoloSegOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
-            }
-            else
-            {
-                return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
-            }
-        }
-
-        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloPoseOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloSegOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
             else
             {
-                return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloSegIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
 
-        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
             if (_intelDeviceType == IntelDeviceType.CPU)
             {
-                return new YoloObbOrtVal(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloPoseOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
             else
             {
-                return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+                return new YoloPoseIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+        }
+
+        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        {
+            if (_intelDeviceType == IntelDeviceType.CPU)
+            {
+                return new YoloObbOrtVal(session, postprocess, preprocess, onnxModel, YoloConfiguration);
+            }
+            else
+            {
+                return new YoloObbIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
             }
         }
     }
