@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Intel.ML.OnnxRuntime.OpenVino" Version="1.24.1" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
   </ItemGroup>
 
   <ItemGroup>

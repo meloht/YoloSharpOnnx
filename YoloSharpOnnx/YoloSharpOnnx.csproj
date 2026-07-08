@@ -33,7 +33,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.26.0" />
-		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260528" />
+		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
 	</ItemGroup>
 
 </Project>
