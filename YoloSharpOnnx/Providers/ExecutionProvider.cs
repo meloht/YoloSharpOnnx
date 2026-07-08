@@ -30,8 +30,10 @@ namespace YoloSharpOnnx.Providers
         private const string md_rtdetr_model = "rt-detr";
 
         public string ModelPath { get; set; }
+
         protected YoloConfig YoloConfiguration { get; private set; }
         internal YoloTaskType CurrentTaskType { get; private set; }
+        internal SessionOptions _sessionOptions;
 
         internal abstract SessionOptions BuildSessionOptions();
 
@@ -44,15 +46,30 @@ namespace YoloSharpOnnx.Providers
 
         internal abstract DeviceType GetDeviceType();
         private readonly Random _rand;
-        public ExecutionProvider(string modelPath)
+        public ExecutionProvider(string modelPath, SessionOptions sessionOptions)
         {
             ModelPath = modelPath;
+            _sessionOptions = sessionOptions;
             _rand = new Random(0);
         }
 
         internal void SetYoloConfiguration(YoloConfig yoloConfig)
         {
             YoloConfiguration = yoloConfig;
+        }
+
+        internal SessionOptions BuildSessionOptionsBase()
+        {
+            if (_sessionOptions == null)
+            {
+                _sessionOptions = new SessionOptions();
+            }
+
+            _sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            _sessionOptions.EnableCpuMemArena = true;
+            _sessionOptions.EnableMemoryPattern = true;
+       
+            return _sessionOptions;
         }
 
         internal IYoloDetectCore<DetectionResult, DetectionBatchResult> CreateYoloDetect()
@@ -148,7 +165,7 @@ namespace YoloSharpOnnx.Providers
 
         private IDetCorePostprocess<DetectionResult> GetDetPostprocessor(OnnxModel onnxModel)
         {
-            if(onnxModel.ModelType == ModelType.RTDETR)
+            if (onnxModel.ModelType == ModelType.RTDETR)
             {
                 return new DetPostprocessRTDETR(onnxModel, YoloConfiguration);
             }

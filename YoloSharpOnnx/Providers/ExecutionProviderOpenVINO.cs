@@ -24,7 +24,11 @@ namespace YoloSharpOnnx.Providers
         private const string NPU = "NPU";
         private IntelDeviceType _intelDeviceType;
 
-        public ExecutionProviderOpenVINO(string modelPath, IntelDeviceType intelDeviceType) : base(modelPath)
+        public ExecutionProviderOpenVINO(string modelPath, IntelDeviceType intelDeviceType)
+            : this(modelPath, intelDeviceType, null)
+        {
+        }
+        public ExecutionProviderOpenVINO(string modelPath, IntelDeviceType intelDeviceType, SessionOptions sessionOptions) : base(modelPath, sessionOptions)
         {
             _intelDeviceType = intelDeviceType;
         }
@@ -87,10 +91,7 @@ namespace YoloSharpOnnx.Providers
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions options = new SessionOptions();
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.EnableMemoryPattern = true;
+            SessionOptions options = BuildSessionOptionsBase();
             options.AppendExecutionProvider_OpenVINO(GetIntelDeviceType());
             return options;
         }

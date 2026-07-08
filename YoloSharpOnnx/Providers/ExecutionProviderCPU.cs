@@ -15,10 +15,12 @@ namespace YoloSharpOnnx.Providers
 {
     public class ExecutionProviderCPU : ExecutionProvider
     {
-        public ExecutionProviderCPU(string modelPath) : base(modelPath)
+        public ExecutionProviderCPU(string modelPath) : base(modelPath, null)
         {
         }
-
+        public ExecutionProviderCPU(string modelPath, SessionOptions sessionOptions = null) : base(modelPath, sessionOptions)
+        {
+        }
         internal override DeviceType GetDeviceType()
         {
             return DeviceType.CPU;
@@ -37,11 +39,7 @@ namespace YoloSharpOnnx.Providers
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            sessionOptions.EnableCpuMemArena = true;
-            sessionOptions.EnableMemoryPattern = true;
-            return sessionOptions;
+            return BuildSessionOptionsBase();
         }
 
         internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)

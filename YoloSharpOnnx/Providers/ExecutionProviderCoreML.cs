@@ -16,7 +16,12 @@ namespace YoloSharpOnnx.Providers
     public class ExecutionProviderCoreML : ExecutionProvider
     {
         private CoreMLFlags _coreMLFlags;
-        public ExecutionProviderCoreML(string modelPath, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE) : base(modelPath)
+        public ExecutionProviderCoreML(string modelPath, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE) 
+            : this(modelPath, coreMLFlags, null)
+        {
+        }
+        public ExecutionProviderCoreML(string modelPath, CoreMLFlags coreMLFlags = CoreMLFlags.COREML_FLAG_USE_NONE, SessionOptions sessionOptions = null)
+            : base(modelPath, sessionOptions)
         {
             _coreMLFlags = coreMLFlags;
         }
@@ -38,10 +43,7 @@ namespace YoloSharpOnnx.Providers
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            sessionOptions.EnableCpuMemArena = true;
-            sessionOptions.EnableMemoryPattern = true;
+            var sessionOptions = BuildSessionOptionsBase();
             sessionOptions.AppendExecutionProvider_CoreML(_coreMLFlags);
             return sessionOptions;
         }

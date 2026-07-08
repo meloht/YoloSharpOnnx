@@ -16,15 +16,19 @@ namespace YoloSharpOnnx.Providers
     public class ExecutionProviderDirectML : ExecutionProvider
     {
         private int _deviceId;
-        public ExecutionProviderDirectML(string modelPath) : this(modelPath, 0)
+        public ExecutionProviderDirectML(string modelPath) 
+            : this(modelPath, 0)
         {
         }
 
-        public ExecutionProviderDirectML(string modelPath, int deviceId) : base(modelPath)
+        public ExecutionProviderDirectML(string modelPath, int deviceId)
+            : this(modelPath, deviceId, null)
+        {
+        }
+        public ExecutionProviderDirectML(string modelPath, int deviceId, SessionOptions sessionOptions) : base(modelPath, sessionOptions)
         {
             this._deviceId = deviceId;
         }
-
         internal override DeviceType GetDeviceType()
         {
             return DeviceType.GPU;
@@ -38,17 +42,13 @@ namespace YoloSharpOnnx.Providers
 
         internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloClsIoBinding(session, options,  onnxModel, YoloConfiguration, postprocess, preprocess);
+            return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
         }
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions sessionOptions = new SessionOptions();
-            sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            SessionOptions sessionOptions = BuildSessionOptionsBase();
             sessionOptions.AppendExecutionProvider_DML(this._deviceId);
-            sessionOptions.EnableCpuMemArena = true;
-            sessionOptions.EnableMemoryPattern = true;
-
             return sessionOptions;
         }
 

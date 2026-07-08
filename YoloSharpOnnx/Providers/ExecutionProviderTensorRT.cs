@@ -18,11 +18,18 @@ namespace YoloSharpOnnx.Providers
         private int _deviceId;
         private Dictionary<string, string> _providerOptionsDict;
 
-        public ExecutionProviderTensorRT(string modelPath, int deviceId) : this(modelPath, deviceId, null)
+        public ExecutionProviderTensorRT(string modelPath, int deviceId)
+            : this(modelPath, deviceId, null)
         {
 
         }
-        public ExecutionProviderTensorRT(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null) : base(modelPath)
+        public ExecutionProviderTensorRT(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null)
+            : this(modelPath, deviceId, providerOptionsDict, null)
+        {
+
+        }
+        public ExecutionProviderTensorRT(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null, SessionOptions sessionOptions = null)
+            : base(modelPath, sessionOptions)
         {
             _deviceId = deviceId;
             _providerOptionsDict = providerOptionsDict;
@@ -45,7 +52,7 @@ namespace YoloSharpOnnx.Providers
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions options;
+            SessionOptions options = BuildSessionOptionsBase();
             if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
             {
                 if (_providerOptionsDict.ContainsKey("device_id"))
@@ -58,16 +65,13 @@ namespace YoloSharpOnnx.Providers
                 }
                 var tensorrtProviderOptions = new OrtTensorRTProviderOptions();
                 tensorrtProviderOptions.UpdateOptions(_providerOptionsDict);
-                options = SessionOptions.MakeSessionOptionWithTensorrtProvider(tensorrtProviderOptions);
+                options.AppendExecutionProvider_Tensorrt(tensorrtProviderOptions);
             }
             else
             {
-                options = SessionOptions.MakeSessionOptionWithTensorrtProvider(_deviceId);
+                options.AppendExecutionProvider_Tensorrt(_deviceId);
             }
 
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.EnableMemoryPattern = true;
             return options;
         }
 

@@ -20,21 +20,25 @@ namespace YoloSharpOnnx.Providers
         private Dictionary<string, string> _providerOptionsDict;
 
 
-        public ExecutionProviderCUDA(string modelPath) : this(modelPath, 0)
+        public ExecutionProviderCUDA(string modelPath) 
+            : this(modelPath, 0)
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId) : this(modelPath, deviceId, null)
+        public ExecutionProviderCUDA(string modelPath, int deviceId)
+            : this(modelPath, deviceId, null)
         {
 
         }
-        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null) : base(modelPath)
+        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null) 
+            : this(modelPath, deviceId, providerOptionsDict, null)
+        {
+        }
+        public ExecutionProviderCUDA(string modelPath, int deviceId, Dictionary<string, string> providerOptionsDict = null, SessionOptions sessionOptions = null) : base(modelPath, sessionOptions)
         {
             this._deviceId = deviceId;
             this._providerOptionsDict = providerOptionsDict;
-
         }
-
 
         internal override DeviceType GetDeviceType()
         {
@@ -54,7 +58,7 @@ namespace YoloSharpOnnx.Providers
 
         internal override SessionOptions BuildSessionOptions()
         {
-            SessionOptions options;
+            SessionOptions options = BuildSessionOptionsBase();
             if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
             {
                 if (_providerOptionsDict.ContainsKey("device_id"))
@@ -67,16 +71,12 @@ namespace YoloSharpOnnx.Providers
                 }
                 var cudaProviderOptions = new OrtCUDAProviderOptions();
                 cudaProviderOptions.UpdateOptions(_providerOptionsDict);
-                options = SessionOptions.MakeSessionOptionWithCudaProvider(cudaProviderOptions);
+                options.AppendExecutionProvider_CUDA(cudaProviderOptions);
             }
             else
             {
-                options = SessionOptions.MakeSessionOptionWithCudaProvider(_deviceId);
+                options.AppendExecutionProvider_CUDA(_deviceId);
             }
-
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.EnableMemoryPattern = true;
 
             return options;
         }
