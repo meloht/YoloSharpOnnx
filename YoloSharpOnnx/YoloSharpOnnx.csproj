@@ -16,7 +16,7 @@
 		<Version>3.3.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.3.0  add an overloaded constructor that accepts a pre‑configured SessionOptions object and fixed some bugs</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.3.0  add an overloaded constructor that accepts a pre‑configured SessionOptions object and fixed some object dispose bugs</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
