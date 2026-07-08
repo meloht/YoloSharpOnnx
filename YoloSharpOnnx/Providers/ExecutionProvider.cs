@@ -15,7 +15,7 @@ using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
-using static System.Collections.Specialized.BitVector32;
+
 
 namespace YoloSharpOnnx.Providers
 {
