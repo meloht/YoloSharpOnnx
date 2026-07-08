@@ -27,8 +27,8 @@ namespace YoloSharpOnnx.Inference.Segment
         protected abstract void DisposedSub();
         protected abstract IDisposableReadOnlyCollection<OrtValue> RunInferenceBatch(PreDetectResultBatch preResult);
 
-        protected YoloSegBase(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, onnxModel, config)
+        protected YoloSegBase(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, onnxModel, config)
         {
             _postprocess = postprocess;
             _preprocess = preprocess;

@@ -33,6 +33,7 @@ namespace YoloSharpOnnx.Providers
         {
             _deviceId = deviceId;
             _providerOptionsDict = providerOptionsDict;
+            BuildInferenceSession();
         }
 
         internal override DeviceType GetDeviceType()
@@ -40,19 +41,18 @@ namespace YoloSharpOnnx.Providers
             return DeviceType.GPU;
         }
 
-        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloDetectIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloDetectIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloClassify GetYoloClassify(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloClsIoBinding(session, options, onnxModel, YoloConfiguration, postprocess, preprocess);
+            return new YoloClsIoBinding(session, onnxModel, YoloConfiguration, postprocess, preprocess);
         }
 
-        internal override SessionOptions BuildSessionOptions()
+        internal override InferenceSession BuildSessionOptions(SessionOptions sessionOptions)
         {
-            SessionOptions options = BuildSessionOptionsBase();
             if (this._providerOptionsDict != null && this._providerOptionsDict.Count > 0)
             {
                 if (_providerOptionsDict.ContainsKey("device_id"))
@@ -63,31 +63,31 @@ namespace YoloSharpOnnx.Providers
                 {
                     _providerOptionsDict.Add("device_id", _deviceId.ToString());
                 }
-                var tensorrtProviderOptions = new OrtTensorRTProviderOptions();
+                using var tensorrtProviderOptions = new OrtTensorRTProviderOptions();
                 tensorrtProviderOptions.UpdateOptions(_providerOptionsDict);
-                options.AppendExecutionProvider_Tensorrt(tensorrtProviderOptions);
+                sessionOptions.AppendExecutionProvider_Tensorrt(tensorrtProviderOptions);
             }
             else
             {
-                options.AppendExecutionProvider_Tensorrt(_deviceId);
+                sessionOptions.AppendExecutionProvider_Tensorrt(_deviceId);
             }
 
-            return options;
+            return new InferenceSession(ModelPath, sessionOptions);
         }
 
-        internal override IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloSegment GetYoloSegment(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloSegIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloSegIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloPoseIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloPoseIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
 
-        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
+        internal override IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel)
         {
-            return new YoloObbIoBinding(session, options, postprocess, preprocess, onnxModel, YoloConfiguration);
+            return new YoloObbIoBinding(session, postprocess, preprocess, onnxModel, YoloConfiguration);
         }
     }
 }

@@ -11,8 +11,9 @@ namespace YoloSharpOnnx.ConsoleGPU
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            TestBatchInferTensorRT();
+            //TestBatchInferTensorRT();
             //TestInferPerf();
+            TestInfer();
             //TestInferSeg();
             Console.WriteLine("end!");
             Console.ReadKey();

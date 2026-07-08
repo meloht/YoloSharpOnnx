@@ -25,8 +25,8 @@ namespace YoloSharpOnnx.Inference.DetectCore
         protected abstract OrtValue RunInferenceBatch(PreDetectResultBatch preResult);
         protected abstract void DrawResults(Mat inputImage, List<TDetectionResult> results);
 
-        public YoloDetectCoreBase(InferenceSession session, SessionOptions options, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, onnxModel, config)
+        public YoloDetectCoreBase(InferenceSession session, IDetCorePostprocess<TDetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, onnxModel, config)
         {
             _postprocess = postprocess;
             _preprocess = preprocess;

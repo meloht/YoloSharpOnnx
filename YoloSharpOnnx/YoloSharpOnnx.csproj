@@ -13,10 +13,10 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
-		<Version>3.2.3</Version>
+		<Version>3.3.0</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.2.3 YoloAsync CancellationTokenSource not dispose fixed</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.3.0  add an overloaded constructor that accepts a pre‑configured SessionOptions object and fixed some object dispose bugs</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
@@ -33,7 +33,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.26.0" />
-		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260528" />
+		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
 	</ItemGroup>
 
 </Project>

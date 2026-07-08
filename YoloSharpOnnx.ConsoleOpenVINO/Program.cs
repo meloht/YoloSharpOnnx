@@ -9,8 +9,8 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
         static void Main(string[] args)
         {
             Console.WriteLine("Hello, World!");
-            //TestInferPerf();
-            TestBatchInferPose();
+            TestInferPerf();
+            //TestBatchInferPose();
             //_=TestBatchInferForeachPose();
           //  _ = TestInferBatchAsync();
             Console.ReadKey();
@@ -19,15 +19,15 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
 
         private static void TestInferPerf()
         {
-            string modelPath = @"D:\code\model\best.onnx";
-            string dir = @"D:\code\model\TestImages";
+            string modelPath = @"C:\code\model\best.onnx";
+            string dir = @"C:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();
             System.Diagnostics.Stopwatch _stopwatchTotal = new System.Diagnostics.Stopwatch();
             _stopwatchTotal.Start();
 
-            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.CPU)))
+            using (YoloSharp yolo = new YoloSharp(new ExecutionProviderOpenVINO(modelPath, IntelDeviceType.GPU0)))
             {
                 foreach (var item in files)
                 {

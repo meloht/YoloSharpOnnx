@@ -15,8 +15,8 @@ namespace YoloSharpOnnx.Inference.Classify
     internal class YoloClsOrtVal : YoloClsBase, IYoloClassify
     {
 
-        public YoloClsOrtVal(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
-            : base(session, options, onnxModel, config, postprocess, preprocess)
+        public YoloClsOrtVal(InferenceSession session, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
+            : base(session, onnxModel, config, postprocess, preprocess)
         {
             Warmup();
         }

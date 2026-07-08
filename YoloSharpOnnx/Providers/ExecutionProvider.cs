@@ -15,6 +15,7 @@ using YoloSharpOnnx.Inference.Obb;
 using YoloSharpOnnx.Inference.Pose;
 using YoloSharpOnnx.Inference.Segment;
 using YoloSharpOnnx.Models;
+using static System.Collections.Specialized.BitVector32;
 
 namespace YoloSharpOnnx.Providers
 {
@@ -33,24 +34,42 @@ namespace YoloSharpOnnx.Providers
 
         protected YoloConfig YoloConfiguration { get; private set; }
         internal YoloTaskType CurrentTaskType { get; private set; }
+
+        internal InferenceSession _inferenceSession;
         internal SessionOptions _sessionOptions;
+        protected OnnxModel _onnxModel;
+        internal abstract InferenceSession BuildSessionOptions(SessionOptions sessionOptions);
 
-        internal abstract SessionOptions BuildSessionOptions();
+        internal abstract IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloClassify GetYoloClassify(InferenceSession session, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
 
-        internal abstract IYoloDetectCore<DetectionResult, DetectionBatchResult> GetYoloDetector(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
-        internal abstract IYoloClassify GetYoloClassify(InferenceSession session, SessionOptions options, IClsPostprocess postprocess, IClsPreprocess preprocess, OnnxModel onnxModel);
-
-        internal abstract IYoloSegment GetYoloSegment(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
-        internal abstract IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
-        internal abstract IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloSegment GetYoloSegment(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloDetectCore<PoseResult, PoseBatchResult> GetYoloPose(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
+        internal abstract IYoloDetectCore<ObbResult, ObbBatchResult> GetYoloObb(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel);
 
         internal abstract DeviceType GetDeviceType();
         private readonly Random _rand;
         public ExecutionProvider(string modelPath, SessionOptions sessionOptions)
         {
+            _rand = new Random(0);
             ModelPath = modelPath;
             _sessionOptions = sessionOptions;
-            _rand = new Random(0);
+        }
+
+        protected void BuildInferenceSession()
+        {
+            if (_sessionOptions == null)
+            {
+                _sessionOptions = new SessionOptions();
+            }
+            using SessionOptions options = _sessionOptions;
+            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+            options.EnableCpuMemArena = true;
+            options.EnableMemoryPattern = true;
+
+            _inferenceSession = BuildSessionOptions(options);
+            _onnxModel = ParseOnnxModel(_inferenceSession);
+            CurrentTaskType = _onnxModel.TaskType;
         }
 
         internal void SetYoloConfiguration(YoloConfig yoloConfig)
@@ -58,109 +77,64 @@ namespace YoloSharpOnnx.Providers
             YoloConfiguration = yoloConfig;
         }
 
-        internal SessionOptions BuildSessionOptionsBase()
-        {
-            if (_sessionOptions == null)
-            {
-                _sessionOptions = new SessionOptions();
-            }
-
-            _sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            _sessionOptions.EnableCpuMemArena = true;
-            _sessionOptions.EnableMemoryPattern = true;
-       
-            return _sessionOptions;
-        }
-
         internal IYoloDetectCore<DetectionResult, DetectionBatchResult> CreateYoloDetect()
         {
-            SessionOptions options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(ModelPath, options);
-            OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentTaskType = onnxModel.TaskType;
             if (CurrentTaskType != YoloTaskType.ObjectDetection)
             {
-                session.Dispose();
-                options.Dispose();
                 return null;
             }
-            var postprocess = GetDetPostprocessor(onnxModel);
-            var preprocess = GetPreprocess(onnxModel);
+            var postprocess = GetDetPostprocessor(_onnxModel);
+            var preprocess = GetPreprocess(_onnxModel);
 
-            return GetYoloDetector(session, options, postprocess, preprocess, onnxModel);
+            return GetYoloDetector(_inferenceSession, postprocess, preprocess, _onnxModel);
         }
 
         internal IYoloClassify CreateYoloClassify()
         {
-            SessionOptions options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(ModelPath, options);
-            OnnxModel onnxModel = ParseOnnxModel(session);
-
-            CurrentTaskType = onnxModel.TaskType;
             if (CurrentTaskType != YoloTaskType.Classification)
             {
-                session.Dispose();
-                options.Dispose();
                 return null;
             }
 
-            var postprocess = new ClsPostprocess(onnxModel, YoloConfiguration);
-            var preprocess = new ClsPreprocess(onnxModel, YoloConfiguration);
+            var postprocess = new ClsPostprocess(_onnxModel, YoloConfiguration);
+            var preprocess = new ClsPreprocess(_onnxModel, YoloConfiguration);
 
-            return GetYoloClassify(session, options, postprocess, preprocess, onnxModel);
+            return GetYoloClassify(_inferenceSession, postprocess, preprocess, _onnxModel);
         }
         internal IYoloSegment CreateYoloSegment()
         {
-            SessionOptions options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(ModelPath, options);
-            OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentTaskType = onnxModel.TaskType;
             if (CurrentTaskType != YoloTaskType.Segmentation)
             {
-                session.Dispose();
-                options.Dispose();
                 return null;
             }
-            var postprocess = GetSegPostprocessor(onnxModel);
-            var preprocess = GetPreprocess(onnxModel);
+            var postprocess = GetSegPostprocessor(_onnxModel);
+            var preprocess = GetPreprocess(_onnxModel);
 
-            return GetYoloSegment(session, options, postprocess, preprocess, onnxModel);
+            return GetYoloSegment(_inferenceSession, postprocess, preprocess, _onnxModel);
         }
 
         internal IYoloDetectCore<PoseResult, PoseBatchResult> CreateYoloPose()
         {
-            SessionOptions options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(ModelPath, options);
-            OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentTaskType = onnxModel.TaskType;
             if (CurrentTaskType != YoloTaskType.PoseEstimation)
             {
-                session.Dispose();
-                options.Dispose();
                 return null;
             }
-            var postprocess = GetPosePostprocessor(onnxModel);
-            var preprocess = GetPreprocess(onnxModel);
+            var postprocess = GetPosePostprocessor(_onnxModel);
+            var preprocess = GetPreprocess(_onnxModel);
 
-            return GetYoloPose(session, options, postprocess, preprocess, onnxModel);
+            return GetYoloPose(_inferenceSession, postprocess, preprocess, _onnxModel);
         }
 
         internal IYoloDetectCore<ObbResult, ObbBatchResult> CreateYoloObb()
         {
-            SessionOptions options = BuildSessionOptions();
-            InferenceSession session = new InferenceSession(ModelPath, options);
-            OnnxModel onnxModel = ParseOnnxModel(session);
-            CurrentTaskType = onnxModel.TaskType;
             if (CurrentTaskType != YoloTaskType.ObbDetection)
             {
-                session.Dispose();
-                options.Dispose();
                 return null;
             }
-            var postprocess = GetObbPostprocessor(onnxModel);
-            var preprocess = GetPreprocess(onnxModel);
+            var postprocess = GetObbPostprocessor(_onnxModel);
+            var preprocess = GetPreprocess(_onnxModel);
 
-            return GetYoloObb(session, options, postprocess, preprocess, onnxModel);
+            return GetYoloObb(_inferenceSession, postprocess, preprocess, _onnxModel);
         }
 
         private IDetCorePostprocess<DetectionResult> GetDetPostprocessor(OnnxModel onnxModel)
@@ -394,6 +368,7 @@ namespace YoloSharpOnnx.Providers
                 (byte)_rand.Next(0, 256)
             );
         }
+
 
     }
 }

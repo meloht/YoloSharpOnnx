@@ -15,8 +15,8 @@ namespace YoloSharpOnnx.Inference.Pose
 {
     internal class YoloPoseIoBinding : YoloDetectCoreIoBinding<PoseResult, PoseBatchResult>
     {
-        public YoloPoseIoBinding(InferenceSession session, SessionOptions options, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config) 
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloPoseIoBinding(InferenceSession session, IDetCorePostprocess<PoseResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

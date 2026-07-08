@@ -20,8 +20,8 @@ namespace YoloSharpOnnx.Inference.Classify
         private readonly OrtIoBinding _binding;
         private readonly OrtValue _outputOrtValue;
         private readonly FixedBuffer _outputFixedBuffer;
-        public YoloClsIoBinding(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
-            : base(session, options, onnxModel, config, postprocess, preprocess)
+        public YoloClsIoBinding(InferenceSession session, OnnxModel onnxModel, YoloConfig config, IClsPostprocess postprocess, IClsPreprocess preprocess)
+            : base(session, onnxModel, config, postprocess, preprocess)
         {
             _binding = _session.CreateIoBinding();
             _outputFixedBuffer = new FixedBuffer(_onnxModel.OutputShapeSize0);
@@ -92,6 +92,6 @@ namespace YoloSharpOnnx.Inference.Classify
             return results[0];
         }
 
-      
+
     }
 }

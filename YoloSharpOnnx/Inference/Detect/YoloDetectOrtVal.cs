@@ -17,8 +17,8 @@ namespace YoloSharpOnnx.Inference.Detect
 {
     internal class YoloDetectOrtVal : YoloDetectCoreOrtVal<DetectionResult, DetectionBatchResult>
     {
-        public YoloDetectOrtVal(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloDetectOrtVal(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

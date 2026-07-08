@@ -14,10 +14,10 @@ using YoloSharpOnnx.Models;
 
 namespace YoloSharpOnnx.Inference.Obb
 {
-    internal class YoloObbIoBinding: YoloDetectCoreIoBinding<ObbResult, ObbBatchResult>
+    internal class YoloObbIoBinding : YoloDetectCoreIoBinding<ObbResult, ObbBatchResult>
     {
-        public YoloObbIoBinding(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloObbIoBinding(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

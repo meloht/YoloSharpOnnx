@@ -16,8 +16,8 @@ namespace YoloSharpOnnx.Inference.Detect
 {
     internal class YoloDetectIoBinding : YoloDetectCoreIoBinding<DetectionResult, DetectionBatchResult>
     {
-        public YoloDetectIoBinding(InferenceSession session, SessionOptions options, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloDetectIoBinding(InferenceSession session, IDetCorePostprocess<DetectionResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

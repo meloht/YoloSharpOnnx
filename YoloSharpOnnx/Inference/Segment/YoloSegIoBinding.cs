@@ -24,8 +24,8 @@ namespace YoloSharpOnnx.Inference.Segment
         private readonly FixedBuffer _outputFixedBuffer0;
         private readonly FixedBuffer _outputFixedBuffer1;
 
-        public YoloSegIoBinding(InferenceSession session, SessionOptions options, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloSegIoBinding(InferenceSession session, ISegPostprocess postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
             _binding = _session.CreateIoBinding();
 
@@ -74,7 +74,7 @@ namespace YoloSharpOnnx.Inference.Segment
         public List<SegResult> Run(Mat inputImage)
         {
             // 预处理图像
-            var preRes = _preprocess.PreprocessImage(inputImage,_resizedImg, _inputFixedBuffer);
+            var preRes = _preprocess.PreprocessImage(inputImage, _resizedImg, _inputFixedBuffer);
 
             // 执行推理
             RunInference();
@@ -112,7 +112,7 @@ namespace YoloSharpOnnx.Inference.Segment
             _matPool.Return(preResult.Data);
             return results;
         }
-       
+
 
 
     }

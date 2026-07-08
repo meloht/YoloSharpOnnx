@@ -14,8 +14,8 @@ namespace YoloSharpOnnx.Inference.Obb
 {
     internal class YoloObbOrtVal : YoloDetectCoreOrtVal<ObbResult, ObbBatchResult>
     {
-        public YoloObbOrtVal(InferenceSession session, SessionOptions options, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
-            : base(session, options, postprocess, preprocess, onnxModel, config)
+        public YoloObbOrtVal(InferenceSession session, IDetCorePostprocess<ObbResult> postprocess, IDetPreprocess preprocess, OnnxModel onnxModel, YoloConfig config)
+            : base(session, postprocess, preprocess, onnxModel, config)
         {
         }
 

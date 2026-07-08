@@ -18,7 +18,6 @@ namespace YoloSharpOnnx.Inference
     internal abstract class OnnxInferenceCore<TResult, TBatchPreResult, TBatchResult> where TBatchPreResult : PreResultBatchBase, IDisposable, new()
     {
         protected readonly InferenceSession _session;
-        protected readonly SessionOptions _options;
         protected readonly RunOptions _runOptions;
 
         protected readonly FixedBuffer _inputFixedBuffer;
@@ -47,14 +46,13 @@ namespace YoloSharpOnnx.Inference
         protected abstract Task RunBatchInfer(TBatchResult[] batchResults, int idx, TBatchPreResult item, long startTime, IBatchProcessCallback<TBatchResult> processCallback, Action<TBatchResult> receiveAction);
 
 
-        public OnnxInferenceCore(InferenceSession session, SessionOptions options, OnnxModel onnxModel, YoloConfig config)
+        public OnnxInferenceCore(InferenceSession session, OnnxModel onnxModel, YoloConfig config)
         {
             _resizedImg = new Mat();
             _config = config;
             _onnxModel = onnxModel;
             _stopwatch = new Stopwatch();
             _session = session;
-            _options = options;
             _runOptions = new RunOptions();
 
             _inputFixedBuffer = new FixedBuffer(_onnxModel.InputShapeSize);
@@ -322,8 +320,6 @@ namespace YoloSharpOnnx.Inference
 
             _runOptions.Dispose();
             _session.Dispose();
-            _options.Dispose();
-
             _runOptions.Dispose();
             _inputOrtValue.Dispose();
             _resizedImg.Dispose();
