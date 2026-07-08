@@ -61,12 +61,12 @@ namespace YoloSharpOnnx.Providers
             if (_sessionOptions == null)
             {
                 _sessionOptions = new SessionOptions();
+                _sessionOptions.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
+                _sessionOptions.EnableCpuMemArena = true;
+                _sessionOptions.EnableMemoryPattern = true;
             }
             using SessionOptions options = _sessionOptions;
-            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL;
-            options.EnableCpuMemArena = true;
-            options.EnableMemoryPattern = true;
-
+           
             _inferenceSession = BuildSessionOptions(options);
             _onnxModel = ParseOnnxModel(_inferenceSession);
             CurrentTaskType = _onnxModel.TaskType;
