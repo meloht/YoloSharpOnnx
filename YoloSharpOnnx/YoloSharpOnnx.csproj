@@ -13,10 +13,10 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>YoloSharpOnnx is a high performance, memory reuse, cross-platform, production-ready C# YOLO inference library base on OpenCV and ONNX Runtime.</Description>
 		<Authors>meloht</Authors>
-		<Version>3.3.1</Version>
+		<Version>3.3.2</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.3.1  Upgrade to Microsoft.ML.OnnxRuntime.Managed version 1.27.1</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.3.2  Upgrade to Microsoft.ML.OnnxRuntime.Managed version 1.28.0</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
@@ -32,7 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.27.1" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
 		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
 	</ItemGroup>
 
