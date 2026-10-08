@@ -16,7 +16,7 @@
 		<Version>3.3.2</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Copyright>Copyright © meloht</Copyright>
-		<PackageReleaseNotes>YoloSharpOnnx 3.3.2  Upgrade to Microsoft.ML.OnnxRuntime.Managed version 1.28.0</PackageReleaseNotes>
+		<PackageReleaseNotes>YoloSharpOnnx 3.3.3  Upgrade to Microsoft.ML.OnnxRuntime.Managed version 1.29.0</PackageReleaseNotes>
 		<PackageIcon>YoloSharpOnnx.png</PackageIcon>
 	</PropertyGroup>
 
@@ -32,7 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
+		<PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.29.0" />
 		<PackageReference Include="OpenCvSharp4" Version="4.13.0.20260627" />
 	</ItemGroup>
 
