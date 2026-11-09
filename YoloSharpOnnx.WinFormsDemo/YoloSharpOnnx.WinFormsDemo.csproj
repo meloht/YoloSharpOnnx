@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Meloht.WinFormsViewImage" Version="1.0.3" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.4" />
-    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp5.runtime.win" Version="5.0.0.20261107" />
     <PackageReference Include="System.Management" Version="10.0.9" />
   </ItemGroup>
 
