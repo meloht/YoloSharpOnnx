@@ -33,6 +33,7 @@ namespace YoloSharpOnnx.WinFormsDemo
             using var yolo = new YoloSharp(new ExecutionProviderDirectML(_model, deviceId));
             string res = string.Empty;
             _resultImage = Cv2.ImRead(_image);
+            string ext = Path.GetExtension(_image).ToLower();
             _modelType = yolo.CurrentTaskType.GetDescription();
             if (yolo.CurrentTaskType == YoloTaskType.ObjectDetection)
             {
@@ -40,7 +41,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
                 yolo.DrawDetections(_resultImage, result.Items);
-                ShowImageForm(_image, _resultImage.ToBytes());
+                ShowImageForm(_image, _resultImage.ToBytes(ext));
             }
             else if (yolo.CurrentTaskType == YoloTaskType.Classification)
             {
@@ -48,7 +49,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
                 yolo.DrawClassification(_resultImage, result.Items);
-                ShowImageForm(_image, _resultImage.ToBytes());
+                ShowImageForm(_image, _resultImage.ToBytes(ext));
             }
             else if (yolo.CurrentTaskType == YoloTaskType.Segmentation)
             {
@@ -56,7 +57,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
                 yolo.DrawSegment(_resultImage, result.Items);
-                ShowImageForm(_image, _resultImage.ToBytes());
+                ShowImageForm(_image, _resultImage.ToBytes(ext));
             }
             else if (yolo.CurrentTaskType == YoloTaskType.PoseEstimation)
             {
@@ -64,7 +65,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
                 yolo.DrawPose(_resultImage, result.Items);
-                ShowImageForm(_image, _resultImage.ToBytes());
+                ShowImageForm(_image, _resultImage.ToBytes(ext));
             }
             else if (yolo.CurrentTaskType == YoloTaskType.ObbDetection)
             {
@@ -72,7 +73,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 res = $"{result.ToString()}, {result.SpeedResult.ToString()}";
 
                 yolo.DrawObb(_resultImage, result.Items);
-                ShowImageForm(_image, _resultImage.ToBytes());
+                ShowImageForm(_image, _resultImage.ToBytes(ext));
             }
 
             this.txtReuslt.Text = res;
@@ -110,7 +111,7 @@ namespace YoloSharpOnnx.WinFormsDemo
                 saveFileDialog1.FileName = $"res_{_modelType}_{Path.GetFileName(_image)}";
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
-                    _resultImage.SaveImage(saveFileDialog1.FileName);
+                    Cv2.ImWrite(saveFileDialog1.FileName, _resultImage);
                 }
             }
         }

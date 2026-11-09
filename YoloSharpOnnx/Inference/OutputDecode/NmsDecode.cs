@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using YoloSharpOnnx.DataResult;
 using YoloSharpOnnx.Inference.Detect.Models;
 using YoloSharpOnnx.Models;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace YoloSharpOnnx.Inference.OutputDecode
 {
@@ -87,7 +86,7 @@ namespace YoloSharpOnnx.Inference.OutputDecode
             int[] indices = [];
             if (boxes.Count > 0)
             {
-                CvDnn.NMSBoxes(boxes, scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
+                Cv2.Dnn.NMSBoxes(boxes, scores, _yoloConfig.Confidence, _yoloConfig.IoU, out indices);
             }
             return indices;
         }

@@ -19,8 +19,8 @@ namespace YoloSharpOnnx.ConsoleOpenVINO
 
         private static void TestInferPerf()
         {
-            string modelPath = @"C:\code\model\best.onnx";
-            string dir = @"C:\code\model\TestImages";
+            string modelPath = @"D:\code\model\best.onnx";
+            string dir = @"D:\code\model\TestImages";
 
             DirectoryInfo directory = new DirectoryInfo(dir);
             var files = directory.GetFiles();

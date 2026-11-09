@@ -19,7 +19,7 @@
  - **Execution Provider** CPU, CUDA / TensorRT, OpenVINO, CoreML, DirectML
  - **Batch processing images** Preprocess and Inference are executed asynchronously  with Producer/Consumer pattern
  - **High Performance Inference** Memory reuse, GPU Inference with I/O Binding
- - **Image Processing** [OpenCvSharp4](https://github.com/shimat/opencvsharp)
+ - **Image Processing** [OpenCvSharp5](https://github.com/shimat/opencvsharp)
  - **Inference Engine** [ONNX Runtime](https://github.com/microsoft/onnxruntime) is a cross-platform inference and training machine-learning accelerator.
  - **YOLO Versions** Includes support for: [YOLOv5u](https://docs.ultralytics.com/models/yolov5), [YOLOv8](https://docs.ultralytics.com/models/yolov8), [YOLOv9](https://docs.ultralytics.com/models/yolov9), [YOLOv10](https://docs.ultralytics.com/models/yolov10), [YOLO11](https://docs.ultralytics.com/models/yolo11), [YOLO12](https://docs.ultralytics.com/models/yolo12), [YOLO26](https://docs.ultralytics.com/models/yolo26), [YOLO-World](https://docs.ultralytics.com/zh/models/yolo-world), [YOLOE](https://docs.ultralytics.com/zh/models/yoloe), [RT-DETR](https://docs.ultralytics.com/zh/models/rtdetr)
 
@@ -71,7 +71,7 @@ Install Nuget packages `YoloSharpOnnx`, `OnnxRuntime`, `OpenCvSharp4.runtime`
 #### CPU Inference
 ```shell
 dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win/linux
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
@@ -82,7 +82,7 @@ using YoloSharp yolo = new YoloSharp(new ExecutionProviderCPU("yolo11n.onnx"));
 #### CoreML Inference
 ```shell
 dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.osx.10.15-x64
+dotnet add package OpenCvSharp5.runtime.osx.x64/arm64
 dotnet add package Microsoft.ML.OnnxRuntime
 ```
 
@@ -93,8 +93,8 @@ using YoloSharp yolo = new YoloSharp(new ExecutionProviderCoreML("yolo11n.onnx")
 #### CUDA/TensorRT Inference
 ```shell
 dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
-dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows
+dotnet add package OpenCvSharp5.runtime.win/linux
+dotnet add package Microsoft.ML.OnnxRuntime.Gpu.Windows/linux
 ```
 
 ```csharp
@@ -106,7 +106,7 @@ using YoloSharp yolo = new YoloSharp(new ExecutionProviderTensorRT("yolo11n.onnx
 #### DirectML Inference
 ```shell
 dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win
 dotnet add package Microsoft.ML.OnnxRuntime.DirectML
 ```
 
@@ -117,7 +117,7 @@ using YoloSharp yolo = new YoloSharp(new ExecutionProviderDirectML("yolo11n.onnx
 #### OpenVINO Inference
 ```shell
 dotnet add package YoloSharpOnnx
-dotnet add package OpenCvSharp4.runtime.win
+dotnet add package OpenCvSharp5.runtime.win/linux
 dotnet add package Intel.ML.OnnxRuntime.OpenVino
 ```
 
